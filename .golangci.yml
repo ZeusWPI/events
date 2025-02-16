@@ -20,12 +20,12 @@ linters:
     - rowserrcheck # checks whether Err of rows is checked successfully
     - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
     - staticcheck # Applies static code analysis
-    - tenv # detects using os.Setenv instead of t.Setenv
     - testpackage # makes you use a separate _test package
     - thelper # detects golang test helpers without t.Helper() call and checks consistency of test helpers
     - unconvert # removes unnecessary type conversions
     - unparam # removes unused function parameters
     - unused # finds unused variables
+    - usetesting # reports uses of functions with replacement inside the testing package
   fast: true
 
 issues:

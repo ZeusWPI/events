@@ -6,6 +6,9 @@ build:
 watch: 
 	@docker compose up
 
+db:
+	@docker compose up db
+
 sqlc:
 	sqlc generate
 

@@ -1,8 +1,8 @@
 {
   "name": "events",
-  "private": true,
-  "version": "0.0.1",
   "type": "module",
+  "version": "0.0.1",
+  "private": true,
   "scripts": {
     "dev": "vite",
     "host": "vite --host",
