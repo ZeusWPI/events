@@ -1,0 +1,21 @@
+#!/bin/bash
+
+allowed_prefixes=("fix" "chore" "docs" "feat" "refactor" "lint" "test" "deps")
+
+# Check if the script is run by the Git hook (expects a file path argument)
+if [ -f "$1" ]; then
+  # Running as a commit-msg hook, get the commit message from the file
+  commit_message=$(cat "$1")
+else
+  # Running manually or in a CI workflow, use the passed argument directly as the commit message
+  commit_message="$1"
+fi
+
+for prefix in "${allowed_prefixes[@]}"; do
+  if [[ "$commit_message" == "$prefix"* ]]; then
+    exit 0
+  fi
+done
+
+echo "Error: Commit message must start with one of the following prefixes: ${allowed_prefixes[*]}"
+exit 1

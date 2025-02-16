@@ -1,0 +1,34 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - bodyclose # checks whether HTTP response body is closed successfully
+    - copyloopvar # detects copy loop variable
+    - errcheck # checks for unchecked errors in go programs
+    - errname # checks that sentinel errors are prefixed with the `Err` and error types are suffixed with the `Error`
+    - gochecknoinits # checks that no init functions are present in Go code
+    - goimports # check import statements are formatted correctly
+    - gosimple # checks for code simplifications in Go code
+    - govet # runs the go vet tool
+    - importas # enforces consistent import aliases
+    - ineffassign # detects when assignments to existing variables are not used
+    - noctx # finds sending http request without context.Context
+    - prealloc # finds slice declarations that could potentially be preallocated
+    - revive # checks for golang coding style
+    - rowserrcheck # checks whether Err of rows is checked successfully
+    - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
+    - staticcheck # Applies static code analysis
+    - tenv # detects using os.Setenv instead of t.Setenv
+    - testpackage # makes you use a separate _test package
+    - thelper # detects golang test helpers without t.Helper() call and checks consistency of test helpers
+    - unconvert # removes unnecessary type conversions
+    - unparam # removes unused function parameters
+    - unused # finds unused variables
+  fast: true
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

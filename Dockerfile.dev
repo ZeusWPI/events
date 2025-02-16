@@ -1,0 +1,10 @@
+FROM golang:1.24.0-alpine3.20
+
+WORKDIR /backend
+
+RUN go install github.com/air-verse/air@latest
+COPY .air.toml .
+
+COPY go.mod go.sum ./
+
+CMD [ "sh", "-c", "go mod tidy && air -c .air.toml" ]

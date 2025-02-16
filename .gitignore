@@ -1,0 +1,12 @@
+# Go workspace files
+tmp
+
+# .env file
+.env
+
+# IDEA specific files
+.vscode
+.idea
+
+# Executable
+main
