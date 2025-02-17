@@ -9,3 +9,15 @@ func SliceMap[T any, U any](input []T, mapFunc func(T) U) []U {
 	}
 	return v
 }
+
+// SliceFilter returns a new slice consisting of elements that passed the filter function
+func SliceFilter[T any](input []T, filter func(T) bool) []T {
+	var filtered []T
+	for _, item := range input {
+		if filter(item) {
+			filtered = append(filtered, item)
+		}
+	}
+
+	return filtered
+}

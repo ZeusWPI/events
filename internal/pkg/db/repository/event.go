@@ -15,6 +15,7 @@ import (
 type Event interface {
 	GetAll() ([]*models.Event, error)
 	Save(*models.Event) error
+	Delete(*models.Event) error
 }
 
 type eventRepo struct {
@@ -26,7 +27,7 @@ var _ Event = (*eventRepo)(nil)
 
 // GetAll returns all events
 func (r *eventRepo) GetAll() ([]*models.Event, error) {
-	eventsDB, err := r.db.Queries().GetAllEvents(context.Background())
+	eventsDB, err := r.db.Queries().EventGetAll(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get all events | %w", err)
 	}
@@ -44,7 +45,7 @@ func (r *eventRepo) Save(e *models.Event) error {
 
 	if e.ID == 0 {
 		// Create
-		eventDB, err = r.db.Queries().CreateEvent(context.Background(), sqlc.CreateEventParams{
+		eventDB, err = r.db.Queries().EventCreate(context.Background(), sqlc.EventCreateParams{
 			Url:          e.URL,
 			Name:         e.Name,
 			Description:  pgtype.Text{String: e.Description, Valid: true},
@@ -55,7 +56,8 @@ func (r *eventRepo) Save(e *models.Event) error {
 		})
 	} else {
 		// Update
-		eventDB, err = r.db.Queries().UpdateEvent(context.Background(), sqlc.UpdateEventParams{
+		eventDB, err = r.db.Queries().EventUpdate(context.Background(), sqlc.EventUpdateParams{
+			ID:           int32(e.ID),
 			Url:          e.URL,
 			Name:         e.Name,
 			Description:  pgtype.Text{String: e.Description, Valid: true},
@@ -75,6 +77,21 @@ func (r *eventRepo) Save(e *models.Event) error {
 	return nil
 }
 
+// Delete soft deleted an event
+func (r *eventRepo) Delete(e *models.Event) error {
+	if e.ID == 0 {
+		return fmt.Errorf("Event has no ID %+v", *e)
+	}
+	eventDB, err := r.db.Queries().EventDelete(context.Background(), int32(e.ID))
+	if err != nil {
+		return fmt.Errorf("Unable to delete event %+v | %w", *e, err)
+	}
+
+	*e = *sqlcEventToModel(eventDB)
+
+	return nil
+}
+
 func sqlcEventToModel(e sqlc.Event) *models.Event {
 	return &models.Event{
 		ID:           int(e.ID),
@@ -87,5 +104,6 @@ func sqlcEventToModel(e sqlc.Event) *models.Event {
 		Location:     e.Location.String,
 		CreatedAt:    e.CreatedAt.Time,
 		UpdatedAt:    e.UpdatedAt.Time,
+		DeletedAt:    e.DeletedAt.Time,
 	}
 }

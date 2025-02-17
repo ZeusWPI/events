@@ -11,13 +11,13 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createEvent = `-- name: CreateEvent :one
+const eventCreate = `-- name: EventCreate :one
 INSERT INTO event (url, name, description, start_time, end_time, academic_year, location)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, url, name, description, start_time, end_time, academic_year, location, created_at, updated_at
+RETURNING id, url, name, description, start_time, end_time, academic_year, location, created_at, updated_at, deleted_at
 `
 
-type CreateEventParams struct {
+type EventCreateParams struct {
 	Url          string
 	Name         string
 	Description  pgtype.Text
@@ -27,8 +27,8 @@ type CreateEventParams struct {
 	Location     pgtype.Text
 }
 
-func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event, error) {
-	row := q.db.QueryRow(ctx, createEvent,
+func (q *Queries) EventCreate(ctx context.Context, arg EventCreateParams) (Event, error) {
+	row := q.db.QueryRow(ctx, eventCreate,
 		arg.Url,
 		arg.Name,
 		arg.Description,
@@ -49,18 +49,45 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event
 		&i.Location,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
-const getAllEvents = `-- name: GetAllEvents :many
+const eventDelete = `-- name: EventDelete :one
+UPDATE event 
+SET deleted_at = CURRENT_TIMESTAMP
+WHERE id = $1
+RETURNING id, url, name, description, start_time, end_time, academic_year, location, created_at, updated_at, deleted_at
+`
 
-SELECT id, url, name, description, start_time, end_time, academic_year, location, created_at, updated_at FROM event
+func (q *Queries) EventDelete(ctx context.Context, id int32) (Event, error) {
+	row := q.db.QueryRow(ctx, eventDelete, id)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.Url,
+		&i.Name,
+		&i.Description,
+		&i.StartTime,
+		&i.EndTime,
+		&i.AcademicYear,
+		&i.Location,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const eventGetAll = `-- name: EventGetAll :many
+
+SELECT id, url, name, description, start_time, end_time, academic_year, location, created_at, updated_at, deleted_at FROM event
 `
 
 // CRUD
-func (q *Queries) GetAllEvents(ctx context.Context) ([]Event, error) {
-	rows, err := q.db.Query(ctx, getAllEvents)
+func (q *Queries) EventGetAll(ctx context.Context) ([]Event, error) {
+	rows, err := q.db.Query(ctx, eventGetAll)
 	if err != nil {
 		return nil, err
 	}
@@ -79,6 +106,7 @@ func (q *Queries) GetAllEvents(ctx context.Context) ([]Event, error) {
 			&i.Location,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -90,14 +118,14 @@ func (q *Queries) GetAllEvents(ctx context.Context) ([]Event, error) {
 	return items, nil
 }
 
-const updateEvent = `-- name: UpdateEvent :one
+const eventUpdate = `-- name: EventUpdate :one
 UPDATE event 
-SET url = $1, name = $2, description = $3, start_time = $4, end_time = $5, academic_year = $6, location = $7, updated_at = CURRENT_TIMESTAMP
+SET url = $1, name = $2, description = $3, start_time = $4, end_time = $5, academic_year = $6, location = $7, updated_at = CURRENT_TIMESTAMP, deleted_at = NULL
 WHERE id = $8
-RETURNING id, url, name, description, start_time, end_time, academic_year, location, created_at, updated_at
+RETURNING id, url, name, description, start_time, end_time, academic_year, location, created_at, updated_at, deleted_at
 `
 
-type UpdateEventParams struct {
+type EventUpdateParams struct {
 	Url          string
 	Name         string
 	Description  pgtype.Text
@@ -108,8 +136,8 @@ type UpdateEventParams struct {
 	ID           int32
 }
 
-func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event, error) {
-	row := q.db.QueryRow(ctx, updateEvent,
+func (q *Queries) EventUpdate(ctx context.Context, arg EventUpdateParams) (Event, error) {
+	row := q.db.QueryRow(ctx, eventUpdate,
 		arg.Url,
 		arg.Name,
 		arg.Description,
@@ -131,6 +159,7 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event
 		&i.Location,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }

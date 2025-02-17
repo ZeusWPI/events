@@ -19,4 +19,5 @@ type Event struct {
 	Location     pgtype.Text
 	CreatedAt    pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
+	DeletedAt    pgtype.Timestamptz
 }

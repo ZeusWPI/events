@@ -17,4 +17,5 @@ type Event struct {
 	Location     string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	DeletedAt    time.Time
 }

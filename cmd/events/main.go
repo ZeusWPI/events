@@ -34,6 +34,6 @@ func main() {
 	w := website.New(*repo)
 	err = w.UpdateAll()
 	if err != nil {
-		zap.S().Fatal("Update error", err)
+		zap.S().Fatal("Update error ", err)
 	}
 }
