@@ -1,0 +1,70 @@
+package repository
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/ZeusWPI/events/internal/pkg/db/sqlc"
+	"github.com/ZeusWPI/events/internal/pkg/models"
+	"github.com/ZeusWPI/events/pkg/db"
+	"github.com/ZeusWPI/events/pkg/util"
+)
+
+// AcademicYear provides all models.AcademicYear related database operations
+type AcademicYear interface {
+	GetAll() ([]*models.AcademicYear, error)
+	Save(*models.AcademicYear) error
+}
+
+type academicYearRepo struct {
+	db db.DB
+}
+
+// Interface compliance
+var _ AcademicYear = (*academicYearRepo)(nil)
+
+// GetAll returns all academic year in desc order according to start year
+func (r *academicYearRepo) GetAll() ([]*models.AcademicYear, error) {
+	yearsDB, err := r.db.Queries().AcademicYearGetAll(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("Unable to get all academic years | %w", err)
+	}
+
+	return util.SliceMap(yearsDB, func(y sqlc.AcademicYear) *models.AcademicYear {
+		return &models.AcademicYear{
+			ID:        int(y.ID),
+			StartYear: int(y.StartYear),
+			EndYear:   int(y.EndYear),
+		}
+	}), nil
+}
+
+// Save creates a new academic year or updates an existing one
+func (r *academicYearRepo) Save(a *models.AcademicYear) error {
+	var id int32
+	var err error
+
+	if a.ID == 0 {
+		// Create
+		id, err = r.db.Queries().AcademicYearCreate(context.Background(), sqlc.AcademicYearCreateParams{
+			StartYear: int32(a.StartYear),
+			EndYear:   int32(a.EndYear),
+		})
+	} else {
+		// Update
+		id = int32(a.ID)
+		err = r.db.Queries().AcademicYearUpdate(context.Background(), sqlc.AcademicYearUpdateParams{
+			ID:        int32(a.ID),
+			StartYear: int32(a.StartYear),
+			EndYear:   int32(a.EndYear),
+		})
+	}
+
+	if err != nil {
+		return fmt.Errorf("Unable to save academic year %+v | %w", *a, err)
+	}
+
+	a.ID = int(id)
+
+	return nil
+}

@@ -13,7 +13,7 @@ type Event struct {
 	Description  string
 	StartTime    time.Time
 	EndTime      time.Time
-	AcademicYear string
+	AcademicYear AcademicYear
 	Location     string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time

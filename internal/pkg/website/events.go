@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -15,67 +14,11 @@ import (
 	"go.uber.org/zap"
 )
 
-// Warning: Webscraping results in ugly code
-
 const eventURL = "https://zeus.gent/events"
 
-// Get all academic years
-func (w *Website) fetchAllAcademicYears() ([]string, error) {
-	zap.S().Debug("Fetching academic years")
-
-	var years []string
-	var errs []error
-
-	c := colly.NewCollector()
-	c.OnHTML(".menu-list", func(e *colly.HTMLElement) {
-		yearsRaw := e.ChildAttrs("a", "href")
-		if len(yearsRaw) < 2 {
-			// Will only happen if someone nukes the Zeus WPI website
-			return
-		}
-		sort.Strings(yearsRaw)
-		// The current year (represented by '#') is now the first element and last year is the last element.
-		lastYear, err := getAcademicYear(yearsRaw[len(yearsRaw)-1])
-		if err != nil {
-			errs = append(errs, err)
-			return
-		}
-
-		currentYear, err := incrementYear(lastYear)
-		if err != nil {
-			errs = append(errs, err)
-			return
-		}
-
-		for _, year := range yearsRaw[1:] {
-			y, err := getAcademicYear(year)
-			if err != nil {
-				errs = append(errs, err)
-				continue
-			}
-
-			years = append(years, y)
-		}
-		years = append(years, currentYear)
-	})
-
-	err := c.Visit(eventURL)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to visit Zeus WPI website %s | %w", eventURL, err)
-	}
-
-	c.Wait()
-
-	if errs != nil {
-		return nil, errors.Join(errs...)
-	}
-
-	return years, nil
-}
-
 // Get all event urls for a given academic year
-func (w *Website) fetchEventURLSByAcademicYear(year string) ([]string, error) {
-	zap.S().Debug("Fetching event URLS for academic year ", year)
+func (w *Website) fetchEventURLSByAcademicYear(year models.AcademicYear) ([]string, error) {
+	zap.S().Debug("Fetching event URLS for academic year ", year.String())
 
 	var urls []string
 	var errs []error
@@ -91,7 +34,7 @@ func (w *Website) fetchEventURLSByAcademicYear(year string) ([]string, error) {
 		urls = append(urls, parts[3])
 	})
 
-	err := c.Visit(fmt.Sprintf("%s/%s", eventURL, year))
+	err := c.Visit(fmt.Sprintf("%s/%s", eventURL, year.String()))
 	if err != nil {
 		return nil, err
 	}
@@ -105,11 +48,11 @@ func (w *Website) fetchEventURLSByAcademicYear(year string) ([]string, error) {
 	return urls, nil
 }
 
-// Update scrapes the website for event data and saves it
-func (w *Website) Update(event *models.Event) error {
+// UpdateEvent scrapes the website for event data and saves it
+func (w *Website) UpdateEvent(event *models.Event) error {
 	zap.S().Debug("Updating event ", event.Name, event.URL, event.AcademicYear)
 
-	if event.URL == "" || event.AcademicYear == "" {
+	if event.URL == "" || (event.AcademicYear == models.AcademicYear{}) {
 		return fmt.Errorf("Event has no URL or acdemic year: %+v", event)
 	}
 
@@ -135,7 +78,7 @@ func (w *Website) Update(event *models.Event) error {
 		}
 	})
 
-	err := c.Visit(fmt.Sprintf("%s/%s/%s", eventURL, event.AcademicYear, event.URL))
+	err := c.Visit(fmt.Sprintf("%s/%s/%s", eventURL, event.AcademicYear.String(), event.URL))
 	if err != nil {
 		return err
 	}
@@ -149,11 +92,11 @@ func (w *Website) Update(event *models.Event) error {
 	return w.eventRepo.Save(event)
 }
 
-// UpdateAll synchronizes all events with the website
-func (w *Website) UpdateAll() error {
+// UpdateAllEvents synchronizes all events with the website
+func (w *Website) UpdateAllEvents() error {
 	zap.S().Debug("Updating all events")
 
-	years, err := w.fetchAllAcademicYears()
+	years, err := w.yearRepo.GetAll()
 	if err != nil {
 		return err
 	}
@@ -167,7 +110,7 @@ func (w *Website) UpdateAll() error {
 	var wg sync.WaitGroup
 	for _, year := range years {
 		wg.Add(1)
-		go func(year string) {
+		go func(year models.AcademicYear) {
 			defer wg.Done()
 
 			urls, err := w.fetchEventURLSByAcademicYear(year)
@@ -181,9 +124,9 @@ func (w *Website) UpdateAll() error {
 				var event *models.Event
 				for _, e := range events {
 					// Try to find existing event
-					if e.URL == url && e.AcademicYear == year {
+					if e.URL == url && e.AcademicYear.Equal(year) {
 						event = e
-						continue
+						break
 					}
 				}
 				if event == nil {
@@ -191,7 +134,7 @@ func (w *Website) UpdateAll() error {
 					event = &models.Event{URL: url, AcademicYear: year}
 				}
 
-				if err = w.Update(event); err != nil {
+				if err = w.UpdateEvent(event); err != nil {
 					errs = append(errs, err)
 				}
 			}
@@ -204,7 +147,7 @@ func (w *Website) UpdateAll() error {
 					}
 				}
 			}
-		}(year)
+		}(*year)
 	}
 
 	wg.Wait()

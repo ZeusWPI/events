@@ -8,6 +8,12 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AcademicYear struct {
+	ID        int32
+	StartYear int32
+	EndYear   int32
+}
+
 type Event struct {
 	ID           int32
 	Url          string
@@ -15,9 +21,9 @@ type Event struct {
 	Description  pgtype.Text
 	StartTime    pgtype.Timestamptz
 	EndTime      pgtype.Timestamptz
-	AcademicYear string
 	Location     pgtype.Text
 	CreatedAt    pgtype.Timestamptz
 	UpdatedAt    pgtype.Timestamptz
 	DeletedAt    pgtype.Timestamptz
+	AcademicYear int32
 }

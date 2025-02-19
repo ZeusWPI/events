@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ZeusWPI/events/internal/pkg/db/sqlc"
 	"github.com/ZeusWPI/events/internal/pkg/models"
@@ -20,6 +21,8 @@ type Event interface {
 
 type eventRepo struct {
 	db db.DB
+
+	year AcademicYear
 }
 
 // Interface compliance
@@ -32,38 +35,64 @@ func (r *eventRepo) GetAll() ([]*models.Event, error) {
 		return nil, fmt.Errorf("Unable to get all events | %w", err)
 	}
 
-	return util.SliceMap(
-			eventsDB,
-			func(ev sqlc.Event) *models.Event { return sqlcEventToModel(ev) }),
-		nil
+	years, err := r.year.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	events := make([]*models.Event, 0, len(eventsDB))
+	for _, e := range eventsDB {
+		year, ok := util.SliceFind(years, func(y *models.AcademicYear) bool { return y.ID == int(e.AcademicYear) })
+		if !ok {
+			continue
+		}
+
+		event := &models.Event{
+			ID:           int(e.ID),
+			URL:          e.Url,
+			Name:         e.Name,
+			Description:  e.Description.String,
+			StartTime:    e.StartTime.Time,
+			EndTime:      e.EndTime.Time,
+			AcademicYear: *year,
+			Location:     e.Location.String,
+			CreatedAt:    e.CreatedAt.Time,
+			UpdatedAt:    e.UpdatedAt.Time,
+			DeletedAt:    e.DeletedAt.Time,
+		}
+		events = append(events, event)
+	}
+
+	return events, nil
 }
 
-// Save saves a new event
+// Save creates a new academic year or updates an existing one
 func (r *eventRepo) Save(e *models.Event) error {
-	var eventDB sqlc.Event
+	var id int32
 	var err error
 
 	if e.ID == 0 {
 		// Create
-		eventDB, err = r.db.Queries().EventCreate(context.Background(), sqlc.EventCreateParams{
+		id, err = r.db.Queries().EventCreate(context.Background(), sqlc.EventCreateParams{
 			Url:          e.URL,
 			Name:         e.Name,
 			Description:  pgtype.Text{String: e.Description, Valid: true},
 			StartTime:    pgtype.Timestamptz{Time: e.StartTime, Valid: true},
 			EndTime:      pgtype.Timestamptz{Time: e.EndTime, Valid: true},
-			AcademicYear: e.AcademicYear,
+			AcademicYear: int32(e.AcademicYear.ID),
 			Location:     pgtype.Text{String: e.Location, Valid: true},
 		})
 	} else {
 		// Update
-		eventDB, err = r.db.Queries().EventUpdate(context.Background(), sqlc.EventUpdateParams{
+		id = int32(e.ID)
+		err = r.db.Queries().EventUpdate(context.Background(), sqlc.EventUpdateParams{
 			ID:           int32(e.ID),
 			Url:          e.URL,
 			Name:         e.Name,
 			Description:  pgtype.Text{String: e.Description, Valid: true},
 			StartTime:    pgtype.Timestamptz{Time: e.StartTime, Valid: true},
 			EndTime:      pgtype.Timestamptz{Time: e.EndTime, Valid: true},
-			AcademicYear: e.AcademicYear,
+			AcademicYear: int32(e.AcademicYear.ID),
 			Location:     pgtype.Text{String: e.Location, Valid: true},
 		})
 	}
@@ -72,38 +101,23 @@ func (r *eventRepo) Save(e *models.Event) error {
 		return fmt.Errorf("Unable to save event %+v | %w", *e, err)
 	}
 
-	*e = *sqlcEventToModel(eventDB)
+	e.ID = int(id)
 
 	return nil
 }
 
-// Delete soft deleted an event
+// Delete soft deletes an event
 func (r *eventRepo) Delete(e *models.Event) error {
 	if e.ID == 0 {
 		return fmt.Errorf("Event has no ID %+v", *e)
 	}
-	eventDB, err := r.db.Queries().EventDelete(context.Background(), int32(e.ID))
+
+	err := r.db.Queries().EventDelete(context.Background(), int32(e.ID))
 	if err != nil {
 		return fmt.Errorf("Unable to delete event %+v | %w", *e, err)
 	}
 
-	*e = *sqlcEventToModel(eventDB)
+	e.DeletedAt = time.Now() // Close enough
 
 	return nil
-}
-
-func sqlcEventToModel(e sqlc.Event) *models.Event {
-	return &models.Event{
-		ID:           int(e.ID),
-		URL:          e.Url,
-		Name:         e.Name,
-		Description:  e.Description.String,
-		StartTime:    e.StartTime.Time,
-		EndTime:      e.EndTime.Time,
-		AcademicYear: e.AcademicYear,
-		Location:     e.Location.String,
-		CreatedAt:    e.CreatedAt.Time,
-		UpdatedAt:    e.UpdatedAt.Time,
-		DeletedAt:    e.DeletedAt.Time,
-	}
 }

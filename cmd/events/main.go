@@ -30,9 +30,14 @@ func main() {
 		zap.S().Fatal("Unable to connect to database", err)
 	}
 
+	// Temporarily populate db with all events and academic years
 	repo := repository.New(db)
 	w := website.New(*repo)
-	err = w.UpdateAll()
+	err = w.UpdateAllAcademicYears()
+	if err != nil {
+		zap.S().Fatal("AcademicYear error", err)
+	}
+	err = w.UpdateAllEvents()
 	if err != nil {
 		zap.S().Fatal("Update error ", err)
 	}

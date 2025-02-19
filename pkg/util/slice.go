@@ -21,3 +21,15 @@ func SliceFilter[T any](input []T, filter func(T) bool) []T {
 
 	return filtered
 }
+
+// SliceFind returns the first item determined by the equal function, the zero value if not found
+// The second argument returns true if found, false otherwise
+func SliceFind[T any](input []T, equal func(T) bool) (T, bool) {
+	for _, item := range input {
+		if equal(item) {
+			return item, true
+		}
+	}
+
+	return *new(T), false
+}
