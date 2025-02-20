@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "precommit:lint": "eslint .",
-    "precommit:typecheck": "tsc --noEmit"
+    "precommit:typecheck": "tsc --noEmit",
+    "workflow:lint": "eslint .",
+    "workflow:typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.6",

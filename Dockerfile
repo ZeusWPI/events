@@ -5,11 +5,12 @@ RUN apk add upx alpine-sdk
 
 WORKDIR /backend
 
-COPY [^ui] .
+COPY go.mod go.sum ./ 
+RUN go mod download 
 
-RUN go mod download
+COPY . .
 
-RUN CGO_ENABLED=1 go build -ldflags "-s -w" -v -tags musl cmd/main/main.go
+RUN CGO_ENABLED=1 go build -ldflags "-s -w" -v -tags musl -o main ./cmd/events/main.go
 
 RUN upx --best --lzma main
 
@@ -19,14 +20,10 @@ FROM node:22.8.0-alpine3.20 as build_frontend
 
 WORKDIR /frontend
 
-COPY uit/package.json package.json
+COPY ui/package.json ui/pnpm-lock.yaml ./
+RUN npm install -g pnpm@9.15.5 && pnpm install 
 
-COPY ui/pnpm-lock.yaml pnpn-lock.yaml
-
-RUN npm install -g pnpm@9.15.5
-RUN pnpm install
-
-COPY ui/[^node_modules] .
+COPY ui/ .
 
 RUN pnpm run build
 
@@ -37,7 +34,9 @@ FROM alpine:3.20
 WORKDIR /
 
 COPY --from=build_backend /backend/main .
-COPY --from=build_frontend /frontend/dist public
+COPY --from=build_frontend /frontend/dist ./public
+
+RUN chmod +x ./main
 
 ENV ENV=PRODUCTION
 
