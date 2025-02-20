@@ -1,6 +1,25 @@
 # Events
 
-Tool to help remember all the required steps for a successful event!
+**E**venementen **V**erzamelen en **E**valueren, **N**otificeren van **T**odo's en **S**tatussen
+
+As the name suggests it's a tool to help remember all the required steps for a successful event!
+
+## Goal
+
+It strives to create as little manual work as possible. \
+While this is not possible for every check, the vast majority of them will be fully automatic. \
+In the end the following checks will (hopefully) be supported:
+
+- Announcements
+- A well written website event page
+- Posters
+- DSA website entry
+- Reservations (if it's not taking place in the Kelder)
+- Mentioned in a presentation for every bachelor year
+- Mentioned in an email
+- Custom checks
+
+With each check having it's own deadline and reminder notifications (emails) for the organisers.
 
 ## Backend
 
@@ -35,8 +54,8 @@ It uses:
 
 ### Run the application
 
-Configure the environment variables in both the [backend](.env.example) and [frontend](ui/.env.example).
-Migrate the database by starting the database `make db` and running the migrations `make migrate`.
+Configure the environment variables in both the [backend](.env.example) and [frontend](ui/.env.example). \
+Migrate the database by starting the database `make db` and running the migrations `make migrate`. \
 Start the backend & frontend (both supporting HMR) `make watch`.
 
 ### Commits
