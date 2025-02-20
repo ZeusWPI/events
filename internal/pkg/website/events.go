@@ -18,8 +18,6 @@ const eventURL = "https://zeus.gent/events"
 
 // Get all event urls for a given academic year
 func (w *Website) fetchEventURLSByAcademicYear(year models.AcademicYear) ([]string, error) {
-	zap.S().Debug("Fetching event URLS for academic year ", year.String())
-
 	var urls []string
 	var errs []error
 
@@ -50,8 +48,6 @@ func (w *Website) fetchEventURLSByAcademicYear(year models.AcademicYear) ([]stri
 
 // UpdateEvent scrapes the website for event data and saves it
 func (w *Website) UpdateEvent(event *models.Event) error {
-	zap.S().Debug("Updating event ", event.Name, event.URL, event.AcademicYear)
-
 	if event.URL == "" || (event.AcademicYear == models.AcademicYear{}) {
 		return fmt.Errorf("Event has no URL or acdemic year: %+v", event)
 	}
@@ -67,7 +63,7 @@ func (w *Website) UpdateEvent(event *models.Event) error {
 		startRaw := e.ChildAttr(".fa-ul > li:nth-child(1) > span:nth-child(2)", "content")
 		start, err := time.Parse("2006-01-02T15:04:05-07:00", startRaw)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("Unable to parse event start time %s | %+v | %w", startRaw, *event, err))
+			errs = append(errs, fmt.Errorf("Unable to parse event start time %s | %+v | %v", startRaw, *event, err))
 		}
 		event.StartTime = start
 		// End time is not necessary

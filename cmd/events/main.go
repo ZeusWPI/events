@@ -2,6 +2,9 @@
 package main
 
 import (
+	"time"
+
+	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/pkg/db/repository"
 	"github.com/ZeusWPI/events/internal/pkg/website"
 	"github.com/ZeusWPI/events/pkg/config"
@@ -27,18 +30,17 @@ func main() {
 		Password: config.GetString("db.password"),
 	})
 	if err != nil {
-		zap.S().Fatal("Unable to connect to database", err)
+		zap.S().Fatalf("Unable to connect to database %v", err)
 	}
 
-	// Temporarily populate db with all events and academic years
 	repo := repository.New(db)
-	w := website.New(*repo)
-	err = w.UpdateAllAcademicYears()
-	if err != nil {
-		zap.S().Fatal("AcademicYear error", err)
-	}
-	err = w.UpdateAllEvents()
-	if err != nil {
-		zap.S().Fatal("Update error ", err)
+
+	// Start website
+	website := website.New(*repo)
+	cmd.RunWebsitePeriodic(website)
+
+	// For the time being wait in an indefinite loop
+	for {
+		time.Sleep(time.Minute * 1)
 	}
 }

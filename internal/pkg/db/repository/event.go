@@ -32,7 +32,7 @@ var _ Event = (*eventRepo)(nil)
 func (r *eventRepo) GetAll() ([]*models.Event, error) {
 	eventsDB, err := r.db.Queries().EventGetAll(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get all events | %w", err)
+		return nil, fmt.Errorf("Unable to get all events | %v", err)
 	}
 
 	years, err := r.year.GetAll()
@@ -98,7 +98,7 @@ func (r *eventRepo) Save(e *models.Event) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Unable to save event %+v | %w", *e, err)
+		return fmt.Errorf("Unable to save event %+v | %v", *e, err)
 	}
 
 	e.ID = int(id)
@@ -114,7 +114,7 @@ func (r *eventRepo) Delete(e *models.Event) error {
 
 	err := r.db.Queries().EventDelete(context.Background(), int32(e.ID))
 	if err != nil {
-		return fmt.Errorf("Unable to delete event %+v | %w", *e, err)
+		return fmt.Errorf("Unable to delete event %+v | %v", *e, err)
 	}
 
 	e.DeletedAt = time.Now() // Close enough

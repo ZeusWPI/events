@@ -27,7 +27,7 @@ var _ AcademicYear = (*academicYearRepo)(nil)
 func (r *academicYearRepo) GetAll() ([]*models.AcademicYear, error) {
 	yearsDB, err := r.db.Queries().AcademicYearGetAll(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get all academic years | %w", err)
+		return nil, fmt.Errorf("Unable to get all academic years | %v", err)
 	}
 
 	return util.SliceMap(yearsDB, func(y sqlc.AcademicYear) *models.AcademicYear {
@@ -61,7 +61,7 @@ func (r *academicYearRepo) Save(a *models.AcademicYear) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Unable to save academic year %+v | %w", *a, err)
+		return fmt.Errorf("Unable to save academic year %+v | %v", *a, err)
 	}
 
 	a.ID = int(id)

@@ -62,7 +62,7 @@ func (p *psql) Queries() *sqlc.Queries {
 func (p *psql) WithRollback(ctx context.Context, fn func(q *sqlc.Queries) error) error {
 	tx, err := p.pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("Failed to start transaction: %w", err)
+		return fmt.Errorf("Failed to start transaction: %v", err)
 	}
 	defer func() {
 		// Will error out if tx.Commit is called first

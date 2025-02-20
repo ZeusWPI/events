@@ -16,8 +16,6 @@ const academicYearURL = "https://zeus.gent/events"
 
 // Get all academic years
 func (w *Website) fetchAllAcademicYears() ([]string, error) {
-	zap.S().Debug("Fetching academic years")
-
 	var years []string
 	var errs []error
 
@@ -56,7 +54,7 @@ func (w *Website) fetchAllAcademicYears() ([]string, error) {
 
 	err := c.Visit(academicYearURL)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to visit Zeus WPI website %s | %w", academicYearURL, err)
+		return nil, fmt.Errorf("Unable to visit Zeus WPI website %s | %v", academicYearURL, err)
 	}
 
 	c.Wait()
@@ -102,7 +100,7 @@ func (w *Website) UpdateAllAcademicYears() error {
 		start, err1 := strconv.Atoi("20" + parts[0]) // Come find me when this breaks in the year 3000
 		end, err2 := strconv.Atoi("20" + parts[1])
 		if err1 != nil || err2 != nil {
-			errs = append(errs, fmt.Errorf("Unable to convert string academic year to int %s | %w | %w", y, err1, err2))
+			errs = append(errs, fmt.Errorf("Unable to convert string academic year to int %s | %v | %v", y, err1, err2))
 		}
 
 		if err := w.yearRepo.Save(&models.AcademicYear{
@@ -113,11 +111,7 @@ func (w *Website) UpdateAllAcademicYears() error {
 	}
 
 	if errs != nil {
-		return fmt.Errorf("Unable to update all academic years %w", errors.Join(errs...))
-	}
-
-	if len(yearsToAdd) > 0 {
-		zap.S().Debug("Inserted new academic year(s): ", yearsToAdd)
+		return fmt.Errorf("Unable to update all academic years %v", errors.Join(errs...))
 	}
 
 	return nil
