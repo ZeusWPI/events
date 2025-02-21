@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ZeusWPI/events/internal/pkg/models"
+	"github.com/ZeusWPI/events/internal/pkg/model"
 	"github.com/gocolly/colly"
 	"go.uber.org/zap"
 )
@@ -103,7 +103,7 @@ func (w *Website) UpdateAllAcademicYears() error {
 			errs = append(errs, fmt.Errorf("Unable to convert string academic year to int %s | %v | %v", y, err1, err2))
 		}
 
-		if err := w.yearRepo.Save(&models.AcademicYear{
+		if err := w.yearRepo.Save(&model.AcademicYear{
 			StartYear: start, EndYear: end,
 		}); err != nil {
 			errs = append(errs, err)

@@ -1,5 +1,3 @@
--- CRUD 
-
 -- name: EventGetAll :many 
 SELECT * FROM event;
 

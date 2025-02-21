@@ -28,4 +28,12 @@ func RunWebsitePeriodic(w *website.Website) {
 		task:     func() error { return w.UpdateAllEvents() },
 	}
 	go eventsTask.run()
+
+	boardsTask := &periodicTask{
+		name:     "update board members",
+		interval: time.Duration(config.GetDefaultInt("website.boards_s", 86400)) * time.Second,
+		done:     make(chan bool),
+		task:     func() error { return w.UpdateAllBoards() },
+	}
+	go boardsTask.run()
 }

@@ -28,12 +28,10 @@ func (q *Queries) AcademicYearCreate(ctx context.Context, arg AcademicYearCreate
 }
 
 const academicYearGetAll = `-- name: AcademicYearGetAll :many
-
 SELECT id, start_year, end_year FROM academic_year
 ORDER BY start_year DESC
 `
 
-// CRUD
 func (q *Queries) AcademicYearGetAll(ctx context.Context) ([]AcademicYear, error) {
 	rows, err := q.db.Query(ctx, academicYearGetAll)
 	if err != nil {

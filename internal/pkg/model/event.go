@@ -1,5 +1,5 @@
-// Package models contains all internal data models
-package models
+// Package model contains all internal data models
+package model
 
 import (
 	"time"
