@@ -1,0 +1,10 @@
+db:
+  host: localhost
+  port: 5432
+  database: events
+  user: postgres
+  password: postgres
+
+website:
+  academicYears_s: 86400
+  events_s: 3600
