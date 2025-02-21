@@ -6,17 +6,17 @@ import (
 	"time"
 
 	"github.com/ZeusWPI/events/internal/pkg/db/sqlc"
-	"github.com/ZeusWPI/events/internal/pkg/models"
+	"github.com/ZeusWPI/events/internal/pkg/model"
 	"github.com/ZeusWPI/events/pkg/db"
 	"github.com/ZeusWPI/events/pkg/util"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// Event provides all models.Event related database operations
+// Event provides all model.Event related database operations
 type Event interface {
-	GetAll() ([]*models.Event, error)
-	Save(*models.Event) error
-	Delete(*models.Event) error
+	GetAll() ([]*model.Event, error)
+	Save(*model.Event) error
+	Delete(*model.Event) error
 }
 
 type eventRepo struct {
@@ -29,7 +29,7 @@ type eventRepo struct {
 var _ Event = (*eventRepo)(nil)
 
 // GetAll returns all events
-func (r *eventRepo) GetAll() ([]*models.Event, error) {
+func (r *eventRepo) GetAll() ([]*model.Event, error) {
 	eventsDB, err := r.db.Queries().EventGetAll(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get all events | %v", err)
@@ -40,14 +40,14 @@ func (r *eventRepo) GetAll() ([]*models.Event, error) {
 		return nil, err
 	}
 
-	events := make([]*models.Event, 0, len(eventsDB))
+	events := make([]*model.Event, 0, len(eventsDB))
 	for _, e := range eventsDB {
-		year, ok := util.SliceFind(years, func(y *models.AcademicYear) bool { return y.ID == int(e.AcademicYear) })
+		year, ok := util.SliceFind(years, func(y *model.AcademicYear) bool { return y.ID == int(e.AcademicYear) })
 		if !ok {
 			continue
 		}
 
-		event := &models.Event{
+		event := &model.Event{
 			ID:           int(e.ID),
 			URL:          e.Url,
 			Name:         e.Name,
@@ -67,7 +67,7 @@ func (r *eventRepo) GetAll() ([]*models.Event, error) {
 }
 
 // Save creates a new academic year or updates an existing one
-func (r *eventRepo) Save(e *models.Event) error {
+func (r *eventRepo) Save(e *model.Event) error {
 	var id int32
 	var err error
 
@@ -107,7 +107,7 @@ func (r *eventRepo) Save(e *models.Event) error {
 }
 
 // Delete soft deletes an event
-func (r *eventRepo) Delete(e *models.Event) error {
+func (r *eventRepo) Delete(e *model.Event) error {
 	if e.ID == 0 {
 		return fmt.Errorf("Event has no ID %+v", *e)
 	}

@@ -54,11 +54,9 @@ func (q *Queries) EventDelete(ctx context.Context, id int32) error {
 }
 
 const eventGetAll = `-- name: EventGetAll :many
-
 SELECT id, url, name, description, start_time, end_time, location, created_at, updated_at, deleted_at, academic_year FROM event
 `
 
-// CRUD
 func (q *Queries) EventGetAll(ctx context.Context) ([]Event, error) {
 	rows, err := q.db.Query(ctx, eventGetAll)
 	if err != nil {

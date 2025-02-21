@@ -5,15 +5,15 @@ import (
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/pkg/db/sqlc"
-	"github.com/ZeusWPI/events/internal/pkg/models"
+	"github.com/ZeusWPI/events/internal/pkg/model"
 	"github.com/ZeusWPI/events/pkg/db"
 	"github.com/ZeusWPI/events/pkg/util"
 )
 
-// AcademicYear provides all models.AcademicYear related database operations
+// AcademicYear provides all model.AcademicYear related database operations
 type AcademicYear interface {
-	GetAll() ([]*models.AcademicYear, error)
-	Save(*models.AcademicYear) error
+	GetAll() ([]*model.AcademicYear, error)
+	Save(*model.AcademicYear) error
 }
 
 type academicYearRepo struct {
@@ -24,14 +24,14 @@ type academicYearRepo struct {
 var _ AcademicYear = (*academicYearRepo)(nil)
 
 // GetAll returns all academic year in desc order according to start year
-func (r *academicYearRepo) GetAll() ([]*models.AcademicYear, error) {
+func (r *academicYearRepo) GetAll() ([]*model.AcademicYear, error) {
 	yearsDB, err := r.db.Queries().AcademicYearGetAll(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get all academic years | %v", err)
 	}
 
-	return util.SliceMap(yearsDB, func(y sqlc.AcademicYear) *models.AcademicYear {
-		return &models.AcademicYear{
+	return util.SliceMap(yearsDB, func(y sqlc.AcademicYear) *model.AcademicYear {
+		return &model.AcademicYear{
 			ID:        int(y.ID),
 			StartYear: int(y.StartYear),
 			EndYear:   int(y.EndYear),
@@ -40,7 +40,7 @@ func (r *academicYearRepo) GetAll() ([]*models.AcademicYear, error) {
 }
 
 // Save creates a new academic year or updates an existing one
-func (r *academicYearRepo) Save(a *models.AcademicYear) error {
+func (r *academicYearRepo) Save(a *model.AcademicYear) error {
 	var id int32
 	var err error
 

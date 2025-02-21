@@ -19,7 +19,7 @@ ALTER TABLE event
 DROP COLUMN academic_year;
 
 ALTER TABLE event
-ADD COLUMN academic_year VARCHAR(255) NOT NULL;
+ADD COLUMN academic_year VARCHAR(255);
 
 DROP TABLE IF EXISTS academic_year;
 -- +goose StatementEnd

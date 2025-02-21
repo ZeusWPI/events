@@ -1,5 +1,3 @@
--- CRUD 
-
 -- name: AcademicYearGetAll :many 
 SELECT * FROM academic_year
 ORDER BY start_year DESC;  

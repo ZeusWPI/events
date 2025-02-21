@@ -14,6 +14,15 @@ type AcademicYear struct {
 	EndYear   int32
 }
 
+type Board struct {
+	ID           int32
+	Member       int32
+	AcademicYear int32
+	Role         string
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+}
+
 type Event struct {
 	ID           int32
 	Url          string
@@ -26,4 +35,16 @@ type Event struct {
 	UpdatedAt    pgtype.Timestamptz
 	DeletedAt    pgtype.Timestamptz
 	AcademicYear int32
+}
+
+type Member struct {
+	ID       int32
+	Name     string
+	Username pgtype.Text
+}
+
+type Organizer struct {
+	ID    int32
+	Event int32
+	Board int32
 }

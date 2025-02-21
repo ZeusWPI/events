@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ZeusWPI/events/internal/pkg/models"
+	"github.com/ZeusWPI/events/internal/pkg/model"
 	"github.com/ZeusWPI/events/pkg/util"
 	"github.com/gocolly/colly"
 	"go.uber.org/zap"
@@ -17,7 +17,7 @@ import (
 const eventURL = "https://zeus.gent/events"
 
 // Get all event urls for a given academic year
-func (w *Website) fetchEventURLSByAcademicYear(year models.AcademicYear) ([]string, error) {
+func (w *Website) fetchEventURLSByAcademicYear(year model.AcademicYear) ([]string, error) {
 	var urls []string
 	var errs []error
 
@@ -34,7 +34,7 @@ func (w *Website) fetchEventURLSByAcademicYear(year models.AcademicYear) ([]stri
 
 	err := c.Visit(fmt.Sprintf("%s/%s", eventURL, year.String()))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unable to visit url %s | %v", eventURL, err)
 	}
 
 	c.Wait()
@@ -47,8 +47,8 @@ func (w *Website) fetchEventURLSByAcademicYear(year models.AcademicYear) ([]stri
 }
 
 // UpdateEvent scrapes the website for event data and saves it
-func (w *Website) UpdateEvent(event *models.Event) error {
-	if event.URL == "" || (event.AcademicYear == models.AcademicYear{}) {
+func (w *Website) UpdateEvent(event *model.Event) error {
+	if event.URL == "" || (event.AcademicYear == model.AcademicYear{}) {
 		return fmt.Errorf("Event has no URL or acdemic year: %+v", event)
 	}
 
@@ -74,9 +74,10 @@ func (w *Website) UpdateEvent(event *models.Event) error {
 		}
 	})
 
-	err := c.Visit(fmt.Sprintf("%s/%s/%s", eventURL, event.AcademicYear.String(), event.URL))
+	url := fmt.Sprintf("%s/%s/%s", eventURL, event.AcademicYear.String(), event.URL)
+	err := c.Visit(url)
 	if err != nil {
-		return err
+		return fmt.Errorf("Unable to visit url %s | %v", url, err)
 	}
 
 	c.Wait()
@@ -106,7 +107,7 @@ func (w *Website) UpdateAllEvents() error {
 	var wg sync.WaitGroup
 	for _, year := range years {
 		wg.Add(1)
-		go func(year models.AcademicYear) {
+		go func(year model.AcademicYear) {
 			defer wg.Done()
 
 			urls, err := w.fetchEventURLSByAcademicYear(year)
@@ -117,7 +118,7 @@ func (w *Website) UpdateAllEvents() error {
 
 			// Create / update each scraped event
 			for _, url := range urls {
-				var event *models.Event
+				var event *model.Event
 				for _, e := range events {
 					// Try to find existing event
 					if e.URL == url && e.AcademicYear.Equal(year) {
@@ -127,7 +128,7 @@ func (w *Website) UpdateAllEvents() error {
 				}
 				if event == nil {
 					// Not found, create one
-					event = &models.Event{URL: url, AcademicYear: year}
+					event = &model.Event{URL: url, AcademicYear: year}
 				}
 
 				if err = w.UpdateEvent(event); err != nil {
@@ -136,7 +137,7 @@ func (w *Website) UpdateAllEvents() error {
 			}
 
 			// Mark existing events that weren't found as deleted
-			for _, event := range util.SliceFilter(events, func(e *models.Event) bool { return e.AcademicYear == year }) {
+			for _, event := range util.SliceFilter(events, func(e *model.Event) bool { return e.AcademicYear == year }) {
 				if !slices.Contains(urls, event.URL) {
 					if err = w.eventRepo.Delete(event); err != nil {
 						errs = append(errs, err)
