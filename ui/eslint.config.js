@@ -1,5 +1,5 @@
-import antfu from "@antfu/eslint-config"
-import pluginQuery from "@tanstack/eslint-plugin-query"
+import antfu from "@antfu/eslint-config";
+import pluginQuery from "@tanstack/eslint-plugin-query";
 
 export default antfu(
   {
@@ -12,9 +12,10 @@ export default antfu(
     stylistic: {
       indent: 2,
       quotes: "double",
+      semi: true,
     },
     ignores: [
       "src/components/ui/*",
     ],
   },
-).prepend(...pluginQuery.configs["flat/recommended"])
+).prepend(...pluginQuery.configs["flat/recommended"]);
