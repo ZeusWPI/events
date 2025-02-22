@@ -43,6 +43,15 @@ It uses:
 - [Tailwind](https://tailwindcss.com/)
 - [Zod](https://zod.dev/)
 
+## Production
+
+A docker container gets build every time main gets updated.
+
+1. Set `APP_ENV=production` in a `.env` file and mount it in the container to `.env`
+2. Create and configure a `production.yml` file and mount it to `/config/production.yml`
+3. Make sure an external database is running
+4. Run the container, the server listens to port 4000
+
 ## Development
 
 ### Prerequisites
