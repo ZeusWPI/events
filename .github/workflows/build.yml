@@ -27,7 +27,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build . -t ghcr.io/zeuswpi/events:pr-${{ github.sha }}
+          docker build --build-arg BUILD_TIME="$(date -u '+%d/%m %H:%M')" . -t ghcr.io/zeuswpi/events:pr-${{ github.sha }}
           if [ "${{ github.event_name }}" == "push" ]; then
             docker tag ghcr.io/zeuswpi/events:pr-${{ github.sha }} ghcr.io/zeuswpi/events:latest
           fi
