@@ -14,10 +14,17 @@ import (
 	"go.uber.org/zap"
 )
 
-const eventURL = "https://zeus.gent/events"
+const (
+	eventURL       = "https://zeus.gent/events"
+	eventStartYear = 2000
+)
 
 // Get all event urls for a given academic year
 func (w *Website) fetchEventURLSByAcademicYear(year model.AcademicYear) ([]string, error) {
+	if year.StartYear < eventStartYear {
+		return nil, nil
+	}
+
 	var urls []string
 	var errs []error
 
@@ -32,9 +39,10 @@ func (w *Website) fetchEventURLSByAcademicYear(year model.AcademicYear) ([]strin
 		urls = append(urls, parts[3])
 	})
 
-	err := c.Visit(fmt.Sprintf("%s/%s", eventURL, year.String()))
+	url := fmt.Sprintf("%s/%s", eventURL, year.String())
+	err := c.Visit(url)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to visit url %s | %v", eventURL, err)
+		return nil, fmt.Errorf("Unable to visit url %s | %v", url, err)
 	}
 
 	c.Wait()

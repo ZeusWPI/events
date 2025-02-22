@@ -97,7 +97,7 @@ func (w *Website) UpdateAllAcademicYears() error {
 	var errs []error
 	for _, y := range yearsToAdd {
 		parts := strings.Split(y, "-")
-		start, err1 := strconv.Atoi("20" + parts[0]) // Come find me when this breaks in the year 3000
+		start, err1 := strconv.Atoi("20" + parts[0]) // Come find me when this breaks
 		end, err2 := strconv.Atoi("20" + parts[1])
 		if err1 != nil || err2 != nil {
 			errs = append(errs, fmt.Errorf("Unable to convert string academic year to int %s | %v | %v", y, err1, err2))
