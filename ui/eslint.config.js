@@ -1,18 +1,20 @@
 import antfu from "@antfu/eslint-config"
 import pluginQuery from "@tanstack/eslint-plugin-query"
 
-export default antfu({
-  react: true,
+export default antfu(
+  {
+    react: true,
 
-  typescript: {
-    tsconfigPath: "tsconfig.json",
-  },
+    typescript: {
+      tsconfigPath: "tsconfig.json",
+    },
 
-  stylistic: {
-    indent: 2,
-    quotes: "double",
+    stylistic: {
+      indent: 2,
+      quotes: "double",
+    },
+    ignores: [
+      "src/components/ui/*",
+    ],
   },
-  ignores: [
-    "src/components/ui/*",
-  ],
-}).prepend(...pluginQuery.configs["flat/recommended"])
+).prepend(...pluginQuery.configs["flat/recommended"])
