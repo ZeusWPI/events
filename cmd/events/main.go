@@ -2,8 +2,6 @@
 package main
 
 import (
-	"time"
-
 	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/pkg/db/repository"
 	"github.com/ZeusWPI/events/internal/pkg/website"
@@ -39,8 +37,5 @@ func main() {
 	website := website.New(*repo)
 	cmd.RunWebsitePeriodic(website)
 
-	// For the time being wait in an indefinite loop
-	for {
-		time.Sleep(time.Minute * 1)
-	}
+	cmd.API()
 }
