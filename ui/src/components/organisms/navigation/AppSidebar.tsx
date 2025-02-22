@@ -1,7 +1,9 @@
+import type { Optional } from "@/lib/types/general";
 import type { ReactNode } from "react";
+import EventsIcon from "@/components/icons/EventsIcon";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useBreadcrumbs } from "@/lib/hooks/useBreadcrumb";
 import { Link } from "@tanstack/react-router";
 import { Fragment } from "react";
@@ -10,11 +12,30 @@ import NavEvents from "./NavEvents";
 function AppSidebar({ children }: { children: ReactNode }) {
   const { state: breadcrumbs } = useBreadcrumbs();
 
+  const buildTime = import.meta.env.VITE_BUILD_TIME as Optional<string>;
+
   return (
     <SidebarProvider>
       <Sidebar variant="inset" collapsible="icon">
         <SidebarHeader>
-          Header
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" asChild>
+                <Link to="/">
+                  <div className="flex aspect-square size-8 items-center justify-center ">
+                    <EventsIcon className="[&:not([data-state=open])]:ml-0.5 size-8 fill-secondary-foreground" />
+                  </div>
+                  <div className="flex flex-col gap-0.5 leading-none">
+                    <span className="font-semibold">Events</span>
+                    <span className="text-xs text-muted-foreground">
+                      Built:
+                      {buildTime}
+                    </span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>

@@ -25,6 +25,9 @@ RUN npm install -g pnpm@9.15.5 && pnpm install
 
 COPY ui/ .
 
+ARG BUILD_TIME
+ENV VITE_BUILD_TIME=$BUILD_TIME
+
 RUN pnpm run build
 
 
