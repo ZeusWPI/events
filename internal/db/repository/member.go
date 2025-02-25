@@ -4,29 +4,28 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ZeusWPI/events/internal/pkg/db/sqlc"
-	"github.com/ZeusWPI/events/internal/pkg/model"
-	"github.com/ZeusWPI/events/pkg/db"
+	"github.com/ZeusWPI/events/internal/db/model"
+	"github.com/ZeusWPI/events/internal/db/sqlc"
 	"github.com/ZeusWPI/events/pkg/util"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 // Member provides all model.member related database operations
 type Member interface {
-	GetAll() ([]*model.Member, error)
-	Save(*model.Member) error
+	GetAll(context.Context) ([]*model.Member, error)
+	Save(context.Context, *model.Member) error
 }
 
 type memberRepo struct {
-	db db.DB
+	repo Repository
 }
 
 // Interface compliance
 var _ Member = (*memberRepo)(nil)
 
 // GetAll returns all members
-func (r *memberRepo) GetAll() ([]*model.Member, error) {
-	members, err := r.db.Queries().MemberGetAll(context.Background())
+func (r *memberRepo) GetAll(ctx context.Context) ([]*model.Member, error) {
+	members, err := r.repo.queries(ctx).MemberGetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get all members %v", err)
 	}
@@ -46,7 +45,7 @@ func (r *memberRepo) GetAll() ([]*model.Member, error) {
 }
 
 // Save creates a new member or updates an existing one
-func (r *memberRepo) Save(m *model.Member) error {
+func (r *memberRepo) Save(ctx context.Context, m *model.Member) error {
 	var id int32
 	var err error
 
@@ -57,7 +56,7 @@ func (r *memberRepo) Save(m *model.Member) error {
 			username.Valid = false
 		}
 
-		id, err = r.db.Queries().MemberCreate(context.Background(), sqlc.MemberCreateParams{
+		id, err = r.repo.queries(ctx).MemberCreate(ctx, sqlc.MemberCreateParams{
 			Name:     m.Name,
 			Username: username,
 		})
@@ -69,7 +68,7 @@ func (r *memberRepo) Save(m *model.Member) error {
 			username.Valid = false
 		}
 
-		err = r.db.Queries().MemberUpdate(context.Background(), sqlc.MemberUpdateParams{
+		err = r.repo.queries(ctx).MemberUpdate(ctx, sqlc.MemberUpdateParams{
 			ID:       int32(m.ID),
 			Name:     m.Name,
 			Username: username,

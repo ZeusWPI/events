@@ -4,7 +4,7 @@ package db
 import (
 	"context"
 
-	"github.com/ZeusWPI/events/internal/pkg/db/sqlc"
+	"github.com/ZeusWPI/events/internal/db/sqlc"
 )
 
 // DB represents a database connection

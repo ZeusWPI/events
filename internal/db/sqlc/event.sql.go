@@ -54,18 +54,37 @@ func (q *Queries) EventDelete(ctx context.Context, id int32) error {
 }
 
 const eventGetAll = `-- name: EventGetAll :many
-SELECT id, url, name, description, start_time, end_time, location, created_at, updated_at, deleted_at, academic_year FROM event
+SELECT event.id, url, name, description, start_time, end_time, location, created_at, updated_at, deleted_at, academic_year, academic_year.id, start_year, end_year FROM event
+INNER JOIN academic_year ON event.academic_year = academic_year.id 
+WHERE event.deleted_at IS NULL
 `
 
-func (q *Queries) EventGetAll(ctx context.Context) ([]Event, error) {
+type EventGetAllRow struct {
+	ID           int32
+	Url          string
+	Name         string
+	Description  pgtype.Text
+	StartTime    pgtype.Timestamptz
+	EndTime      pgtype.Timestamptz
+	Location     pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+	DeletedAt    pgtype.Timestamptz
+	AcademicYear int32
+	ID_2         int32
+	StartYear    int32
+	EndYear      int32
+}
+
+func (q *Queries) EventGetAll(ctx context.Context) ([]EventGetAllRow, error) {
 	rows, err := q.db.Query(ctx, eventGetAll)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Event
+	var items []EventGetAllRow
 	for rows.Next() {
-		var i Event
+		var i EventGetAllRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Url,
@@ -78,6 +97,9 @@ func (q *Queries) EventGetAll(ctx context.Context) ([]Event, error) {
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.AcademicYear,
+			&i.ID_2,
+			&i.StartYear,
+			&i.EndYear,
 		); err != nil {
 			return nil, err
 		}

@@ -1,5 +1,7 @@
--- name: EventGetAll :many 
-SELECT * FROM event;
+-- name: EventGetAllWithAcademicYear :many 
+SELECT * FROM event
+INNER JOIN academic_year ON event.academic_year = academic_year.id 
+WHERE event.deleted_at IS NULL;
 
 -- name: EventCreate :one 
 INSERT INTO event (url, name, description, start_time, end_time, academic_year, location)

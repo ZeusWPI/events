@@ -1,4 +1,4 @@
--- name: BoardGetAll :many
+-- name: BoardGetAllWithMemberAcademicYear :many
 SELECT * FROM board b 
 INNER JOIN member m ON b.member = m.id 
 INNER JOIN academic_year a_y ON b.academic_year = a_y.id;
