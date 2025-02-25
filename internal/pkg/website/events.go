@@ -1,6 +1,7 @@
 package website
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"slices"
@@ -8,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ZeusWPI/events/internal/pkg/model"
+	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/pkg/util"
 	"github.com/gocolly/colly"
 	"go.uber.org/zap"
@@ -94,19 +95,19 @@ func (w *Website) UpdateEvent(event *model.Event) error {
 		return errors.Join(errs...)
 	}
 
-	return w.eventRepo.Save(event)
+	return w.eventRepo.Save(context.Background(), event)
 }
 
 // UpdateAllEvents synchronizes all events with the website
 func (w *Website) UpdateAllEvents() error {
 	zap.S().Debug("Updating all events")
 
-	years, err := w.yearRepo.GetAll()
+	years, err := w.yearRepo.GetAll(context.Background())
 	if err != nil {
 		return err
 	}
 
-	events, err := w.eventRepo.GetAll()
+	events, err := w.eventRepo.GetAll(context.Background())
 	if err != nil {
 		return err
 	}
@@ -147,7 +148,7 @@ func (w *Website) UpdateAllEvents() error {
 			// Mark existing events that weren't found as deleted
 			for _, event := range util.SliceFilter(events, func(e *model.Event) bool { return e.AcademicYear == year }) {
 				if !slices.Contains(urls, event.URL) {
-					if err = w.eventRepo.Delete(event); err != nil {
+					if err = w.eventRepo.Delete(context.Background(), event); err != nil {
 						errs = append(errs, err)
 					}
 				}

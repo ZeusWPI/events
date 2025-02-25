@@ -2,7 +2,7 @@
 package website
 
 import (
-	"github.com/ZeusWPI/events/internal/pkg/db/repository"
+	"github.com/ZeusWPI/events/internal/db/repository"
 )
 
 // Warning: This package contains a lot of webscraping

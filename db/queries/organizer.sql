@@ -1,5 +1,7 @@
 -- name: OrganizerGetAllByEvent :many 
 SELECT * FROM organizer 
+INNER JOIN event ON organizer.event = event.id
+INNER JOIN board ON organizer.board = board.id
 WHERE event = $1;
 
 -- name: OrganizerCreate :one 

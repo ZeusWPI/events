@@ -1,6 +1,7 @@
 package website
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -9,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/ZeusWPI/events/internal/pkg/model"
+	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/gocolly/colly"
 	"go.uber.org/zap"
 )
@@ -81,17 +82,17 @@ func (w *Website) UpdateAllBoards() error {
 		return err
 	}
 
-	years, err := w.yearRepo.GetAll()
+	years, err := w.yearRepo.GetAll(context.Background())
 	if err != nil {
 		return nil
 	}
 
-	members, err := w.memberRepo.GetAll()
+	members, err := w.memberRepo.GetAll(context.Background())
 	if err != nil {
 		return nil
 	}
 
-	boards, err := w.boardRepo.GetAll()
+	boards, err := w.boardRepo.GetAll(context.Background())
 	if err != nil {
 		return err
 	}
@@ -124,7 +125,7 @@ func (w *Website) UpdateAllBoards() error {
 				}
 			}
 
-			err := w.boardRepo.Save(&board)
+			err := w.boardRepo.Save(context.Background(), &board)
 			if err != nil {
 				errs = append(errs, err)
 				break

@@ -4,20 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ZeusWPI/events/internal/pkg/db/sqlc"
-	"github.com/ZeusWPI/events/internal/pkg/model"
-	"github.com/ZeusWPI/events/pkg/db"
+	"github.com/ZeusWPI/events/internal/db/model"
+	"github.com/ZeusWPI/events/internal/db/sqlc"
 	"github.com/ZeusWPI/events/pkg/util"
 )
 
 // Board provides all model.Board related database operations
 type Board interface {
-	GetAll() ([]*model.Board, error)
-	Save(*model.Board) error
+	GetAll(context.Context) ([]*model.Board, error)
+	Save(context.Context, *model.Board) error
 }
 
 type boardRepo struct {
-	db db.DB
+	repo Repository
 
 	year   AcademicYear
 	member Member
@@ -27,8 +26,8 @@ type boardRepo struct {
 var _ Board = (*boardRepo)(nil)
 
 // GetAll returns all boards
-func (r *boardRepo) GetAll() ([]*model.Board, error) {
-	boards, err := r.db.Queries().BoardGetAll(context.Background())
+func (r *boardRepo) GetAll(ctx context.Context) ([]*model.Board, error) {
+	boards, err := r.repo.queries(ctx).BoardGetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get all boards | %v", err)
 	}
@@ -57,28 +56,28 @@ func (r *boardRepo) GetAll() ([]*model.Board, error) {
 }
 
 // Save creates a new board
-func (r *boardRepo) Save(b *model.Board) error {
+func (r *boardRepo) Save(ctx context.Context, b *model.Board) error {
 	if b.ID != 0 {
 		// Already in database
 		return nil
 	}
 
-	return r.db.WithRollback(context.Background(), func(q *sqlc.Queries) error {
+	return r.repo.withRollback(ctx, func(c context.Context) error {
 		if b.Member.ID == 0 {
-			err := r.member.Save(&b.Member)
+			err := r.member.Save(c, &b.Member)
 			if err != nil {
 				return err
 			}
 		}
 
 		if b.AcademicYear.ID == 0 {
-			err := r.year.Save(&b.AcademicYear)
+			err := r.year.Save(c, &b.AcademicYear)
 			if err != nil {
 				return err
 			}
 		}
 
-		id, err := q.BoardCreate(context.Background(), sqlc.BoardCreateParams{
+		id, err := r.repo.queries(c).BoardCreate(c, sqlc.BoardCreateParams{
 			Member:       int32(b.Member.ID),
 			AcademicYear: int32(b.AcademicYear.ID),
 			Role:         b.Role,

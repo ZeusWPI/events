@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ZeusWPI/events/internal/pkg/db/sqlc"
+	"github.com/ZeusWPI/events/internal/db/sqlc"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -69,7 +69,7 @@ func (p *psql) WithRollback(ctx context.Context, fn func(q *sqlc.Queries) error)
 		_ = tx.Rollback(ctx)
 	}()
 
-	queries := sqlc.New(p.pool)
+	queries := sqlc.New(tx)
 
 	if err := fn(queries); err != nil {
 		return err

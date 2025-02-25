@@ -4,28 +4,27 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ZeusWPI/events/internal/pkg/db/sqlc"
-	"github.com/ZeusWPI/events/internal/pkg/model"
-	"github.com/ZeusWPI/events/pkg/db"
+	"github.com/ZeusWPI/events/internal/db/model"
+	"github.com/ZeusWPI/events/internal/db/sqlc"
 	"github.com/ZeusWPI/events/pkg/util"
 )
 
 // AcademicYear provides all model.AcademicYear related database operations
 type AcademicYear interface {
-	GetAll() ([]*model.AcademicYear, error)
-	Save(*model.AcademicYear) error
+	GetAll(context.Context) ([]*model.AcademicYear, error)
+	Save(context.Context, *model.AcademicYear) error
 }
 
 type academicYearRepo struct {
-	db db.DB
+	repo Repository
 }
 
 // Interface compliance
 var _ AcademicYear = (*academicYearRepo)(nil)
 
 // GetAll returns all academic year in desc order according to start year
-func (r *academicYearRepo) GetAll() ([]*model.AcademicYear, error) {
-	yearsDB, err := r.db.Queries().AcademicYearGetAll(context.Background())
+func (r *academicYearRepo) GetAll(ctx context.Context) ([]*model.AcademicYear, error) {
+	yearsDB, err := r.repo.queries(ctx).AcademicYearGetAll(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get all academic years | %v", err)
 	}
@@ -40,20 +39,20 @@ func (r *academicYearRepo) GetAll() ([]*model.AcademicYear, error) {
 }
 
 // Save creates a new academic year or updates an existing one
-func (r *academicYearRepo) Save(a *model.AcademicYear) error {
+func (r *academicYearRepo) Save(ctx context.Context, a *model.AcademicYear) error {
 	var id int32
 	var err error
 
 	if a.ID == 0 {
 		// Create
-		id, err = r.db.Queries().AcademicYearCreate(context.Background(), sqlc.AcademicYearCreateParams{
+		id, err = r.repo.queries(ctx).AcademicYearCreate(ctx, sqlc.AcademicYearCreateParams{
 			StartYear: int32(a.StartYear),
 			EndYear:   int32(a.EndYear),
 		})
 	} else {
 		// Update
 		id = int32(a.ID)
-		err = r.db.Queries().AcademicYearUpdate(context.Background(), sqlc.AcademicYearUpdateParams{
+		err = r.repo.queries(ctx).AcademicYearUpdate(ctx, sqlc.AcademicYearUpdateParams{
 			ID:        int32(a.ID),
 			StartYear: int32(a.StartYear),
 			EndYear:   int32(a.EndYear),

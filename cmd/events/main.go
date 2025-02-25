@@ -3,7 +3,7 @@ package main
 
 import (
 	"github.com/ZeusWPI/events/internal/cmd"
-	"github.com/ZeusWPI/events/internal/pkg/db/repository"
+	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/pkg/website"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/ZeusWPI/events/pkg/db"

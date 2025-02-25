@@ -15,6 +15,7 @@ type Event struct {
 	EndTime      time.Time
 	AcademicYear AcademicYear
 	Location     string
+	Organizers   []Board
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 	DeletedAt    time.Time

@@ -1,13 +1,14 @@
 package website
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
 	"strconv"
 	"strings"
 
-	"github.com/ZeusWPI/events/internal/pkg/model"
+	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/gocolly/colly"
 	"go.uber.org/zap"
 )
@@ -75,7 +76,7 @@ func (w *Website) UpdateAllAcademicYears() error {
 		return err
 	}
 
-	yearsDB, err := w.yearRepo.GetAll()
+	yearsDB, err := w.yearRepo.GetAll(context.Background())
 	if err != nil {
 		return err
 	}
@@ -103,7 +104,7 @@ func (w *Website) UpdateAllAcademicYears() error {
 			errs = append(errs, fmt.Errorf("Unable to convert string academic year to int %s | %v | %v", y, err1, err2))
 		}
 
-		if err := w.yearRepo.Save(&model.AcademicYear{
+		if err := w.yearRepo.Save(context.Background(), &model.AcademicYear{
 			StartYear: start, EndYear: end,
 		}); err != nil {
 			errs = append(errs, err)
