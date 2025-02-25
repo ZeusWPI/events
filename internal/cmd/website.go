@@ -10,14 +10,14 @@ import (
 
 // RunWebsitePeriodic starts all the periodic background tasks for the website package
 func RunWebsitePeriodic(w *website.Website) {
-	// Making sure fetching the academic years is run at least once before the events are fetched.
-	_ = w.UpdateAllAcademicYears()
+	// Making sure fetching the years is run at least once before the events are fetched.
+	_ = w.UpdateAllYears()
 
 	yearsTask := &periodicTask{
-		name:     "update academic years",
-		interval: time.Duration(config.GetDefaultInt("website.academicYears_s", 86400)) * time.Second,
+		name:     "update years",
+		interval: time.Duration(config.GetDefaultInt("website.years_s", 86400)) * time.Second,
 		done:     make(chan bool),
-		task:     func() error { return w.UpdateAllAcademicYears() },
+		task:     func() error { return w.UpdateAllYears() },
 	}
 	go yearsTask.run()
 

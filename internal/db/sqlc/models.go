@@ -8,33 +8,27 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type AcademicYear struct {
-	ID        int32
-	StartYear int32
-	EndYear   int32
-}
-
 type Board struct {
-	ID           int32
-	Member       int32
-	AcademicYear int32
-	Role         string
-	CreatedAt    pgtype.Timestamptz
-	UpdatedAt    pgtype.Timestamptz
+	ID        int32
+	Member    int32
+	Year      int32
+	Role      string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
 }
 
 type Event struct {
-	ID           int32
-	Url          string
-	Name         string
-	Description  pgtype.Text
-	StartTime    pgtype.Timestamptz
-	EndTime      pgtype.Timestamptz
-	Location     pgtype.Text
-	CreatedAt    pgtype.Timestamptz
-	UpdatedAt    pgtype.Timestamptz
-	DeletedAt    pgtype.Timestamptz
-	AcademicYear int32
+	ID          int32
+	Url         string
+	Name        string
+	Description pgtype.Text
+	StartTime   pgtype.Timestamptz
+	EndTime     pgtype.Timestamptz
+	Location    pgtype.Text
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	DeletedAt   pgtype.Timestamptz
+	Year        int32
 }
 
 type Member struct {
@@ -47,4 +41,10 @@ type Organizer struct {
 	ID    int32
 	Event int32
 	Board int32
+}
+
+type Year struct {
+	ID        int32
+	StartYear int32
+	EndYear   int32
 }

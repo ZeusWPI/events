@@ -7,12 +7,12 @@ CREATE TABLE IF NOT EXISTS event (
   description TEXT,
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ,
-  academic_year VARCHAR(255) NOT NULL,
+  year VARCHAR(255) NOT NULL,
   location TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMPTZ DEFAULT NULL,
-  UNIQUE(url, academic_year)
+  UNIQUE(url, year)
 );
 -- +goose StatementEnd
 

@@ -12,19 +12,19 @@ import (
 )
 
 const eventCreate = `-- name: EventCreate :one
-INSERT INTO event (url, name, description, start_time, end_time, academic_year, location)
+INSERT INTO event (url, name, description, start_time, end_time, year, location)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id
 `
 
 type EventCreateParams struct {
-	Url          string
-	Name         string
-	Description  pgtype.Text
-	StartTime    pgtype.Timestamptz
-	EndTime      pgtype.Timestamptz
-	AcademicYear int32
-	Location     pgtype.Text
+	Url         string
+	Name        string
+	Description pgtype.Text
+	StartTime   pgtype.Timestamptz
+	EndTime     pgtype.Timestamptz
+	Year        int32
+	Location    pgtype.Text
 }
 
 func (q *Queries) EventCreate(ctx context.Context, arg EventCreateParams) (int32, error) {
@@ -34,7 +34,7 @@ func (q *Queries) EventCreate(ctx context.Context, arg EventCreateParams) (int32
 		arg.Description,
 		arg.StartTime,
 		arg.EndTime,
-		arg.AcademicYear,
+		arg.Year,
 		arg.Location,
 	)
 	var id int32
@@ -53,38 +53,38 @@ func (q *Queries) EventDelete(ctx context.Context, id int32) error {
 	return err
 }
 
-const eventGetAll = `-- name: EventGetAll :many
-SELECT event.id, url, name, description, start_time, end_time, location, created_at, updated_at, deleted_at, academic_year, academic_year.id, start_year, end_year FROM event
-INNER JOIN academic_year ON event.academic_year = academic_year.id 
+const eventGetAllWithYear = `-- name: EventGetAllWithYear :many
+SELECT event.id, url, name, description, start_time, end_time, location, created_at, updated_at, deleted_at, year, year.id, start_year, end_year FROM event
+INNER JOIN year ON event.year = year.id 
 WHERE event.deleted_at IS NULL
 `
 
-type EventGetAllRow struct {
-	ID           int32
-	Url          string
-	Name         string
-	Description  pgtype.Text
-	StartTime    pgtype.Timestamptz
-	EndTime      pgtype.Timestamptz
-	Location     pgtype.Text
-	CreatedAt    pgtype.Timestamptz
-	UpdatedAt    pgtype.Timestamptz
-	DeletedAt    pgtype.Timestamptz
-	AcademicYear int32
-	ID_2         int32
-	StartYear    int32
-	EndYear      int32
+type EventGetAllWithYearRow struct {
+	ID          int32
+	Url         string
+	Name        string
+	Description pgtype.Text
+	StartTime   pgtype.Timestamptz
+	EndTime     pgtype.Timestamptz
+	Location    pgtype.Text
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	DeletedAt   pgtype.Timestamptz
+	Year        int32
+	ID_2        int32
+	StartYear   int32
+	EndYear     int32
 }
 
-func (q *Queries) EventGetAll(ctx context.Context) ([]EventGetAllRow, error) {
-	rows, err := q.db.Query(ctx, eventGetAll)
+func (q *Queries) EventGetAllWithYear(ctx context.Context) ([]EventGetAllWithYearRow, error) {
+	rows, err := q.db.Query(ctx, eventGetAllWithYear)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []EventGetAllRow
+	var items []EventGetAllWithYearRow
 	for rows.Next() {
-		var i EventGetAllRow
+		var i EventGetAllWithYearRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Url,
@@ -96,7 +96,7 @@ func (q *Queries) EventGetAll(ctx context.Context) ([]EventGetAllRow, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
-			&i.AcademicYear,
+			&i.Year,
 			&i.ID_2,
 			&i.StartYear,
 			&i.EndYear,
@@ -113,19 +113,19 @@ func (q *Queries) EventGetAll(ctx context.Context) ([]EventGetAllRow, error) {
 
 const eventUpdate = `-- name: EventUpdate :exec
 UPDATE event 
-SET url = $1, name = $2, description = $3, start_time = $4, end_time = $5, academic_year = $6, location = $7, updated_at = CURRENT_TIMESTAMP, deleted_at = NULL
+SET url = $1, name = $2, description = $3, start_time = $4, end_time = $5, year = $6, location = $7, updated_at = CURRENT_TIMESTAMP, deleted_at = NULL
 WHERE id = $8
 `
 
 type EventUpdateParams struct {
-	Url          string
-	Name         string
-	Description  pgtype.Text
-	StartTime    pgtype.Timestamptz
-	EndTime      pgtype.Timestamptz
-	AcademicYear int32
-	Location     pgtype.Text
-	ID           int32
+	Url         string
+	Name        string
+	Description pgtype.Text
+	StartTime   pgtype.Timestamptz
+	EndTime     pgtype.Timestamptz
+	Year        int32
+	Location    pgtype.Text
+	ID          int32
 }
 
 func (q *Queries) EventUpdate(ctx context.Context, arg EventUpdateParams) error {
@@ -135,7 +135,7 @@ func (q *Queries) EventUpdate(ctx context.Context, arg EventUpdateParams) error 
 		arg.Description,
 		arg.StartTime,
 		arg.EndTime,
-		arg.AcademicYear,
+		arg.Year,
 		arg.Location,
 		arg.ID,
 	)
