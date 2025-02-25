@@ -13,28 +13,26 @@ import (
 
 // Event provides all model.Event related database operations
 type Event interface {
-	GetAll(context.Context) ([]*model.Event, error)
+	EventGetAllWithYear(context.Context) ([]*model.Event, error)
 	Save(context.Context, *model.Event) error
 	Delete(context.Context, *model.Event) error
 }
 
 type eventRepo struct {
 	repo Repository
-
-	year AcademicYear
 }
 
 // Interface compliance
 var _ Event = (*eventRepo)(nil)
 
 // GetAll returns all events
-func (r *eventRepo) GetAll(ctx context.Context) ([]*model.Event, error) {
-	events, err := r.repo.queries(ctx).EventGetAll(ctx)
+func (r *eventRepo) EventGetAllWithYear(ctx context.Context) ([]*model.Event, error) {
+	events, err := r.repo.queries(ctx).EventGetAllWithYear(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get all events | %v", err)
 	}
 
-	return util.SliceMap(events, func(e sqlc.EventGetAllRow) *model.Event {
+	return util.SliceMap(events, func(e sqlc.EventGetAllWithYearRow) *model.Event {
 		return &model.Event{
 			ID:          int(e.ID),
 			URL:         e.Url,
@@ -42,7 +40,7 @@ func (r *eventRepo) GetAll(ctx context.Context) ([]*model.Event, error) {
 			Description: e.Description.String,
 			StartTime:   e.StartTime.Time,
 			EndTime:     e.EndTime.Time,
-			AcademicYear: model.AcademicYear{
+			Year: model.Year{
 				ID:        int(e.ID_2),
 				StartYear: int(e.StartYear),
 				EndYear:   int(e.EndYear),
@@ -56,7 +54,7 @@ func (r *eventRepo) GetAll(ctx context.Context) ([]*model.Event, error) {
 	}), nil
 }
 
-// Save creates a new academic year or updates an existing one
+// Save creates a new event or updates an existing one
 func (r *eventRepo) Save(ctx context.Context, e *model.Event) error {
 	var id int32
 	var err error
@@ -64,26 +62,26 @@ func (r *eventRepo) Save(ctx context.Context, e *model.Event) error {
 	if e.ID == 0 {
 		// Create
 		id, err = r.repo.queries(ctx).EventCreate(ctx, sqlc.EventCreateParams{
-			Url:          e.URL,
-			Name:         e.Name,
-			Description:  pgtype.Text{String: e.Description, Valid: true},
-			StartTime:    pgtype.Timestamptz{Time: e.StartTime, Valid: true},
-			EndTime:      pgtype.Timestamptz{Time: e.EndTime, Valid: true},
-			AcademicYear: int32(e.AcademicYear.ID),
-			Location:     pgtype.Text{String: e.Location, Valid: true},
+			Url:         e.URL,
+			Name:        e.Name,
+			Description: pgtype.Text{String: e.Description, Valid: true},
+			StartTime:   pgtype.Timestamptz{Time: e.StartTime, Valid: true},
+			EndTime:     pgtype.Timestamptz{Time: e.EndTime, Valid: true},
+			Year:        int32(e.Year.ID),
+			Location:    pgtype.Text{String: e.Location, Valid: true},
 		})
 	} else {
 		// Update
 		id = int32(e.ID)
 		err = r.repo.queries(ctx).EventUpdate(ctx, sqlc.EventUpdateParams{
-			ID:           int32(e.ID),
-			Url:          e.URL,
-			Name:         e.Name,
-			Description:  pgtype.Text{String: e.Description, Valid: true},
-			StartTime:    pgtype.Timestamptz{Time: e.StartTime, Valid: true},
-			EndTime:      pgtype.Timestamptz{Time: e.EndTime, Valid: true},
-			AcademicYear: int32(e.AcademicYear.ID),
-			Location:     pgtype.Text{String: e.Location, Valid: true},
+			ID:          int32(e.ID),
+			Url:         e.URL,
+			Name:        e.Name,
+			Description: pgtype.Text{String: e.Description, Valid: true},
+			StartTime:   pgtype.Timestamptz{Time: e.StartTime, Valid: true},
+			EndTime:     pgtype.Timestamptz{Time: e.EndTime, Valid: true},
+			Year:        int32(e.Year.ID),
+			Location:    pgtype.Text{String: e.Location, Valid: true},
 		})
 	}
 

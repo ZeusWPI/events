@@ -40,19 +40,19 @@ func (r *Repository) withRollback(ctx context.Context, fn func(ctx context.Conte
 
 // Table specific repositories
 
-// NewAcademicYear creates a new AcademicYear repository
-func (r *Repository) NewAcademicYear() AcademicYear {
-	return &academicYearRepo{repo: *r}
+// NewYear creates a new Year repository
+func (r *Repository) NewYear() Year {
+	return &yearRepo{repo: *r}
 }
 
 // NewEvent creates a new Event repository
 func (r *Repository) NewEvent() Event {
-	return &eventRepo{repo: *r, year: r.NewAcademicYear()}
+	return &eventRepo{repo: *r}
 }
 
 // NewBoard creates a new Board repository
 func (r *Repository) NewBoard() Board {
-	return &boardRepo{repo: *r, member: r.NewMember(), year: r.NewAcademicYear()}
+	return &boardRepo{repo: *r, member: r.NewMember(), year: r.NewYear()}
 }
 
 // NewMember creates a new Member repository

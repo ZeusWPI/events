@@ -6,6 +6,6 @@ db:
   password: postgres
 
 website:
-  academicYears_s: 86400
+  years_s: 86400
   events_s: 3600
   boards_s: 86400

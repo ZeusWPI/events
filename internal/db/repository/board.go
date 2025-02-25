@@ -11,14 +11,14 @@ import (
 
 // Board provides all model.Board related database operations
 type Board interface {
-	GetAll(context.Context) ([]*model.Board, error)
+	GetAllWithMemberYear(context.Context) ([]*model.Board, error)
 	Save(context.Context, *model.Board) error
 }
 
 type boardRepo struct {
 	repo Repository
 
-	year   AcademicYear
+	year   Year
 	member Member
 }
 
@@ -26,13 +26,13 @@ type boardRepo struct {
 var _ Board = (*boardRepo)(nil)
 
 // GetAll returns all boards
-func (r *boardRepo) GetAll(ctx context.Context) ([]*model.Board, error) {
-	boards, err := r.repo.queries(ctx).BoardGetAll(ctx)
+func (r *boardRepo) GetAllWithMemberYear(ctx context.Context) ([]*model.Board, error) {
+	boards, err := r.repo.queries(ctx).BoardGetAllWithMemberYear(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to get all boards | %v", err)
 	}
 
-	return util.SliceMap(boards, func(b sqlc.BoardGetAllRow) *model.Board {
+	return util.SliceMap(boards, func(b sqlc.BoardGetAllWithMemberYearRow) *model.Board {
 		username := ""
 		if b.Username.Valid {
 			username = b.Username.String
@@ -45,7 +45,7 @@ func (r *boardRepo) GetAll(ctx context.Context) ([]*model.Board, error) {
 				Name:     b.Name,
 				Username: username,
 			},
-			AcademicYear: model.AcademicYear{
+			Year: model.Year{
 				ID:        int(b.ID_3),
 				StartYear: int(b.StartYear),
 				EndYear:   int(b.EndYear),
@@ -70,17 +70,17 @@ func (r *boardRepo) Save(ctx context.Context, b *model.Board) error {
 			}
 		}
 
-		if b.AcademicYear.ID == 0 {
-			err := r.year.Save(c, &b.AcademicYear)
+		if b.Year.ID == 0 {
+			err := r.year.Save(c, &b.Year)
 			if err != nil {
 				return err
 			}
 		}
 
 		id, err := r.repo.queries(c).BoardCreate(c, sqlc.BoardCreateParams{
-			Member:       int32(b.Member.ID),
-			AcademicYear: int32(b.AcademicYear.ID),
-			Role:         b.Role,
+			Member: int32(b.Member.ID),
+			Year:   int32(b.Year.ID),
+			Role:   b.Role,
 		})
 		if err != nil {
 			return fmt.Errorf("Unable to save board %+v | %v", *b, err)

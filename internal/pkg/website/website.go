@@ -11,7 +11,7 @@ import (
 // Website represents the ZeusWPI website and all related functions
 type Website struct {
 	eventRepo  repository.Event
-	yearRepo   repository.AcademicYear
+	yearRepo   repository.Year
 	boardRepo  repository.Board
 	memberRepo repository.Member
 }
@@ -20,7 +20,7 @@ type Website struct {
 func New(repo repository.Repository) *Website {
 	return &Website{
 		eventRepo:  repo.NewEvent(),
-		yearRepo:   repo.NewAcademicYear(),
+		yearRepo:   repo.NewYear(),
 		boardRepo:  repo.NewBoard(),
 		memberRepo: repo.NewMember(),
 	}

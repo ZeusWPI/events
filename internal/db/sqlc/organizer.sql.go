@@ -40,33 +40,33 @@ func (q *Queries) OrganizerDelete(ctx context.Context, id int32) error {
 }
 
 const organizerGetAllByEvent = `-- name: OrganizerGetAllByEvent :many
-SELECT organizer.id, event, board, event.id, url, name, description, start_time, end_time, location, event.created_at, event.updated_at, deleted_at, event.academic_year, board.id, member, board.academic_year, role, board.created_at, board.updated_at FROM organizer 
+SELECT organizer.id, event, board, event.id, url, name, description, start_time, end_time, location, event.created_at, event.updated_at, deleted_at, event.year, board.id, member, board.year, role, board.created_at, board.updated_at FROM organizer 
 INNER JOIN event ON organizer.event = event.id
 INNER JOIN board ON organizer.board = board.id
 WHERE event = $1
 `
 
 type OrganizerGetAllByEventRow struct {
-	ID             int32
-	Event          int32
-	Board          int32
-	ID_2           int32
-	Url            string
-	Name           string
-	Description    pgtype.Text
-	StartTime      pgtype.Timestamptz
-	EndTime        pgtype.Timestamptz
-	Location       pgtype.Text
-	CreatedAt      pgtype.Timestamptz
-	UpdatedAt      pgtype.Timestamptz
-	DeletedAt      pgtype.Timestamptz
-	AcademicYear   int32
-	ID_3           int32
-	Member         int32
-	AcademicYear_2 int32
-	Role           string
-	CreatedAt_2    pgtype.Timestamptz
-	UpdatedAt_2    pgtype.Timestamptz
+	ID          int32
+	Event       int32
+	Board       int32
+	ID_2        int32
+	Url         string
+	Name        string
+	Description pgtype.Text
+	StartTime   pgtype.Timestamptz
+	EndTime     pgtype.Timestamptz
+	Location    pgtype.Text
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	DeletedAt   pgtype.Timestamptz
+	Year        int32
+	ID_3        int32
+	Member      int32
+	Year_2      int32
+	Role        string
+	CreatedAt_2 pgtype.Timestamptz
+	UpdatedAt_2 pgtype.Timestamptz
 }
 
 func (q *Queries) OrganizerGetAllByEvent(ctx context.Context, event int32) ([]OrganizerGetAllByEventRow, error) {
@@ -92,10 +92,10 @@ func (q *Queries) OrganizerGetAllByEvent(ctx context.Context, event int32) ([]Or
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedAt,
-			&i.AcademicYear,
+			&i.Year,
 			&i.ID_3,
 			&i.Member,
-			&i.AcademicYear_2,
+			&i.Year_2,
 			&i.Role,
 			&i.CreatedAt_2,
 			&i.UpdatedAt_2,

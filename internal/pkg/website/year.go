@@ -13,10 +13,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const academicYearURL = "https://zeus.gent/events"
+const yearURL = "https://zeus.gent/events"
 
-// Get all academic years
-func (w *Website) fetchAllAcademicYears() ([]string, error) {
+// Get all years
+func (w *Website) fetchAllYears() ([]string, error) {
 	var years []string
 	var errs []error
 
@@ -29,7 +29,7 @@ func (w *Website) fetchAllAcademicYears() ([]string, error) {
 		}
 		sort.Sort(sort.Reverse(sort.StringSlice(yearsRaw)))
 		// The current year (represented by '#') is now the last element and last year is the first element.
-		lastYear, err := getAcademicYear(yearsRaw[0])
+		lastYear, err := getYear(yearsRaw[0])
 		if err != nil {
 			errs = append(errs, err)
 			return
@@ -43,7 +43,7 @@ func (w *Website) fetchAllAcademicYears() ([]string, error) {
 		years = append(years, currentYear)
 
 		for _, year := range yearsRaw[:len(yearsRaw)-1] {
-			y, err := getAcademicYear(year)
+			y, err := getYear(year)
 			if err != nil {
 				errs = append(errs, err)
 				continue
@@ -53,9 +53,9 @@ func (w *Website) fetchAllAcademicYears() ([]string, error) {
 		}
 	})
 
-	err := c.Visit(academicYearURL)
+	err := c.Visit(yearURL)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to visit Zeus WPI website %s | %v", academicYearURL, err)
+		return nil, fmt.Errorf("Unable to visit Zeus WPI website %s | %v", yearURL, err)
 	}
 
 	c.Wait()
@@ -67,11 +67,11 @@ func (w *Website) fetchAllAcademicYears() ([]string, error) {
 	return years, nil
 }
 
-// UpdateAllAcademicYears academic years
-func (w *Website) UpdateAllAcademicYears() error {
-	zap.S().Debug("Updating all academic years")
+// UpdateAllYears years
+func (w *Website) UpdateAllYears() error {
+	zap.S().Debug("Updating all years")
 
-	yearsWebsite, err := w.fetchAllAcademicYears()
+	yearsWebsite, err := w.fetchAllYears()
 	if err != nil {
 		return err
 	}
@@ -101,10 +101,10 @@ func (w *Website) UpdateAllAcademicYears() error {
 		start, err1 := strconv.Atoi("20" + parts[0]) // Come find me when this breaks
 		end, err2 := strconv.Atoi("20" + parts[1])
 		if err1 != nil || err2 != nil {
-			errs = append(errs, fmt.Errorf("Unable to convert string academic year to int %s | %v | %v", y, err1, err2))
+			errs = append(errs, fmt.Errorf("Unable to convert string year to int %s | %v | %v", y, err1, err2))
 		}
 
-		if err := w.yearRepo.Save(context.Background(), &model.AcademicYear{
+		if err := w.yearRepo.Save(context.Background(), &model.Year{
 			StartYear: start, EndYear: end,
 		}); err != nil {
 			errs = append(errs, err)
@@ -112,7 +112,7 @@ func (w *Website) UpdateAllAcademicYears() error {
 	}
 
 	if errs != nil {
-		return fmt.Errorf("Unable to update all academic years %v", errors.Join(errs...))
+		return fmt.Errorf("Unable to update all years %v", errors.Join(errs...))
 	}
 
 	return nil

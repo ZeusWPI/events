@@ -49,7 +49,7 @@ func (w *Website) fetchAllBoards() ([]model.Board, error) {
 				Member: model.Member{
 					Name: name,
 				},
-				AcademicYear: model.AcademicYear{
+				Year: model.Year{
 					StartYear: yearStart,
 					EndYear:   yearEnd,
 				},
@@ -92,7 +92,7 @@ func (w *Website) UpdateAllBoards() error {
 		return nil
 	}
 
-	boards, err := w.boardRepo.GetAll(context.Background())
+	boards, err := w.boardRepo.GetAllWithMemberYear(context.Background())
 	if err != nil {
 		return err
 	}
@@ -115,12 +115,12 @@ func (w *Website) UpdateAllBoards() error {
 				}
 			}
 
-			// Find existing academic year
+			// Find existing year
 			newYear := true
 			for _, year := range years {
-				if year.Equal(board.AcademicYear) {
+				if year.Equal(board.Year) {
 					newYear = false
-					board.AcademicYear = *year
+					board.Year = *year
 					break
 				}
 			}
@@ -136,7 +136,7 @@ func (w *Website) UpdateAllBoards() error {
 				members = append(members, &board.Member)
 			}
 			if newYear {
-				years = append(years, &board.AcademicYear)
+				years = append(years, &board.Year)
 			}
 		}
 	}
