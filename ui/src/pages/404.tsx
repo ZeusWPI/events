@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 const Error404: React.FC = () => {
   return (
-    <div className="text-center">
+    <div className="flex flex-col justify-center items-center h-full">
       <p className="font-semibold text-primary">
         404
       </p>

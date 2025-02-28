@@ -1,8 +1,8 @@
--- name: OrganizerGetAllByEvent :many 
-SELECT * FROM organizer 
-INNER JOIN event ON organizer.event = event.id
-INNER JOIN board ON organizer.board = board.id
-WHERE event = $1;
+-- name: OrganizerGetByYearWithBoard :many 
+SELECT * FROM organizer o 
+INNER JOIN board b ON b.id = o.board 
+INNER JOIN member m ON m.id = b.member 
+WHERE b.year = $1;
 
 -- name: OrganizerCreate :one 
 INSERT INTO organizer (event, board)

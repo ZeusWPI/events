@@ -107,7 +107,7 @@ func (w *Website) UpdateAllEvents() error {
 		return err
 	}
 
-	events, err := w.eventRepo.EventGetAllWithYear(context.Background())
+	events, err := w.eventRepo.GetAllWithYear(context.Background())
 	if err != nil {
 		return err
 	}

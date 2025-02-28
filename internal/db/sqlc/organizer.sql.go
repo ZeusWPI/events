@@ -39,66 +39,50 @@ func (q *Queries) OrganizerDelete(ctx context.Context, id int32) error {
 	return err
 }
 
-const organizerGetAllByEvent = `-- name: OrganizerGetAllByEvent :many
-SELECT organizer.id, event, board, event.id, url, name, description, start_time, end_time, location, event.created_at, event.updated_at, deleted_at, event.year, board.id, member, board.year, role, board.created_at, board.updated_at FROM organizer 
-INNER JOIN event ON organizer.event = event.id
-INNER JOIN board ON organizer.board = board.id
-WHERE event = $1
+const organizerGetByYearWithBoard = `-- name: OrganizerGetByYearWithBoard :many
+SELECT o.id, event, board, b.id, member, year, role, created_at, updated_at, m.id, name, username FROM organizer o 
+INNER JOIN board b ON b.id = o.board 
+INNER JOIN member m ON m.id = b.member 
+WHERE b.year = $1
 `
 
-type OrganizerGetAllByEventRow struct {
-	ID          int32
-	Event       int32
-	Board       int32
-	ID_2        int32
-	Url         string
-	Name        string
-	Description pgtype.Text
-	StartTime   pgtype.Timestamptz
-	EndTime     pgtype.Timestamptz
-	Location    pgtype.Text
-	CreatedAt   pgtype.Timestamptz
-	UpdatedAt   pgtype.Timestamptz
-	DeletedAt   pgtype.Timestamptz
-	Year        int32
-	ID_3        int32
-	Member      int32
-	Year_2      int32
-	Role        string
-	CreatedAt_2 pgtype.Timestamptz
-	UpdatedAt_2 pgtype.Timestamptz
+type OrganizerGetByYearWithBoardRow struct {
+	ID        int32
+	Event     int32
+	Board     int32
+	ID_2      int32
+	Member    int32
+	Year      int32
+	Role      string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	ID_3      int32
+	Name      string
+	Username  pgtype.Text
 }
 
-func (q *Queries) OrganizerGetAllByEvent(ctx context.Context, event int32) ([]OrganizerGetAllByEventRow, error) {
-	rows, err := q.db.Query(ctx, organizerGetAllByEvent, event)
+func (q *Queries) OrganizerGetByYearWithBoard(ctx context.Context, year int32) ([]OrganizerGetByYearWithBoardRow, error) {
+	rows, err := q.db.Query(ctx, organizerGetByYearWithBoard, year)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []OrganizerGetAllByEventRow
+	var items []OrganizerGetByYearWithBoardRow
 	for rows.Next() {
-		var i OrganizerGetAllByEventRow
+		var i OrganizerGetByYearWithBoardRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Event,
 			&i.Board,
 			&i.ID_2,
-			&i.Url,
-			&i.Name,
-			&i.Description,
-			&i.StartTime,
-			&i.EndTime,
-			&i.Location,
+			&i.Member,
+			&i.Year,
+			&i.Role,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.DeletedAt,
-			&i.Year,
 			&i.ID_3,
-			&i.Member,
-			&i.Year_2,
-			&i.Role,
-			&i.CreatedAt_2,
-			&i.UpdatedAt_2,
+			&i.Name,
+			&i.Username,
 		); err != nil {
 			return nil, err
 		}

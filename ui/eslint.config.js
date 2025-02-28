@@ -17,5 +17,8 @@ export default antfu(
     ignores: [
       "src/components/ui/*",
     ],
+    rules: {
+      "ts/strict-boolean-expressions": "off",
+    },
   },
 ).prepend(...pluginQuery.configs["flat/recommended"]);

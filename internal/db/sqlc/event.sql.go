@@ -111,6 +111,64 @@ func (q *Queries) EventGetAllWithYear(ctx context.Context) ([]EventGetAllWithYea
 	return items, nil
 }
 
+const eventGetByYearWithYear = `-- name: EventGetByYearWithYear :many
+SELECT e.id, url, name, description, start_time, end_time, location, created_at, updated_at, deleted_at, year, y.id, start_year, end_year FROM event e
+INNER JOIN year y ON y.id = e.year
+WHERE y.id = $1
+`
+
+type EventGetByYearWithYearRow struct {
+	ID          int32
+	Url         string
+	Name        string
+	Description pgtype.Text
+	StartTime   pgtype.Timestamptz
+	EndTime     pgtype.Timestamptz
+	Location    pgtype.Text
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	DeletedAt   pgtype.Timestamptz
+	Year        int32
+	ID_2        int32
+	StartYear   int32
+	EndYear     int32
+}
+
+func (q *Queries) EventGetByYearWithYear(ctx context.Context, id int32) ([]EventGetByYearWithYearRow, error) {
+	rows, err := q.db.Query(ctx, eventGetByYearWithYear, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []EventGetByYearWithYearRow
+	for rows.Next() {
+		var i EventGetByYearWithYearRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Url,
+			&i.Name,
+			&i.Description,
+			&i.StartTime,
+			&i.EndTime,
+			&i.Location,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+			&i.Year,
+			&i.ID_2,
+			&i.StartYear,
+			&i.EndYear,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const eventUpdate = `-- name: EventUpdate :exec
 UPDATE event 
 SET url = $1, name = $2, description = $3, start_time = $4, end_time = $5, year = $6, location = $7, updated_at = CURRENT_TIMESTAMP, deleted_at = NULL
