@@ -13,23 +13,26 @@ import (
 
 // Event provides all model.Event related database operations
 type Event interface {
-	EventGetAllWithYear(context.Context) ([]*model.Event, error)
+	GetAllWithYear(context.Context) ([]*model.Event, error)
+	GetByYearWithAll(context.Context, model.Year) ([]*model.Event, error)
 	Save(context.Context, *model.Event) error
 	Delete(context.Context, *model.Event) error
 }
 
 type eventRepo struct {
 	repo Repository
+
+	organizer Organizer
 }
 
 // Interface compliance
 var _ Event = (*eventRepo)(nil)
 
 // GetAll returns all events
-func (r *eventRepo) EventGetAllWithYear(ctx context.Context) ([]*model.Event, error) {
+func (r *eventRepo) GetAllWithYear(ctx context.Context) ([]*model.Event, error) {
 	events, err := r.repo.queries(ctx).EventGetAllWithYear(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get all events | %v", err)
+		return nil, fmt.Errorf("Unable to get all events %v", err)
 	}
 
 	return util.SliceMap(events, func(e sqlc.EventGetAllWithYearRow) *model.Event {
@@ -52,6 +55,51 @@ func (r *eventRepo) EventGetAllWithYear(ctx context.Context) ([]*model.Event, er
 			DeletedAt:  e.DeletedAt.Time,
 		}
 	}), nil
+}
+
+// GetByYearWithAll returns all events of a given year with all model.Event fields populated
+func (r *eventRepo) GetByYearWithAll(ctx context.Context, year model.Year) ([]*model.Event, error) {
+	eventsDB, err := r.repo.queries(ctx).EventGetByYearWithYear(ctx, int32(year.ID))
+	if err != nil {
+		return nil, fmt.Errorf("Unable to get all events by year %+v | %v", year, err)
+	}
+
+	organizers, err := r.organizer.GetByYearWithBoard(ctx, year)
+	if err != nil {
+		return nil, err
+	}
+
+	events := util.SliceMap(eventsDB, func(e sqlc.EventGetByYearWithYearRow) *model.Event {
+		return &model.Event{
+			ID:          int(e.ID),
+			URL:         e.Url,
+			Name:        e.Name,
+			Description: e.Description.String,
+			StartTime:   e.StartTime.Time,
+			EndTime:     e.EndTime.Time,
+			Location:    e.Location.String,
+			Year: model.Year{
+				ID:        int(e.Year),
+				StartYear: int(e.StartYear),
+				EndYear:   int(e.EndYear),
+			},
+			Organizers: make([]model.Board, 0),
+			CreatedAt:  e.CreatedAt.Time,
+			UpdatedAt:  e.UpdatedAt.Time,
+			DeletedAt:  e.DeletedAt.Time,
+		}
+	})
+
+	for _, organizer := range organizers {
+		for i, event := range events {
+			if organizer.Event.ID == event.ID {
+				events[i].Organizers = append(events[i].Organizers, organizer.Board)
+				break
+			}
+		}
+	}
+
+	return events, nil
 }
 
 // Save creates a new event or updates an existing one
@@ -100,8 +148,7 @@ func (r *eventRepo) Delete(ctx context.Context, e *model.Event) error {
 		return fmt.Errorf("Event has no ID %+v", *e)
 	}
 
-	err := r.repo.queries(ctx).EventDelete(ctx, int32(e.ID))
-	if err != nil {
+	if err := r.repo.queries(ctx).EventDelete(ctx, int32(e.ID)); err != nil {
 		return fmt.Errorf("Unable to delete event %+v | %v", *e, err)
 	}
 

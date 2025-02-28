@@ -1,4 +1,3 @@
-import type { Optional } from "@/lib/types/general";
 import type { ReactNode } from "react";
 import EventsIcon from "@/components/icons/EventsIcon";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
@@ -12,7 +11,7 @@ import NavEvents from "./NavEvents";
 function AppSidebar({ children }: { children: ReactNode }) {
   const { state: breadcrumbs } = useBreadcrumbs();
 
-  const buildTime = import.meta.env.VITE_BUILD_TIME as Optional<string>;
+  const buildTime = import.meta.env.VITE_BUILD_TIME as string | undefined;
 
   return (
     <SidebarProvider>
@@ -58,7 +57,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
                     <BreadcrumbItem>
                       {crumb.link
                         ? (
-                            <BreadcrumbLink>
+                            <BreadcrumbLink asChild>
                               <Link to={crumb.link.to} params={crumb.link.params}>
                                 {crumb.title}
                               </Link>

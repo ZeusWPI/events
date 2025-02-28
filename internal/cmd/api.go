@@ -3,37 +3,20 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/ZeusWPI/events/pkg/config"
-	"github.com/gofiber/contrib/fiberzap"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/ZeusWPI/events/internal/api"
+	"github.com/ZeusWPI/events/internal/db/repository"
 	"go.uber.org/zap"
 )
 
-const port = 4000
-
 // API starts the webserver serving the API and static files
-func API() {
-	app := fiber.New(fiber.Config{
-		BodyLimit: 1024 * 1024 * 1024,
-	})
-	app.Use(fiberzap.New(fiberzap.Config{
-		Logger: zap.L(),
-	}))
+func API(repo repository.Repository) error {
+	server := api.NewServer(repo)
 
-	env := config.GetDefaultString("app.env", "development")
-	if env != "development" {
-		app.Static("/", "./public")
-		app.Static("*", "./public/index.html")
-	} else {
-		app.Use(cors.New(cors.Config{
-			AllowOrigins:     "http://localhost:5173",
-			AllowHeaders:     "Origin, Content-Type, Accept, Access-Control-Allow-Origin",
-			AllowCredentials: true,
-		}))
+	zap.S().Infof("Server is running on %s", server.Addr)
+
+	if err := server.App.Listen(server.Addr); err != nil {
+		return fmt.Errorf("API unknown error %v", err)
 	}
 
-	host := config.GetDefaultString("app.host", "0.0.0.0")
-
-	zap.S().Fatalf("Fatal server error %v", app.Listen(fmt.Sprintf("%s:%d", host, port)))
+	return nil
 }

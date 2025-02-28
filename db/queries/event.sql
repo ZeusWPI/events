@@ -3,6 +3,11 @@ SELECT * FROM event
 INNER JOIN year ON event.year = year.id 
 WHERE event.deleted_at IS NULL;
 
+-- name: EventGetByYearWithYear :many 
+SELECT * FROM event e
+INNER JOIN year y ON y.id = e.year
+WHERE y.id = $1; 
+
 -- name: EventCreate :one 
 INSERT INTO event (url, name, description, start_time, end_time, year, location)
 VALUES ($1, $2, $3, $4, $5, $6, $7)

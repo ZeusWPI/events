@@ -47,7 +47,7 @@ func (r *Repository) NewYear() Year {
 
 // NewEvent creates a new Event repository
 func (r *Repository) NewEvent() Event {
-	return &eventRepo{repo: *r}
+	return &eventRepo{repo: *r, organizer: r.NewOrganizer()}
 }
 
 // NewBoard creates a new Board repository
@@ -58,4 +58,9 @@ func (r *Repository) NewBoard() Board {
 // NewMember creates a new Member repository
 func (r *Repository) NewMember() Member {
 	return &memberRepo{repo: *r}
+}
+
+// NewOrganizer creates a new Organizer repository
+func (r *Repository) NewOrganizer() Organizer {
+	return &organizerRepo{repo: *r}
 }

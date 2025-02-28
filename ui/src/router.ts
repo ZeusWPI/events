@@ -1,7 +1,8 @@
 import { createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
 import App from "./App";
 import Error404 from "./pages/404";
-import Events from "./pages/Events";
+import Events from "./pages/events/Events";
+import { EventsYear } from "./pages/events/EventsYear";
 import Index from "./pages/Index";
 
 const rootRoute = createRootRoute({
@@ -21,9 +22,15 @@ const eventsRoute = createRoute({
   component: Events,
 });
 
+const eventsYearRoute = createRoute({
+  getParentRoute: () => eventsRoute,
+  path: "$yearId",
+  component: EventsYear,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  eventsRoute,
+  eventsRoute.addChildren([eventsYearRoute]),
 ]);
 
 export const router = createRouter({
