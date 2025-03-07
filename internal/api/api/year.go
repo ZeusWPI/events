@@ -1,9 +1,7 @@
 package api
 
 import (
-	"github.com/ZeusWPI/events/internal/api/dto"
-	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/internal/service"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -12,14 +10,14 @@ import (
 type YearRouter struct {
 	router fiber.Router
 
-	year repository.Year
+	year service.Year
 }
 
 // NewYearRouter constructs a new year router
-func NewYearRouter(repo repository.Repository, router fiber.Router) *YearRouter {
+func NewYearRouter(service service.Service, router fiber.Router) *YearRouter {
 	api := &YearRouter{
 		router: router.Group("/year"),
-		year:   repo.NewYear(),
+		year:   service.NewYear(),
 	}
 	api.createRoutes()
 
@@ -37,5 +35,5 @@ func (r *YearRouter) getAll(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	return c.JSON(util.SliceMap(years, dto.YearDTO))
+	return c.JSON(years)
 }

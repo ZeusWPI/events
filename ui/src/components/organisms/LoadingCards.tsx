@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { SkeletonCard } from "./SkeletonCard";
+import { SkeletonCard } from "../molecules/SkeletonCard";
 
 interface Props {
   rows?: number;

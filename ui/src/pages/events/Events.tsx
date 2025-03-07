@@ -1,4 +1,4 @@
-import { LoadingCards } from "@/components/molecules/LoadingCards";
+import { LoadingCards } from "@/components/organisms/LoadingCards";
 import { Button } from "@/components/ui/button";
 import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
@@ -7,7 +7,7 @@ import { CalendarPlus2 } from "lucide-react";
 import Error404 from "../404";
 
 function Events() {
-  const yearId = useParams({ from: "/events/$yearId", shouldThrow: false });
+  const yearString = useParams({ from: "/events/$year", shouldThrow: false });
 
   const { data: years } = useYearGetAll();
 
@@ -30,14 +30,14 @@ function Events() {
     );
   }
 
-  const year = years?.find(({ id }) => id.toString() === yearId?.yearId);
-  if (yearId && !year) {
+  const year = years?.find(({ formatted }) => formatted === yearString?.year);
+  if (yearString && !year) {
     return <Error404 />;
   }
 
   return (
     <>
-      {!yearId && <Navigate to="/events/$yearId" params={{ yearId: years[0]!.id.toString() }} />}
+      {!yearString && <Navigate to="/events/$year" params={{ year: years[0]!.formatted }} />}
       <Outlet />
     </>
   );

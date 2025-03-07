@@ -16,6 +16,7 @@ export interface Event extends Base {
 export interface Year extends Base {
   startYear: number;
   endYear: number;
+  formatted: string;
 }
 
 export interface Organizer extends Base {

@@ -1,5 +1,6 @@
 import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
+import { format } from "date-fns";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -29,4 +30,8 @@ export function camelToSnake(obj: unknown): unknown {
 
 function stringCamelToSnake(str: string) {
   return str.replace(/[A-Z]+/g, l => `_${l.toLowerCase()}`);
+}
+
+export function formatDate(date: Date) {
+  return format(date, "eee dd MMM, HH:mm");
 }

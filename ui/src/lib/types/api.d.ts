@@ -1,6 +1,8 @@
+import type { JSON } from "./general";
+
 export namespace API {
 
-  interface Base {
+  interface Base extends JSON {
     id: number;
   }
 
