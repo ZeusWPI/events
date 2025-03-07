@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/api"
-	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/service"
 	"go.uber.org/zap"
 )
 
 // API starts the webserver serving the API and static files
-func API(repo repository.Repository) error {
-	server := api.NewServer(repo)
+func API(service service.Service) error {
+	server := api.NewServer(service)
 
 	zap.S().Infof("Server is running on %s", server.Addr)
 

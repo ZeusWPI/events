@@ -3,9 +3,7 @@ package api
 
 import (
 	"github.com/ZeusWPI/events/internal/api/dto"
-	"github.com/ZeusWPI/events/internal/db/model"
-	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/internal/service"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -14,14 +12,14 @@ import (
 type EventRouter struct {
 	router fiber.Router
 
-	event repository.Event
+	event service.Event
 }
 
 // NewEventRouter creates a new event router
-func NewEventRouter(repo repository.Repository, router fiber.Router) *EventRouter {
+func NewEventRouter(service service.Service, router fiber.Router) *EventRouter {
 	api := &EventRouter{
 		router: router.Group("/event"),
-		event:  repo.NewEvent(),
+		event:  service.NewEvent(),
 	}
 	api.createRoutes()
 
@@ -30,6 +28,7 @@ func NewEventRouter(repo repository.Repository, router fiber.Router) *EventRoute
 
 func (r *EventRouter) createRoutes() {
 	r.router.Get("/year/:id", r.getByYear)
+	r.router.Post("/organizers", r.updateOrganizers)
 }
 
 func (r *EventRouter) getByYear(c *fiber.Ctx) error {
@@ -38,11 +37,30 @@ func (r *EventRouter) getByYear(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	events, err := r.event.GetByYearWithAll(c.Context(), model.Year{ID: id})
+	events, err := r.event.GetByYear(c.Context(), dto.Year{ID: id})
 	if err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}
 
-	return c.JSON(util.SliceMap(events, dto.EventDTO))
+	return c.JSON(events)
+}
+
+func (r *EventRouter) updateOrganizers(c *fiber.Ctx) error {
+	var events []dto.Event
+	if err := c.BodyParser(&events); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	for _, event := range events {
+		if err := dto.Validate.Struct(event); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	}
+
+	if err := r.event.UpdateOrganizers(c.Context(), events); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	return nil
 }

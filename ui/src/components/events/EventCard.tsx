@@ -1,5 +1,5 @@
 import type { Event } from "@/lib/types/types";
-import { format } from "date-fns";
+import { formatDate } from "@/lib/utils/utils";
 import { ClipboardList, UserRound } from "lucide-react";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 
@@ -24,7 +24,7 @@ export function EventCard({ event }: Props) {
       <CardHeader className="grow">
         <CardTitle>{event.name}</CardTitle>
         <CardDescription>
-          <span>{format(event.startTime, "eee dd MMM, HH:mm")}</span>
+          <span>{formatDate(event.startTime)}</span>
         </CardDescription>
       </CardHeader>
       <CardFooter>

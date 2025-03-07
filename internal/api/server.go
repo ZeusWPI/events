@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/api/api"
-	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/service"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
@@ -22,7 +22,7 @@ type Server struct {
 const port = 4000
 
 // NewServer creates a new Server
-func NewServer(repo repository.Repository) *Server {
+func NewServer(service service.Service) *Server {
 	app := fiber.New(fiber.Config{
 		BodyLimit:      1024 * 1024 * 1024,
 		ReadBufferSize: 8096,
@@ -46,8 +46,9 @@ func NewServer(repo repository.Repository) *Server {
 	apiRouter := app.Group("/api")
 
 	// Initialize all routes
-	api.NewEventRouter(repo, apiRouter)
-	api.NewYearRouter(repo, apiRouter)
+	api.NewEventRouter(service, apiRouter)
+	api.NewYearRouter(service, apiRouter)
+	api.NewOrganizerRouter(service, apiRouter)
 
 	host := config.GetDefaultString("app.host", "0.0.0.0")
 	return &Server{

@@ -2,7 +2,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarGroupContent, SidebarMenu, SidebarMenuAction, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem } from "@/components/ui/sidebar";
 import { useYearGetAll } from "@/lib/api/year";
-import { yearToString } from "@/lib/utils/converter";
 import { Link } from "@tanstack/react-router";
 import { Calendar, ChevronRight } from "lucide-react";
 
@@ -33,8 +32,8 @@ function NavEvents() {
                       {years.map(year => (
                         <SidebarMenuSubItem key={year.id}>
                           <SidebarMenuButton asChild>
-                            <Link to="/events/$yearId" params={{ yearId: year.id.toString() }} className="rounded-none border-l-2" activeProps={{ className: "border-l-primary" }}>
-                              <span>{yearToString(year)}</span>
+                            <Link to="/events/$year" params={{ year: year.formatted }} className="rounded-none border-l-2" activeProps={{ className: "border-l-primary" }}>
+                              <span>{year.formatted}</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuSubItem>

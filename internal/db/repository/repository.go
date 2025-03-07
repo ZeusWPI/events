@@ -18,7 +18,7 @@ type contextKey string
 
 const queryKey = contextKey("queries")
 
-// New creates a new repository
+// New creates a new Repository
 func New(db db.DB) *Repository {
 	return &Repository{db: db}
 }
@@ -31,7 +31,13 @@ func (r *Repository) queries(ctx context.Context) *sqlc.Queries {
 	return r.db.Queries()
 }
 
-func (r *Repository) withRollback(ctx context.Context, fn func(ctx context.Context) error) error {
+// WithRollback allows performing sequential database operations and rollbacks if one fails
+func (r *Repository) WithRollback(ctx context.Context, fn func(ctx context.Context) error) error {
+	if _, ok := ctx.Value(queryKey).(*sqlc.Queries); ok {
+		// We're already in a rollback
+		return fn(ctx)
+	}
+
 	return r.db.WithRollback(ctx, func(q *sqlc.Queries) error {
 		txCtx := context.WithValue(ctx, queryKey, q)
 		return fn(txCtx)

@@ -12,6 +12,7 @@ import (
 // Board provides all model.Board related database operations
 type Board interface {
 	GetAllWithMemberYear(context.Context) ([]*model.Board, error)
+	GetByYearWithMemberYear(context.Context, model.Year) ([]*model.Board, error)
 	Save(context.Context, *model.Board) error
 }
 
@@ -55,6 +56,35 @@ func (r *boardRepo) GetAllWithMemberYear(ctx context.Context) ([]*model.Board, e
 	}), nil
 }
 
+func (r *boardRepo) GetByYearWithMemberYear(ctx context.Context, year model.Year) ([]*model.Board, error) {
+	boards, err := r.repo.queries(ctx).BoardGetByYearWithMemberYear(ctx, int32(year.ID))
+	if err != nil {
+		return nil, fmt.Errorf("Unable to get all boards by year %+v | %v", year, err)
+	}
+
+	return util.SliceMap(boards, func(b sqlc.BoardGetByYearWithMemberYearRow) *model.Board {
+		username := ""
+		if b.Username.Valid {
+			username = b.Username.String
+		}
+
+		return &model.Board{
+			ID: int(b.ID),
+			Member: model.Member{
+				ID:       int(b.ID_2),
+				Name:     b.Name,
+				Username: username,
+			},
+			Year: model.Year{
+				ID:        int(b.ID_3),
+				StartYear: int(b.StartYear),
+				EndYear:   int(b.EndYear),
+			},
+			Role: b.Role,
+		}
+	}), nil
+}
+
 // Save creates a new board
 func (r *boardRepo) Save(ctx context.Context, b *model.Board) error {
 	if b.ID != 0 {
@@ -62,7 +92,7 @@ func (r *boardRepo) Save(ctx context.Context, b *model.Board) error {
 		return nil
 	}
 
-	return r.repo.withRollback(ctx, func(c context.Context) error {
+	return r.repo.WithRollback(ctx, func(c context.Context) error {
 		if b.Member.ID == 0 {
 			err := r.member.Save(c, &b.Member)
 			if err != nil {

@@ -83,3 +83,58 @@ func (q *Queries) BoardGetAllWithMemberYear(ctx context.Context) ([]BoardGetAllW
 	}
 	return items, nil
 }
+
+const boardGetByYearWithMemberYear = `-- name: BoardGetByYearWithMemberYear :many
+SELECT b.id, member, year, role, created_at, updated_at, m.id, name, username, a_y.id, start_year, end_year FROM board b 
+INNER JOIN member m ON b.member = m.id 
+INNER JOIN year a_y ON b.year = a_y.id
+WHERE b.year = $1
+`
+
+type BoardGetByYearWithMemberYearRow struct {
+	ID        int32
+	Member    int32
+	Year      int32
+	Role      string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	ID_2      int32
+	Name      string
+	Username  pgtype.Text
+	ID_3      int32
+	StartYear int32
+	EndYear   int32
+}
+
+func (q *Queries) BoardGetByYearWithMemberYear(ctx context.Context, year int32) ([]BoardGetByYearWithMemberYearRow, error) {
+	rows, err := q.db.Query(ctx, boardGetByYearWithMemberYear, year)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BoardGetByYearWithMemberYearRow
+	for rows.Next() {
+		var i BoardGetByYearWithMemberYearRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Member,
+			&i.Year,
+			&i.Role,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID_2,
+			&i.Name,
+			&i.Username,
+			&i.ID_3,
+			&i.StartYear,
+			&i.EndYear,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

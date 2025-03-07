@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
+	"github.com/ZeusWPI/events/pkg/util"
 )
 
 // Event is the data transferable object version of the model Event
@@ -26,7 +27,7 @@ func EventDTO(e *model.Event) Event {
 		endTime = nil
 	}
 
-	organizers := make([]Organizer, len(e.Organizers))
+	organizers := make([]Organizer, 0, len(e.Organizers))
 	for _, o := range e.Organizers {
 		organizers = append(organizers, Organizer{
 			ID:   o.ID,
@@ -49,5 +50,34 @@ func EventDTO(e *model.Event) Event {
 			EndYear:   e.Year.EndYear,
 		},
 		Organizers: organizers,
+	}
+}
+
+// ToModel coverts a dto Event to a model Event
+func (e *Event) ToModel() *model.Event {
+	endTime := time.Time{}
+	if e.EndTime != nil {
+		endTime = *e.EndTime
+	}
+
+	return &model.Event{
+		ID:          e.ID,
+		URL:         e.URL,
+		Name:        e.Name,
+		Description: e.Description,
+		StartTime:   e.StartTime,
+		EndTime:     endTime,
+		Location:    e.Location,
+		Year:        *e.Year.ToModel(),
+		Organizers: util.SliceMap(e.Organizers, func(o Organizer) model.Board {
+			return model.Board{
+				ID:   o.ID,
+				Role: o.Role,
+				Member: model.Member{
+					Name: o.Name,
+				},
+				Year: *e.Year.ToModel(),
+			}
+		}),
 	}
 }

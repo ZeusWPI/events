@@ -12,6 +12,8 @@ import (
 // Organizer provides all model.Organizer related database operations
 type Organizer interface {
 	GetByYearWithBoard(context.Context, model.Year) ([]*model.Organizer, error)
+	Save(context.Context, *model.Organizer) error
+	Delete(context.Context, model.Organizer) error
 }
 
 type organizerRepo struct {
@@ -47,4 +49,23 @@ func (r *organizerRepo) GetByYearWithBoard(ctx context.Context, year model.Year)
 			},
 		}
 	}), nil
+}
+
+func (r *organizerRepo) Save(ctx context.Context, organizer *model.Organizer) error {
+	id, err := r.repo.queries(ctx).OrganizerCreate(ctx, sqlc.OrganizerCreateParams{Event: int32(organizer.Event.ID), Board: int32(organizer.Board.ID)})
+	if err != nil {
+		return fmt.Errorf("Unable to save organizer %+v | %v", *organizer, err)
+	}
+
+	organizer.ID = int(id)
+
+	return nil
+}
+
+func (r *organizerRepo) Delete(ctx context.Context, organizer model.Organizer) error {
+	if err := r.repo.queries(ctx).OrganizerDelete(ctx, int32(organizer.ID)); err != nil {
+		return fmt.Errorf("Unable to delete organizer %+v | %v", organizer, err)
+	}
+
+	return nil
 }
