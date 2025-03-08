@@ -1,4 +1,4 @@
-import type { JSON, JSONBody } from "../types/general";
+import type { JSONBody } from "../types/general";
 import { camelToSnake } from "./utils";
 
 const URLS: Record<string, string> = {
