@@ -4,6 +4,7 @@ package main
 import (
 	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/pkg/website"
 	"github.com/ZeusWPI/events/internal/service"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/ZeusWPI/events/pkg/db"
@@ -33,10 +34,9 @@ func main() {
 
 	repo := repository.New(db)
 
-	// TODO: Uncomment
 	// Start website
-	// website := website.New(*repo)
-	// cmd.RunWebsitePeriodic(website)
+	website := website.New(*repo)
+	cmd.RunWebsitePeriodic(website)
 
 	service := service.New(*repo)
 	if err := cmd.API(*service); err != nil {

@@ -1,7 +1,9 @@
+import { Indeterminate } from "@/components/atoms/Indeterminate";
+import { Title } from "@/components/atoms/Title";
 import { EventAssignCard } from "@/components/events/EventAssignCard";
-import { LoadingCards } from "@/components/organisms/LoadingCards";
+import { PageHeader } from "@/components/molecules/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useEventByYear, useEventSaveOrganizers } from "@/lib/api/event";
 import { useOrganizerByYear } from "@/lib/api/organizer";
@@ -65,54 +67,50 @@ export function EventsAssign() {
   };
 
   if (!events) {
-    return <LoadingCards rows={4} cols={3} />;
+    return <Indeterminate />;
   }
 
   return (
-    <div>
-      <div className="flex pb-8 justify-end gap-6 items-center">
-        <Button size="lg" variant="outline" onClick={handleDiscard} asChild>
-          <Link to="/events/$year" params={{ year: yearString }}>
-            {isDirty
-              ? "Discard"
-              : (
-                  <>
-                    <ArrowLeft />
-                    <span>Go back</span>
-                  </>
-                )}
-          </Link>
-        </Button>
-        <Button disabled={!isDirty || isSaving} onClick={handleSave} className="w-16">
-          {isSaving ? <LoaderCircle className="animate-spin" /> : "Save"}
-        </Button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-4">
-        <div className="flex flex-col items-start border-muted-foreground">
-          <Card className="w-full max-w-60 sticky top-6">
-            <CardHeader>
-              <CardTitle>User assignments</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-1">
-              {organizersEventCount.map(organizer => (
-                <motion.div key={organizer.id} layout className="flex justify-between items-center w-full max-w-60">
-                  <span>{organizer.name}</span>
-                  <span>{organizer.events}</span>
-                </motion.div>
-              ))}
-            </CardContent>
-          </Card>
+    <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+      <PageHeader className="col-span-full">
+        <Title>Assign to Event</Title>
+        <div className="flex items-center gap-6">
+          <Button size="lg" variant="outline" onClick={handleDiscard} asChild>
+            <Link to="/events/$year" params={{ year: yearString }}>
+              {isDirty
+                ? "Discard"
+                : (
+                    <>
+                      <ArrowLeft />
+                      <span>Go back</span>
+                    </>
+                  )}
+            </Link>
+          </Button>
+          <Button disabled={!isDirty || isSaving} onClick={handleSave} className="w-16">
+            {isSaving ? <LoaderCircle className="animate-spin" /> : "Save"}
+          </Button>
         </div>
-        <div className="md:col-span-3">
-          <div className="flex flex-col gap-5">
-            {updatedEvents.map((event, i) => (
-              <Fragment key={event.id}>
-                <EventAssignCard event={event} organizers={organizers ?? []} onAssign={handleAssign} />
-                {i !== events.length - 1 && <Separator />}
-              </Fragment>
+      </PageHeader>
+      <div className="sticky top-6">
+        <Card className="w-full xl:max-w-80">
+          <CardContent className="flex flex-col gap-1">
+            {organizersEventCount.map((organizer, index) => (
+              <motion.div key={organizer.id} layout className="flex justify-between items-center w-full">
+                <span className={index % 2 === 1 ? "text-muted-foreground" : ""}>{organizer.name}</span>
+                <span className={index % 2 === 1 ? "text-muted-foreground" : ""}>{organizer.events}</span>
+              </motion.div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="xl:col-span-3 flex flex-col gap-5">
+        {updatedEvents.map((event, i) => (
+          <Fragment key={event.id}>
+            <EventAssignCard event={event} organizers={organizers ?? []} onAssign={handleAssign} />
+            {i !== events.length - 1 && <Separator />}
+          </Fragment>
+        ))}
       </div>
     </div>
   );

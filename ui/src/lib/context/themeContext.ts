@@ -7,8 +7,7 @@ interface ThemeProviderState {
 }
 
 const initialState: ThemeProviderState = {
-  // TODO: Change to system
-  theme: "light",
+  theme: "system",
   setTheme: () => null,
 };
 

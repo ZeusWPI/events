@@ -33,7 +33,7 @@ export function EventAssignCard({ event, organizers, onAssign }: Props) {
               </TooltipContent>
             </Tooltip>
           )}
-          <span className="text-md font-bold">{event.name}</span>
+          <span className="text-md break-words overflow-hidden">{event.name}</span>
         </div>
         <span className="text-sm/6 text-muted-foreground">{formatDate(event.startTime)}</span>
       </div>

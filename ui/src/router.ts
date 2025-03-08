@@ -3,6 +3,7 @@ import App from "./App";
 import Error404 from "./pages/404";
 import Events from "./pages/events/Events";
 import { EventsAssign } from "./pages/events/EventsAssign";
+import { EventsDetail } from "./pages/events/EventsDetail";
 import { EventsYear } from "./pages/events/EventsYear";
 import Index from "./pages/Index";
 
@@ -29,6 +30,12 @@ const eventsYearRoute = createRoute({
   component: EventsYear,
 });
 
+const eventsYearDetailRoute = createRoute({
+  getParentRoute: () => eventsYearRoute,
+  path: "/$id",
+  component: EventsDetail,
+});
+
 const eventsYearAssignRoute = createRoute({
   getParentRoute: () => eventsYearRoute,
   path: "/assign",
@@ -37,7 +44,9 @@ const eventsYearAssignRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  eventsRoute.addChildren([eventsYearRoute.addChildren([eventsYearAssignRoute])]),
+  eventsRoute.addChildren([
+    eventsYearRoute.addChildren([eventsYearDetailRoute, eventsYearAssignRoute]),
+  ]),
 ]);
 
 export const router = createRouter({
