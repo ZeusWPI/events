@@ -126,6 +126,8 @@ export function MultiSelect({ ref, options, onValueChange, variant, defaultValue
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const [isAnimating, setIsAnimating] = React.useState(false);
 
+  React.useEffect(() => setSelectedValues(defaultValue), [defaultValue]);
+
   const toggleOption = (option: string) => {
     const newSelectedValues = selectedValues.includes(option)
       ? selectedValues.filter(value => value !== option)

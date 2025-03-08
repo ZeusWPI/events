@@ -1,4 +1,4 @@
-import { LoadingCards } from "@/components/organisms/LoadingCards";
+import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Button } from "@/components/ui/button";
 import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
@@ -14,9 +14,7 @@ function Events() {
   useBreadcrumb({ title: "Events", link: { to: "/events" } });
 
   if (!years) {
-    return (
-      <LoadingCards rows={3} cols={4} />
-    );
+    return <Indeterminate />;
   }
 
   if (!years.length) {

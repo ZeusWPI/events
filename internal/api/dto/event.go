@@ -1,11 +1,14 @@
 package dto
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/pkg/util"
 )
+
+const eventURL = "https://zeus.gent/events"
 
 // Event is the data transferable object version of the model Event
 type Event struct {
@@ -38,7 +41,7 @@ func EventDTO(e *model.Event) Event {
 
 	return Event{
 		ID:          e.ID,
-		URL:         e.URL,
+		URL:         fmt.Sprintf("%s/%s/%s", eventURL, e.Year.String(), e.URL),
 		Name:        e.Name,
 		Description: e.Description,
 		StartTime:   e.StartTime,
