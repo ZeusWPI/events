@@ -10,8 +10,10 @@ require (
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/joho/godotenv v1.5.1
+	github.com/markbates/goth v1.80.0
 	github.com/spf13/viper v1.19.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/oauth2 v0.18.0
 )
 
 require (
