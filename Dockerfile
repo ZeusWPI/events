@@ -10,9 +10,13 @@ RUN go mod download
 
 COPY . .
 
+# Build server executable
 RUN CGO_ENABLED=1 go build -ldflags "-s -w" -v -tags musl -o main ./cmd/events/main.go
-
 RUN upx --best --lzma main
+
+# Build migration executable
+RUN CGO_ENABLED=1 go build -ldflags "-s -w" -v -tags musl -o migrate migrate.go
+RUN upx --best --lzma migrate
 
 
 # Build frontend
@@ -37,12 +41,13 @@ FROM alpine:3.20
 WORKDIR /
 
 COPY --from=build_backend /backend/main .
+COPY --from=build_backend /backend/migrate .
 COPY --from=build_frontend /frontend/dist ./public
 
-RUN chmod +x ./main
+RUN chmod +x ./main ./migrate
 
 ENV ENV=PRODUCTION
 
 EXPOSE 4000
 
-ENTRYPOINT ["./main"]
+ENTRYPOINT ["sh", "-c", "./migrate && exec ./main"]
