@@ -29,7 +29,7 @@ export function EventsDetail() {
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="grid lg:grid-cols-3 gap-8">
       <PageHeader className="col-span-full">
         <Title>{event.name}</Title>
         <Button variant="outline" size="icon" asChild>
@@ -38,7 +38,7 @@ export function EventsDetail() {
           </a>
         </Button>
       </PageHeader>
-      <div className="col-span-2">
+      <div className="lg:col-span-2">
         <HeadlessCard>
           <CardHeader className="px-0 pt-0">
             <CardTitle>General</CardTitle>
@@ -68,7 +68,7 @@ export function EventsDetail() {
           </CardContent>
         </HeadlessCard>
       </div>
-      <div className="col-span-2 lg:col-span-1">
+      <div className="lg:col-span-1">
         <div className="flex h-full">
           <Separator orientation="vertical" className="h-full hidden lg:block" />
           <HeadlessCard className="h-full mx-auto">

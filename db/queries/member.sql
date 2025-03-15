@@ -7,7 +7,7 @@ WHERE id = $1;
 
 -- name: MemberGetByName :one
 SELECT * FROM member 
-WHERE name = $1;
+WHERE name ILIKE $1;
 
 -- name: MemberCreate :one 
 INSERT INTO member (name, username, zauth_id)

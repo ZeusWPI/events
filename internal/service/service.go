@@ -25,7 +25,7 @@ func (s *Service) withRollback(ctx context.Context, fn func(context.Context) err
 
 // NewEvent creates a new Event service
 func (s *Service) NewEvent() Event {
-	return &eventService{service: *s, event: s.repo.NewEvent(), organizer: s.repo.NewOrganizer()}
+	return &eventService{service: *s, board: s.repo.NewBoard(), event: s.repo.NewEvent(), organizer: s.repo.NewOrganizer()}
 }
 
 // NewOrganizer creates a new Organizer service

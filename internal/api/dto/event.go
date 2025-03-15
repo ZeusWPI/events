@@ -33,7 +33,7 @@ func EventDTO(e *model.Event) Event {
 	organizers := make([]Organizer, 0, len(e.Organizers))
 	for _, o := range e.Organizers {
 		organizers = append(organizers, Organizer{
-			ID:   o.ID,
+			ID:   o.Member.ID,
 			Name: o.Member.Name,
 			Role: o.Role,
 		})

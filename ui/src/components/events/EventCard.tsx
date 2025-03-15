@@ -1,4 +1,5 @@
 import type { Event } from "@/lib/types/types";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { ClipboardList, UserRound } from "lucide-react";
@@ -13,8 +14,6 @@ function organizersColor(amount: number) {
   switch (amount) {
     case 0:
       return "text-red-500";
-    case 1:
-      return "text-orange-500";
     default:
       return "text-secondary-foreground";
   }
@@ -23,11 +22,14 @@ function organizersColor(amount: number) {
 export function EventCard({ event }: Props) {
   const navigate = useNavigate();
 
+  const { user } = useAuth();
+  const isOrganizer = event.organizers.map(({ id }) => id).includes(user?.id ?? 0);
+
   const handleOnClick = () =>
     void navigate({ to: "/events/$year/$id", params: { year: event.year.formatted, id: event.id.toString() } });
 
   return (
-    <Card onClick={handleOnClick} className="transition-transform duration-300 hover:scale-105 hover:cursor-pointer">
+    <Card onClick={handleOnClick} className={`transition-transform duration-300 hover:scale-105 hover:cursor-pointer ${isOrganizer && "border-primary"}`}>
       <CardHeader className="grow">
         <CardTitle>{event.name}</CardTitle>
         <CardDescription>

@@ -37,7 +37,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="pt-[16px]">
           <SidebarGroup>
             <NavEvents />
           </SidebarGroup>
@@ -47,7 +47,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <div className="container mx-auto px-2 pt-1 h-full">
+        <div className="container mx-auto p-2 h-full">
           <header className="flex h-16 shrink-0 items-center gap-2">
             <SidebarTrigger />
             <Separator orientation="vertical" className="mr-2 h-4" />
@@ -73,6 +73,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
               </BreadcrumbList>
             </Breadcrumb>
           </header>
+
           {children}
         </div>
       </SidebarInset>

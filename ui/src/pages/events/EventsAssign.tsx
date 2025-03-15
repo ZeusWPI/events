@@ -48,9 +48,9 @@ export function EventsAssign() {
     updateOrganizers(updatedEvents, {
       onSuccess: () => {
         setIsDirty(false);
-        toast.success("🥳");
+        toast.success("Success");
       },
-      onError: error => toast.error("💀", { description: error.message }),
+      onError: error => toast.error("Failed", { description: error.message }),
       onSettled: () => setIsSaving(false),
     });
   };
@@ -71,7 +71,7 @@ export function EventsAssign() {
   }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+    <div className="grid xl:grid-cols-4 gap-8">
       <PageHeader className="col-span-full">
         <Title>Assign to Event</Title>
         <div className="flex items-center gap-6">
@@ -93,7 +93,7 @@ export function EventsAssign() {
         </div>
       </PageHeader>
       <div className="sticky top-6">
-        <Card className="w-full xl:max-w-80">
+        <Card className="w-full xl:max-w-80 sticky top-6">
           <CardContent className="flex flex-col gap-1">
             {organizersEventCount.map((organizer, index) => (
               <motion.div key={organizer.id} layout className="flex justify-between items-center w-full">

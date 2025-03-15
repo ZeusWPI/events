@@ -1,6 +1,8 @@
 import { DividerText } from "@/components/atoms/DividerText";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
+import { Title } from "@/components/atoms/Title";
 import { EventCard } from "@/components/events/EventCard";
+import { PageHeader } from "@/components/molecules/PageHeader";
 import { MultiSelect } from "@/components/organisms/MultiSelect";
 import { Button } from "@/components/ui/button";
 import { useEventByYear } from "@/lib/api/event";
@@ -43,18 +45,10 @@ export function EventsYear() {
   const pastEvents = filteredEvents.filter(event => isBefore(event.endTime ?? event.startTime, now)).sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
 
   return (
-    <div>
-      <div className="flex pb-8 justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <MultiSelect
-            options={organizers?.map(({ id, name }) => ({ value: id.toString(), label: name })) ?? []}
-            onValueChange={handleValueChange}
-            defaultValue={selectedOrganizers}
-            placeholder="Filter by organizer"
-            maxCount={2}
-          />
-        </div>
-        <div className="flex gap-6 items-center">
+    <div className="flex flex-col gap-8">
+      <PageHeader>
+        <Title>{`Events ${yearString}`}</Title>
+        <div className="flex items-center gap-6">
           <Button size="lg" variant="outline" asChild>
             <Link to="/events/$year/assign" params={{ year: yearString }}>
               Assign
@@ -63,6 +57,15 @@ export function EventsYear() {
           {/* TODO: Implement */}
           <Button disabled>Sync</Button>
         </div>
+      </PageHeader>
+      <div className="flex justify-between gap-6">
+        <MultiSelect
+          options={organizers?.map(({ id, name }) => ({ value: id.toString(), label: name })) ?? []}
+          onValueChange={handleValueChange}
+          defaultValue={selectedOrganizers}
+          placeholder="Filter by organizer"
+          maxCount={2}
+        />
       </div>
       <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
         {futureEvents.map(event => (

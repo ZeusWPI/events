@@ -15,7 +15,7 @@ export function NavUser() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton size="lg">
+            <SidebarMenuButton size="lg" className="hover:cursor-pointer">
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage alt={initials} />
                 <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>

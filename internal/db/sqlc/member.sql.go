@@ -78,7 +78,7 @@ func (q *Queries) MemberGetByID(ctx context.Context, id int32) (Member, error) {
 
 const memberGetByName = `-- name: MemberGetByName :one
 SELECT id, name, username, zauth_id FROM member 
-WHERE name = $1
+WHERE name ILIKE $1
 `
 
 func (q *Queries) MemberGetByName(ctx context.Context, name string) (Member, error) {
