@@ -26,7 +26,7 @@ var _ Organizer = (*organizerRepo)(nil)
 func (r *organizerRepo) GetByYearWithBoard(ctx context.Context, year model.Year) ([]*model.Organizer, error) {
 	organizers, err := r.repo.queries(ctx).OrganizerGetByYearWithBoard(ctx, int32(year.ID))
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get all organizers by year %+v | %v", year, err)
+		return nil, fmt.Errorf("unable to get all organizers by year %+v | %v", year, err)
 	}
 
 	return util.SliceMap(organizers, func(o sqlc.OrganizerGetByYearWithBoardRow) *model.Organizer {
@@ -54,7 +54,7 @@ func (r *organizerRepo) GetByYearWithBoard(ctx context.Context, year model.Year)
 func (r *organizerRepo) Save(ctx context.Context, organizer *model.Organizer) error {
 	id, err := r.repo.queries(ctx).OrganizerCreate(ctx, sqlc.OrganizerCreateParams{Event: int32(organizer.Event.ID), Board: int32(organizer.Board.ID)})
 	if err != nil {
-		return fmt.Errorf("Unable to save organizer %+v | %v", *organizer, err)
+		return fmt.Errorf("unable to save organizer %+v | %v", *organizer, err)
 	}
 
 	organizer.ID = int(id)
@@ -64,7 +64,7 @@ func (r *organizerRepo) Save(ctx context.Context, organizer *model.Organizer) er
 
 func (r *organizerRepo) Delete(ctx context.Context, organizer model.Organizer) error {
 	if err := r.repo.queries(ctx).OrganizerDelete(ctx, int32(organizer.ID)); err != nil {
-		return fmt.Errorf("Unable to delete organizer %+v | %v", organizer, err)
+		return fmt.Errorf("unable to delete organizer %+v | %v", organizer, err)
 	}
 
 	return nil

@@ -34,8 +34,8 @@ func EventDTO(e *model.Event) Event {
 	for _, o := range e.Organizers {
 		organizers = append(organizers, Organizer{
 			ID:   o.ID,
-			Role: o.Role,
 			Name: o.Member.Name,
+			Role: o.Role,
 		})
 	}
 
@@ -74,12 +74,12 @@ func (e *Event) ToModel() *model.Event {
 		Year:        *e.Year.ToModel(),
 		Organizers: util.SliceMap(e.Organizers, func(o Organizer) model.Board {
 			return model.Board{
-				ID:   o.ID,
-				Role: o.Role,
+				ID: o.ID,
 				Member: model.Member{
 					Name: o.Name,
 				},
 				Year: *e.Year.ToModel(),
+				Role: o.Role,
 			}
 		}),
 	}

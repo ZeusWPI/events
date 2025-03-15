@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/db/sqlc"
-	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -37,7 +36,7 @@ func NewPSQL(options PSQLOptions) (DB, error) {
 	pgConfig.ConnConfig.Port = defaultInt(options.Port, 5432)
 	pgConfig.ConnConfig.Database = defaultString(options.Database, "postgres")
 	pgConfig.ConnConfig.User = defaultString(options.User, "postgres")
-	pgConfig.ConnConfig.Password = config.GetDefaultString(options.Password, "postgres")
+	pgConfig.ConnConfig.Password = defaultString(options.Password, "postgres")
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), pgConfig)
 	if err != nil {
@@ -62,7 +61,7 @@ func (p *psql) Queries() *sqlc.Queries {
 func (p *psql) WithRollback(ctx context.Context, fn func(q *sqlc.Queries) error) error {
 	tx, err := p.pool.Begin(ctx)
 	if err != nil {
-		return fmt.Errorf("Failed to start transaction: %v", err)
+		return fmt.Errorf("failed to start transaction: %v", err)
 	}
 	defer func() {
 		// Will error out if tx.Commit is called first
@@ -76,6 +75,10 @@ func (p *psql) WithRollback(ctx context.Context, fn func(q *sqlc.Queries) error)
 	}
 
 	return tx.Commit(ctx)
+}
+
+func (p *psql) Pool() *pgxpool.Pool {
+	return p.pool
 }
 
 func defaultString(value, defaultValue string) string {

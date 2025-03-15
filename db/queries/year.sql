@@ -2,6 +2,11 @@
 SELECT * FROM year
 ORDER BY start_year DESC;  
 
+-- name: YearGetLatest :one 
+SELECT * FROM year 
+ORDER BY start_year DESC
+LIMIT 1;
+
 -- name: YearCreate :one 
 INSERT INTO year (start_year, end_year)
 VALUES ($1, $2)

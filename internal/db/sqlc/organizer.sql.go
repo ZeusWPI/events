@@ -40,7 +40,7 @@ func (q *Queries) OrganizerDelete(ctx context.Context, id int32) error {
 }
 
 const organizerGetByYearWithBoard = `-- name: OrganizerGetByYearWithBoard :many
-SELECT o.id, event, board, b.id, member, year, role, created_at, updated_at, m.id, name, username FROM organizer o 
+SELECT o.id, event, board, b.id, member, year, role, created_at, updated_at, m.id, name, username, zauth_id FROM organizer o 
 INNER JOIN board b ON b.id = o.board 
 INNER JOIN member m ON m.id = b.member 
 WHERE b.year = $1
@@ -59,6 +59,7 @@ type OrganizerGetByYearWithBoardRow struct {
 	ID_3      int32
 	Name      string
 	Username  pgtype.Text
+	ZauthID   pgtype.Int4
 }
 
 func (q *Queries) OrganizerGetByYearWithBoard(ctx context.Context, year int32) ([]OrganizerGetByYearWithBoardRow, error) {
@@ -83,6 +84,7 @@ func (q *Queries) OrganizerGetByYearWithBoard(ctx context.Context, year int32) (
 			&i.ID_3,
 			&i.Name,
 			&i.Username,
+			&i.ZauthID,
 		); err != nil {
 			return nil, err
 		}
