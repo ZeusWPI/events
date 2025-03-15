@@ -37,10 +37,8 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 	}))
 
 	env := config.GetDefaultString("app.env", "development")
-	if env != "development" {
-		app.Static("/", "./public")
-		app.Static("*", "./public/index.html")
-	} else {
+
+	if env == "development" {
 		app.Use(cors.New(cors.Config{
 			AllowOrigins:     "http://localhost:5173",
 			AllowHeaders:     "Origin, Content-Type, Accept, Access-Control-Allow-Origin",
@@ -52,7 +50,7 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 		KeyLookup:      fmt.Sprintf("cookie:%s_session_id", config.GetDefaultString("app.name", "events")),
 		CookieHTTPOnly: true,
 		Storage:        postgres.New(postgres.Config{DB: pool}),
-		CookieSecure:   env != "production",
+		CookieSecure:   env != "development",
 	})
 
 	// Initialize all routes
@@ -64,6 +62,11 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 	api.NewEventRouter(service, protectedRouter)
 	api.NewYearRouter(service, protectedRouter)
 	api.NewOrganizerRouter(service, protectedRouter)
+
+	if env != "development" {
+		app.Static("/", "./public")
+		app.Static("*", "./public/index.html")
+	}
 
 	host := config.GetDefaultString("app.host", "0.0.0.0")
 

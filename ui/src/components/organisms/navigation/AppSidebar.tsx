@@ -28,8 +28,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
                   <div className="flex flex-col gap-0.5 leading-none">
                     <span className="font-semibold">Events</span>
                     <span className="text-xs text-muted-foreground">
-                      Built:
-                      {buildTime}
+                      {`Built: ${buildTime}`}
                     </span>
                   </div>
                 </Link>

@@ -29,13 +29,18 @@ func (q *Queries) OrganizerCreate(ctx context.Context, arg OrganizerCreateParams
 	return id, err
 }
 
-const organizerDelete = `-- name: OrganizerDelete :exec
+const organizerDeleteByBoardEvent = `-- name: OrganizerDeleteByBoardEvent :exec
 DELETE FROM organizer 
-WHERE id = $1
+WHERE board = $1 AND event = $2
 `
 
-func (q *Queries) OrganizerDelete(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, organizerDelete, id)
+type OrganizerDeleteByBoardEventParams struct {
+	Board int32
+	Event int32
+}
+
+func (q *Queries) OrganizerDeleteByBoardEvent(ctx context.Context, arg OrganizerDeleteByBoardEventParams) error {
+	_, err := q.db.Exec(ctx, organizerDeleteByBoardEvent, arg.Board, arg.Event)
 	return err
 }
 

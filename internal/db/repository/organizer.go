@@ -63,7 +63,7 @@ func (r *organizerRepo) Save(ctx context.Context, organizer *model.Organizer) er
 }
 
 func (r *organizerRepo) Delete(ctx context.Context, organizer model.Organizer) error {
-	if err := r.repo.queries(ctx).OrganizerDelete(ctx, int32(organizer.ID)); err != nil {
+	if err := r.repo.queries(ctx).OrganizerDeleteByBoardEvent(ctx, sqlc.OrganizerDeleteByBoardEventParams{Board: int32(organizer.Board.ID), Event: int32(organizer.Event.ID)}); err != nil {
 		return fmt.Errorf("unable to delete organizer %+v | %v", organizer, err)
 	}
 

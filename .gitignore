@@ -8,5 +8,8 @@ tmp
 .vscode
 .idea
 
+# Production config file 
+config/production.yml
+
 # Executable
 main

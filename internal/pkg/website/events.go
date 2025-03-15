@@ -34,7 +34,7 @@ func (w *Website) fetchEventURLSByYear(year model.Year) ([]string, error) {
 		url := e.Attr("href")
 		parts := strings.Split(url, "/")
 		if len(parts) != 5 {
-			errs = append(errs, fmt.Errorf("Unable to get link of an event %s", url))
+			errs = append(errs, fmt.Errorf("unable to get link of an event %s", url))
 			return
 		}
 		urls = append(urls, parts[3])
@@ -43,7 +43,7 @@ func (w *Website) fetchEventURLSByYear(year model.Year) ([]string, error) {
 	url := fmt.Sprintf("%s/%s", eventURL, year.String())
 	err := c.Visit(url)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to visit url %s | %v", url, err)
+		return nil, fmt.Errorf("unable to visit url %s | %v", url, err)
 	}
 
 	c.Wait()
@@ -58,7 +58,7 @@ func (w *Website) fetchEventURLSByYear(year model.Year) ([]string, error) {
 // UpdateEvent scrapes the website for event data and saves it
 func (w *Website) UpdateEvent(event *model.Event) error {
 	if event.URL == "" || (event.Year == model.Year{}) {
-		return fmt.Errorf("Event has no URL or acdemic year: %+v", event)
+		return fmt.Errorf("event has no URL or acdemic year: %+v", event)
 	}
 
 	var errs []error
@@ -72,7 +72,7 @@ func (w *Website) UpdateEvent(event *model.Event) error {
 		startRaw := e.ChildAttr(".fa-ul > li:nth-child(1) > span:nth-child(2)", "content")
 		start, err := time.Parse("2006-01-02T15:04:05-07:00", startRaw)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("Unable to parse event start time %s | %+v | %v", startRaw, *event, err))
+			errs = append(errs, fmt.Errorf("unable to parse event start time %s | %+v | %v", startRaw, *event, err))
 		}
 		event.StartTime = start
 		// End time is not necessary
@@ -86,7 +86,7 @@ func (w *Website) UpdateEvent(event *model.Event) error {
 	url := fmt.Sprintf("%s/%s/%s", eventURL, event.Year.String(), event.URL)
 	err := c.Visit(url)
 	if err != nil {
-		return fmt.Errorf("Unable to visit url %s | %v", url, err)
+		return fmt.Errorf("unable to visit url %s | %v", url, err)
 	}
 
 	c.Wait()

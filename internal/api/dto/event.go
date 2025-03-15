@@ -74,8 +74,8 @@ func (e *Event) ToModel() *model.Event {
 		Year:        *e.Year.ToModel(),
 		Organizers: util.SliceMap(e.Organizers, func(o Organizer) model.Board {
 			return model.Board{
-				ID: o.ID,
 				Member: model.Member{
+					ID:   o.ID,
 					Name: o.Name,
 				},
 				Year: *e.Year.ToModel(),

@@ -9,6 +9,6 @@ INSERT INTO organizer (event, board)
 VALUES ($1, $2)
 RETURNING id;
 
--- name: OrganizerDelete :exec 
+-- name: OrganizerDeleteByBoardEvent :exec 
 DELETE FROM organizer 
-WHERE id = $1;
+WHERE board = $1 AND event = $2;
