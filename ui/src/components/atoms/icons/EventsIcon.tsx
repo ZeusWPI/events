@@ -1,12 +1,6 @@
-interface Props {
-  fill?: string;
-  stroke?: string;
-  className?: string;
-}
-
-function EventsIcon({ fill, stroke, className }: Props) {
+function EventsIcon({ className }: { className: string }) {
   return (
-    <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 489.959 489.959" fill={fill} stroke={stroke} className={className}>
+    <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 489.959 489.959" className={className}>
       <g>
         <g>
           <g>

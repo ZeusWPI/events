@@ -1,14 +1,17 @@
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+import { AuthLayout } from "./layout/AuthLayout";
 import NavLayout from "./layout/NavLayout";
 
 function App() {
   return (
     <>
-      <NavLayout>
-        <Outlet />
-      </NavLayout>
+      <AuthLayout>
+        <NavLayout>
+          <Outlet />
+        </NavLayout>
+      </AuthLayout>
       <TanStackRouterDevtools position="bottom-right" />
       <ReactQueryDevtools position="bottom" />
     </>
