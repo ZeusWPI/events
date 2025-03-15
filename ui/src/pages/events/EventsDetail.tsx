@@ -40,7 +40,7 @@ export function EventsDetail() {
       </PageHeader>
       <div className="lg:col-span-2">
         <HeadlessCard>
-          <CardHeader className="px-0 pt-0">
+          <CardHeader className="px-4 sm:px-0 pt-0">
             <CardTitle>General</CardTitle>
           </CardHeader>
           <CardContent className="px-0">

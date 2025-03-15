@@ -20,7 +20,7 @@ export function EventAssignCard({ event, organizers, onAssign }: Props) {
   };
 
   return (
-    <div className="grid grid-cols-3">
+    <div className="grid lg:grid-cols-3 gap-2">
       <div className="flex flex-col">
         <div className="flex items-center gap-2">
           {selected.length === 0 && (
@@ -42,7 +42,7 @@ export function EventAssignCard({ event, organizers, onAssign }: Props) {
         onValueChange={onValueChange}
         defaultValue={selected}
         placeholder="Select organizers"
-        className="col-span-2"
+        className="lg:col-span-2"
       />
     </div>
   );

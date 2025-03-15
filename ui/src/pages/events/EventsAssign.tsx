@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useEventByYear, useEventSaveOrganizers } from "@/lib/api/event";
 import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useYearGetAll } from "@/lib/api/year";
+import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { Link, useParams } from "@tanstack/react-router";
 import { motion } from "framer-motion";
@@ -32,6 +33,7 @@ export function EventsAssign() {
   const [isSaving, setIsSaving] = useState(false);
 
   useBreadcrumb({ title: "Assign", link: { to: "/events/$year/assign", params: { year: yearString } } });
+  const isMobile = useIsMobile();
 
   const organizersEventCount = organizers?.map(organizer => ({
     ...organizer,
@@ -73,7 +75,7 @@ export function EventsAssign() {
   return (
     <div className="grid xl:grid-cols-4 gap-8">
       <PageHeader className="col-span-full">
-        <Title>Assign to Event</Title>
+        <Title>{`Assign${!isMobile ? ` to Events ${yearString}` : ""}`}</Title>
         <div className="flex items-center gap-6">
           <Button size="lg" variant="outline" onClick={handleDiscard} asChild>
             <Link to="/events/$year" params={{ year: yearString }}>
@@ -93,7 +95,7 @@ export function EventsAssign() {
         </div>
       </PageHeader>
       <div className="sticky top-6">
-        <Card className="w-full xl:max-w-80 sticky top-6">
+        <Card className={`w-full xl:max-w-80 sticky top-6 ${isMobile ? "max-h-48 overflow-y-scroll" : ""}`}>
           <CardContent className="flex flex-col gap-1">
             {organizersEventCount.map((organizer, index) => (
               <motion.div key={organizer.id} layout className="flex justify-between items-center w-full">
