@@ -30,7 +30,7 @@ func (s *Service) NewEvent() Event {
 
 // NewOrganizer creates a new Organizer service
 func (s *Service) NewOrganizer() Organizer {
-	return &organizerService{service: *s, board: s.repo.NewBoard()}
+	return &organizerService{service: *s, board: s.repo.NewBoard(), member: s.repo.NewMember(), year: s.repo.NewYear()}
 }
 
 // NewYear creates a new Year service

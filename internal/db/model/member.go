@@ -3,6 +3,7 @@ package model
 // Member represents a Zeus WPI member
 type Member struct {
 	ID       int
+	ZauthID  int
 	Name     string
 	Username string
 }

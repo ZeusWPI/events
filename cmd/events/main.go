@@ -39,7 +39,7 @@ func main() {
 	cmd.RunWebsitePeriodic(website)
 
 	service := service.New(*repo)
-	if err := cmd.API(*service); err != nil {
+	if err := cmd.API(*service, db.Pool()); err != nil {
 		zap.S().Error(err)
 	}
 }

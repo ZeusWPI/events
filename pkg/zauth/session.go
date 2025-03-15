@@ -9,7 +9,7 @@ import (
 	"github.com/markbates/goth"
 )
 
-// Session stores data during the auth process with Zauth
+// Session is the implementation of `goth.Session` for storing data during the auth process with Zauth
 type Session struct {
 	AuthURL      string
 	AccessToken  string

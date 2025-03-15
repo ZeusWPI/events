@@ -5,11 +5,16 @@ import (
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/api/api"
+	"github.com/ZeusWPI/events/internal/api/middleware"
 	"github.com/ZeusWPI/events/internal/service"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/gofiber/storage/postgres/v3"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shareed2k/goth_fiber"
 	"go.uber.org/zap"
 )
 
@@ -22,7 +27,7 @@ type Server struct {
 const port = 4000
 
 // NewServer creates a new Server
-func NewServer(service service.Service) *Server {
+func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 	app := fiber.New(fiber.Config{
 		BodyLimit:      1024 * 1024 * 1024,
 		ReadBufferSize: 8096,
@@ -43,14 +48,25 @@ func NewServer(service service.Service) *Server {
 		}))
 	}
 
-	apiRouter := app.Group("/api")
+	goth_fiber.SessionStore = session.New(session.Config{
+		KeyLookup:      fmt.Sprintf("cookie:%s_session_id", config.GetDefaultString("app.name", "events")),
+		CookieHTTPOnly: true,
+		Storage:        postgres.New(postgres.Config{DB: pool}),
+		CookieSecure:   env != "production",
+	})
 
 	// Initialize all routes
-	api.NewEventRouter(service, apiRouter)
-	api.NewYearRouter(service, apiRouter)
-	api.NewOrganizerRouter(service, apiRouter)
+	apiRouter := app.Group("/api")
+	api.NewAuthRouter(service, apiRouter)
+
+	protectedRouter := apiRouter.Use(middleware.ProtectedRoute)
+
+	api.NewEventRouter(service, protectedRouter)
+	api.NewYearRouter(service, protectedRouter)
+	api.NewOrganizerRouter(service, protectedRouter)
 
 	host := config.GetDefaultString("app.host", "0.0.0.0")
+
 	return &Server{
 		Addr: fmt.Sprintf("%s:%d", host, port),
 		App:  app,

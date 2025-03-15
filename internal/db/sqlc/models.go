@@ -35,6 +35,7 @@ type Member struct {
 	ID       int32
 	Name     string
 	Username pgtype.Text
+	ZauthID  pgtype.Int4
 }
 
 type Organizer struct {

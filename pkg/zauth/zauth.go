@@ -30,7 +30,8 @@ type Provider struct {
 // Interface compliance
 var _ goth.Provider = (*Provider)(nil)
 
-type zauthUser struct {
+// User contains the user data received from Zauth
+type User struct {
 	ID       int    `json:"id"`
 	Username string `json:"username"`
 	Admin    bool   `json:"admin"`
@@ -125,7 +126,7 @@ func (p *Provider) FetchUser(gothSession goth.Session) (goth.User, error) {
 		return goth.User{}, fmt.Errorf("unable to read zauth response body %v", err)
 	}
 
-	var u zauthUser
+	var u User
 	if err := json.Unmarshal(responseBytes, &u); err != nil {
 		return goth.User{}, fmt.Errorf("unable to unmarshal zauth response into zauthUser %s | %v", string(responseBytes), err)
 	}

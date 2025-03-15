@@ -31,9 +31,9 @@ func (q *Queries) BoardCreate(ctx context.Context, arg BoardCreateParams) (int32
 }
 
 const boardGetAllWithMemberYear = `-- name: BoardGetAllWithMemberYear :many
-SELECT b.id, member, year, role, created_at, updated_at, m.id, name, username, a_y.id, start_year, end_year FROM board b 
+SELECT b.id, member, year, role, created_at, updated_at, m.id, name, username, zauth_id, y.id, start_year, end_year FROM board b 
 INNER JOIN member m ON b.member = m.id 
-INNER JOIN year a_y ON b.year = a_y.id
+INNER JOIN year y ON b.year = y.id
 `
 
 type BoardGetAllWithMemberYearRow struct {
@@ -46,6 +46,7 @@ type BoardGetAllWithMemberYearRow struct {
 	ID_2      int32
 	Name      string
 	Username  pgtype.Text
+	ZauthID   pgtype.Int4
 	ID_3      int32
 	StartYear int32
 	EndYear   int32
@@ -70,6 +71,7 @@ func (q *Queries) BoardGetAllWithMemberYear(ctx context.Context) ([]BoardGetAllW
 			&i.ID_2,
 			&i.Name,
 			&i.Username,
+			&i.ZauthID,
 			&i.ID_3,
 			&i.StartYear,
 			&i.EndYear,
@@ -84,10 +86,59 @@ func (q *Queries) BoardGetAllWithMemberYear(ctx context.Context) ([]BoardGetAllW
 	return items, nil
 }
 
-const boardGetByYearWithMemberYear = `-- name: BoardGetByYearWithMemberYear :many
-SELECT b.id, member, year, role, created_at, updated_at, m.id, name, username, a_y.id, start_year, end_year FROM board b 
+const boardGetByMemberYear = `-- name: BoardGetByMemberYear :one
+SELECT b.id, member, year, role, created_at, updated_at, m.id, name, username, zauth_id, y.id, start_year, end_year FROM board b 
 INNER JOIN member m ON b.member = m.id 
-INNER JOIN year a_y ON b.year = a_y.id
+INNER JOIN year y ON b.year = y.id
+WHERE m.id = $1 AND y.id = $2
+`
+
+type BoardGetByMemberYearParams struct {
+	ID   int32
+	ID_2 int32
+}
+
+type BoardGetByMemberYearRow struct {
+	ID        int32
+	Member    int32
+	Year      int32
+	Role      string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	ID_2      int32
+	Name      string
+	Username  pgtype.Text
+	ZauthID   pgtype.Int4
+	ID_3      int32
+	StartYear int32
+	EndYear   int32
+}
+
+func (q *Queries) BoardGetByMemberYear(ctx context.Context, arg BoardGetByMemberYearParams) (BoardGetByMemberYearRow, error) {
+	row := q.db.QueryRow(ctx, boardGetByMemberYear, arg.ID, arg.ID_2)
+	var i BoardGetByMemberYearRow
+	err := row.Scan(
+		&i.ID,
+		&i.Member,
+		&i.Year,
+		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ID_2,
+		&i.Name,
+		&i.Username,
+		&i.ZauthID,
+		&i.ID_3,
+		&i.StartYear,
+		&i.EndYear,
+	)
+	return i, err
+}
+
+const boardGetByYearWithMemberYear = `-- name: BoardGetByYearWithMemberYear :many
+SELECT b.id, member, year, role, created_at, updated_at, m.id, name, username, zauth_id, y.id, start_year, end_year FROM board b 
+INNER JOIN member m ON b.member = m.id 
+INNER JOIN year y ON b.year = y.id
 WHERE b.year = $1
 `
 
@@ -101,6 +152,7 @@ type BoardGetByYearWithMemberYearRow struct {
 	ID_2      int32
 	Name      string
 	Username  pgtype.Text
+	ZauthID   pgtype.Int4
 	ID_3      int32
 	StartYear int32
 	EndYear   int32
@@ -125,6 +177,7 @@ func (q *Queries) BoardGetByYearWithMemberYear(ctx context.Context, year int32) 
 			&i.ID_2,
 			&i.Name,
 			&i.Username,
+			&i.ZauthID,
 			&i.ID_3,
 			&i.StartYear,
 			&i.EndYear,

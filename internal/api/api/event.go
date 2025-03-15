@@ -62,5 +62,5 @@ func (r *EventRouter) updateOrganizers(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	return nil
+	return c.SendStatus(fiber.StatusCreated)
 }

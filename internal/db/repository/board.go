@@ -13,6 +13,7 @@ import (
 type Board interface {
 	GetAllWithMemberYear(context.Context) ([]*model.Board, error)
 	GetByYearWithMemberYear(context.Context, model.Year) ([]*model.Board, error)
+	GetByMemberYear(context.Context, model.Member, model.Year) (*model.Board, error)
 	Save(context.Context, *model.Board) error
 }
 
@@ -30,7 +31,7 @@ var _ Board = (*boardRepo)(nil)
 func (r *boardRepo) GetAllWithMemberYear(ctx context.Context) ([]*model.Board, error) {
 	boards, err := r.repo.queries(ctx).BoardGetAllWithMemberYear(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get all boards | %v", err)
+		return nil, fmt.Errorf("unable to get all boards | %v", err)
 	}
 
 	return util.SliceMap(boards, func(b sqlc.BoardGetAllWithMemberYearRow) *model.Board {
@@ -59,7 +60,7 @@ func (r *boardRepo) GetAllWithMemberYear(ctx context.Context) ([]*model.Board, e
 func (r *boardRepo) GetByYearWithMemberYear(ctx context.Context, year model.Year) ([]*model.Board, error) {
 	boards, err := r.repo.queries(ctx).BoardGetByYearWithMemberYear(ctx, int32(year.ID))
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get all boards by year %+v | %v", year, err)
+		return nil, fmt.Errorf("unable to get all boards by year %+v | %v", year, err)
 	}
 
 	return util.SliceMap(boards, func(b sqlc.BoardGetByYearWithMemberYearRow) *model.Board {
@@ -83,6 +84,36 @@ func (r *boardRepo) GetByYearWithMemberYear(ctx context.Context, year model.Year
 			Role: b.Role,
 		}
 	}), nil
+}
+
+func (r *boardRepo) GetByMemberYear(ctx context.Context, member model.Member, year model.Year) (*model.Board, error) {
+	board, err := r.repo.queries(ctx).BoardGetByMemberYear(ctx, sqlc.BoardGetByMemberYearParams{
+		ID:   int32(member.ID),
+		ID_2: int32(year.ID),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to get board by member and year %+v | %+v | %v", member, year, err)
+	}
+
+	username := ""
+	if board.Username.Valid {
+		username = board.Username.String
+	}
+
+	return &model.Board{
+		ID: int(board.ID),
+		Member: model.Member{
+			ID:       int(board.ID_2),
+			Name:     board.Name,
+			Username: username,
+		},
+		Year: model.Year{
+			ID:        int(board.ID_3),
+			StartYear: int(board.StartYear),
+			EndYear:   int(board.EndYear),
+		},
+		Role: board.Role,
+	}, nil
 }
 
 // Save creates a new board
@@ -113,7 +144,7 @@ func (r *boardRepo) Save(ctx context.Context, b *model.Board) error {
 			Role:   b.Role,
 		})
 		if err != nil {
-			return fmt.Errorf("Unable to save board %+v | %v", *b, err)
+			return fmt.Errorf("unable to save board %+v | %v", *b, err)
 		}
 
 		b.ID = int(id)

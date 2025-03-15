@@ -12,6 +12,7 @@ import (
 // Year provides all model.Year related database operations
 type Year interface {
 	GetAll(context.Context) ([]*model.Year, error)
+	GetLatest(context.Context) (*model.Year, error)
 	Save(context.Context, *model.Year) error
 }
 
@@ -26,7 +27,7 @@ var _ Year = (*yearRepo)(nil)
 func (r *yearRepo) GetAll(ctx context.Context) ([]*model.Year, error) {
 	yearsDB, err := r.repo.queries(ctx).YearGetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to get all years | %v", err)
+		return nil, fmt.Errorf("unable to get all years | %v", err)
 	}
 
 	return util.SliceMap(yearsDB, func(y sqlc.Year) *model.Year {
@@ -36,6 +37,19 @@ func (r *yearRepo) GetAll(ctx context.Context) ([]*model.Year, error) {
 			EndYear:   int(y.EndYear),
 		}
 	}), nil
+}
+
+func (r *yearRepo) GetLatest(ctx context.Context) (*model.Year, error) {
+	year, err := r.repo.queries(ctx).YearGetLatest(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get latest year %v", err)
+	}
+
+	return &model.Year{
+		ID:        int(year.ID),
+		StartYear: int(year.StartYear),
+		EndYear:   int(year.EndYear),
+	}, nil
 }
 
 // Save creates a new year or updates an existing one
@@ -60,7 +74,7 @@ func (r *yearRepo) Save(ctx context.Context, a *model.Year) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("Unable to save year %+v | %v", *a, err)
+		return fmt.Errorf("unable to save year %+v | %v", *a, err)
 	}
 
 	a.ID = int(id)

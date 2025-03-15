@@ -28,6 +28,7 @@ func NewOrganizerRouter(service service.Service, router fiber.Router) *Organizer
 
 func (r *OrganizerRouter) createRoutes() {
 	r.router.Get("/year/:id", r.getByYear)
+	r.router.Get("/me", r.meHandler)
 }
 
 func (r *OrganizerRouter) getByYear(c *fiber.Ctx) error {
@@ -43,4 +44,16 @@ func (r *OrganizerRouter) getByYear(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(organizers)
+}
+
+func (r *OrganizerRouter) meHandler(c *fiber.Ctx) error {
+	memberID := c.Locals("memberID").(int)
+
+	user, err := r.organizer.GetByID(c.Context(), memberID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return c.JSON(user)
 }

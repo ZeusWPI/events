@@ -52,6 +52,19 @@ func (q *Queries) YearGetAll(ctx context.Context) ([]Year, error) {
 	return items, nil
 }
 
+const yearGetLatest = `-- name: YearGetLatest :one
+SELECT id, start_year, end_year FROM year 
+ORDER BY start_year DESC
+LIMIT 1
+`
+
+func (q *Queries) YearGetLatest(ctx context.Context) (Year, error) {
+	row := q.db.QueryRow(ctx, yearGetLatest)
+	var i Year
+	err := row.Scan(&i.ID, &i.StartYear, &i.EndYear)
+	return i, err
+}
+
 const yearUpdate = `-- name: YearUpdate :exec
 UPDATE year
 SET start_year = $1, end_year = $2 
