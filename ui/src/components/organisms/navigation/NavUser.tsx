@@ -2,13 +2,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/lib/hooks/useAuth";
-import { ChevronsUpDown, LogOut, Sun } from "lucide-react";
+import { useTheme } from "@/lib/hooks/useTheme";
+import { ChevronsUpDown, LogOut, Moon, Sun } from "lucide-react";
 
 export function NavUser() {
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const { isMobile } = useSidebar();
 
   const initials = user?.name.split(" ").map(n => n[0]).join("");
+
+  const handleThemeSwitch = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
 
   return (
     <SidebarMenu>
@@ -47,8 +53,14 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sun />
+              <DropdownMenuItem onClick={handleThemeSwitch}>
+                {theme === "light"
+                  ? (
+                      <Sun />
+                    )
+                  : (
+                      <Moon />
+                    )}
                 Theme
               </DropdownMenuItem>
             </DropdownMenuGroup>
