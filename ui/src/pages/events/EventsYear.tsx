@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useEventByYear } from "@/lib/api/event";
 import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useYearGetAll } from "@/lib/api/year";
+import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { Link, Outlet, useMatch, useParams } from "@tanstack/react-router";
 import { isAfter, isBefore } from "date-fns";
@@ -28,6 +29,7 @@ export function EventsYear() {
   useEffect(() => setSelectedOrganizers([]), [yearString]);
 
   useBreadcrumb({ title: yearString, link: { to: "/events/$year", params: { year: yearString } } });
+  const isMobile = useIsMobile();
 
   if (!events) {
     return <Indeterminate />;
@@ -47,7 +49,7 @@ export function EventsYear() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader>
-        <Title>{`Events ${yearString}`}</Title>
+        <Title>{`${!isMobile ? "Events " : ""} ${yearString}`}</Title>
         <div className="flex items-center gap-6">
           <Button size="lg" variant="outline" asChild>
             <Link to="/events/$year/assign" params={{ year: yearString }}>
