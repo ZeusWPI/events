@@ -1,7 +1,7 @@
 import { DividerText } from "@/components/atoms/DividerText";
-import EventsIcon from "@/components/atoms/icons/EventsIcon";
-import GithubIcon from "@/components/atoms/icons/GithubIcon";
-import WebsiteIcon from "@/components/atoms/icons/WebsiteIcon";
+import EventsIcon from "@/components/icons/EventsIcon";
+import GithubIcon from "@/components/icons/GithubIcon";
+import WebsiteIcon from "@/components/icons/WebsiteIcon";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
 
