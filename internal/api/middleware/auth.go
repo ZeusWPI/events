@@ -16,12 +16,12 @@ func ProtectedRoute(c *fiber.Ctx) error {
 	}
 
 	if session.Fresh() {
-		return c.Redirect("/", fiber.StatusUnauthorized)
+		return c.Redirect("/")
 	}
 
 	var userID interface{}
 	if userID = session.Get("memberID"); userID == nil {
-		return c.Redirect("/", fiber.StatusUnauthorized)
+		return c.SendStatus(fiber.StatusForbidden)
 	}
 
 	c.Locals("memberID", userID)

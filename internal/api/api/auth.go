@@ -53,43 +53,13 @@ func (r *AuthRouter) loginCallback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	zauthAdmin, err := util.MapGetKeyAsType[bool]("admin", user.RawData)
-	if err != nil {
-		zap.S().Error(err)
+	zauthAdmin, err1 := util.MapGetKeyAsType[bool]("admin", user.RawData)
+	zauthID, err2 := util.MapGetKeyAsType[int]("id", user.RawData)
+	zauthName, err3 := util.MapGetKeyAsType[string]("fullName", user.RawData)
+	zauthUsername, err4 := util.MapGetKeyAsType[string]("username", user.RawData)
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+		zap.S().Error(err1, err2, err3, err4)
 		return fiber.ErrInternalServerError
-	}
-	if !zauthAdmin {
-		return fiber.ErrUnauthorized
-	}
-
-	zauthID, err1 := util.MapGetKeyAsType[int]("id", user.RawData)
-	zauthName, err2 := util.MapGetKeyAsType[string]("fullName", user.RawData)
-	zauthUsername, err3 := util.MapGetKeyAsType[string]("username", user.RawData)
-	if err1 != nil || err2 != nil || err3 != nil {
-		zap.S().Error(err1, err2, err3)
-		return fiber.ErrInternalServerError
-	}
-
-	zauth := zauth.User{
-		ID:       zauthID,
-		Admin:    zauthAdmin,
-		FullName: zauthName,
-		Username: zauthUsername,
-	}
-
-	dbUser, err := r.organizer.GetByZauth(c.Context(), zauth)
-	if err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
-	}
-
-	if dbUser.ID == 0 {
-		// User is not in the databank yet
-		// This means the user was never a board member (but somehow has admin)
-		// Or the new board members haven't been scraped yet
-		// Or the user's zauth fullname doesn't match with the one on the website
-		// In any case, access denied
-		return fiber.ErrUnauthorized
 	}
 
 	session, err := goth_fiber.SessionStore.Get(c)
@@ -98,7 +68,25 @@ func (r *AuthRouter) loginCallback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	session.Set("memberID", dbUser.ID)
+	if zauthAdmin {
+		zauth := zauth.User{
+			ID:       zauthID,
+			Admin:    zauthAdmin,
+			FullName: zauthName,
+			Username: zauthUsername,
+		}
+
+		dbUser, err := r.organizer.GetByZauth(c.Context(), zauth)
+		if err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
+		if dbUser.ID != 0 {
+			session.Set("memberID", dbUser.ID)
+		}
+	}
+
 	if err = session.Save(); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError

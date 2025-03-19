@@ -4,6 +4,7 @@ import { createContext } from "react";
 interface AuthContextType {
   user: Organizer | null;
   isLoading: boolean;
+  forbidden: boolean;
   login: () => void;
   logout: () => void;
 }
