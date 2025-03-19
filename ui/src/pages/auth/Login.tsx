@@ -8,14 +8,6 @@ import { useAuth } from "@/lib/hooks/useAuth";
 export function Login() {
   const { login } = useAuth();
 
-  const handleGithubClick = () => {
-    window.location.replace("https://github.com/ZeusWPI/events");
-  };
-
-  const handleWebsiteClick = () => {
-    window.location.replace("https://zeus.gent");
-  };
-
   return (
     <div className="flex flex-col items-center justify-center min-h-svh">
       <div className="flex flex-col items-center justify-center w-full max-w-sm gap-4">
@@ -25,13 +17,17 @@ export function Login() {
           <Button onClick={login} className="w-full">Login with zauth</Button>
           <DividerText className="py-1">or</DividerText>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Button onClick={handleGithubClick} variant="outline" className="w-full">
-              <GithubIcon className="stroke-secondary-foreground" />
-              Github
+            <Button variant="outline" className="w-full" asChild>
+              <a href="https://zeus.gent" target="_blank" rel="noopener noreferrer">
+                <GithubIcon className="stroke-secondary-foreground" />
+                Github
+              </a>
             </Button>
-            <Button onClick={handleWebsiteClick} variant="outline" className="w-full">
-              Website
-              <WebsiteIcon className="fill-secondary-foreground" />
+            <Button variant="outline" className="w-full" asChild>
+              <a href="https://zeus.gent" target="_blank" rel="noopener noreferrer">
+                Website
+                <WebsiteIcon className="fill-secondary-foreground" />
+              </a>
             </Button>
           </div>
         </div>

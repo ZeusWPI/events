@@ -1,6 +1,7 @@
 import { createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
 import App from "./App";
 import Error404 from "./pages/404";
+import { Error } from "./pages/Error";
 import Events from "./pages/events/Events";
 import { EventsAssign } from "./pages/events/EventsAssign";
 import { EventsDetail } from "./pages/events/EventsDetail";
@@ -10,6 +11,7 @@ import Index from "./pages/Index";
 const rootRoute = createRootRoute({
   component: App,
   notFoundComponent: Error404,
+  errorComponent: Error,
 });
 
 const indexRoute = createRoute({
