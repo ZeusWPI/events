@@ -2,6 +2,8 @@
 package logger
 
 import (
+	"strings"
+
 	"github.com/ZeusWPI/events/pkg/config"
 	"go.uber.org/zap"
 )
@@ -10,6 +12,8 @@ import (
 func New() *zap.Logger {
 	var logger *zap.Logger
 	env := config.GetDefaultString("app.env", "development")
+	env = strings.ToLower(env)
+
 	if env == "development" {
 		logger = zap.Must(zap.NewDevelopment(zap.AddStacktrace(zap.WarnLevel)))
 	} else {

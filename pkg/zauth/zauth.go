@@ -13,7 +13,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const endpoint = "https://adams.ugent.be"
+const endpoint = "https://zauth.zeus.gent"
 
 // Provider is the implementation of `goth.Provider` for accessing Zauth
 type Provider struct {

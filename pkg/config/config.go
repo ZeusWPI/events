@@ -22,6 +22,7 @@ func Init() error {
 	}
 	viper.AutomaticEnv()
 	env := GetDefaultString("app.env", "development")
+	env = strings.ToLower(env)
 
 	viper.SetConfigName(fmt.Sprintf("%s.yml", env))
 	viper.SetConfigType("yaml")

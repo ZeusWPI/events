@@ -3,6 +3,7 @@ package api
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ZeusWPI/events/internal/api/api"
 	"github.com/ZeusWPI/events/internal/api/middleware"
@@ -37,6 +38,7 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 	}))
 
 	env := config.GetDefaultString("app.env", "development")
+	env = strings.ToLower(env)
 
 	if env == "development" {
 		app.Use(cors.New(cors.Config{

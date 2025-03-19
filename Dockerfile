@@ -32,6 +32,8 @@ COPY ui/ .
 ARG BUILD_TIME
 ENV VITE_BUILD_TIME=$BUILD_TIME
 
+ENV VITE_BACKEND_URL="https://events.zeus.gent/api"
+
 RUN pnpm run build
 
 
@@ -46,7 +48,7 @@ COPY --from=build_frontend /frontend/dist ./public
 
 RUN chmod +x ./main ./migrate
 
-ENV ENV=PRODUCTION
+ENV APP_ENV=PRODUCTION
 
 EXPOSE 4000
 

@@ -11,6 +11,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data, isLoading } = useUser();
   const { mutate: logoutMutation } = useUserLogout();
 
+  const url = import.meta.env.VITE_BACKEND_URL as string;
+
   useEffect(() => {
     if (data) {
       setUser(data);
@@ -18,8 +20,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [data]);
 
   const login = useCallback(() => {
-    window.location.href = "http://localhost:4000/api/auth/login/zauth";
-  }, []);
+    window.location.href = `${url}/auth/login/zauth`;
+  }, [url]);
 
   const logout = useCallback(() => {
     logoutMutation(undefined, {

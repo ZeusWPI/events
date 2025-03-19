@@ -3,7 +3,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Toaster } from "./components/ui/sonner.tsx";
-import { AuthProvider } from "./lib/providers/authProvider.tsx";
+import { AuthProvider } from "./lib/providers/AuthProvider.tsx";
 import { BreadcrumbProvider } from "./lib/providers/BreadcrumbProvider.tsx";
 import { ThemeProvider } from "./lib/providers/ThemeProvider.tsx";
 import { router } from "./router.ts";
