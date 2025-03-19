@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 export function Error() {
   return (
-    <div className="flex flex-col justify-center items-center h-full">
+    <div className="flex flex-col justify-center items-center h-full pt-[10%]">
       <p className="font-semibold text-primary">
         500
       </p>
@@ -15,7 +15,7 @@ export function Error() {
         Sorry, developer skill issue
       </p>
       <div className="mt-10 flex items-center justify-center gap-x-6">
-        <Button asChild className="font-semibold">
+        <Button asChild>
           <Link to="/">
             Go back home
           </Link>

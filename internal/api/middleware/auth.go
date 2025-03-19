@@ -16,7 +16,7 @@ func ProtectedRoute(c *fiber.Ctx) error {
 	}
 
 	if session.Fresh() {
-		return c.Redirect("/")
+		return c.Redirect("/", fiber.StatusUnauthorized)
 	}
 
 	var userID interface{}
