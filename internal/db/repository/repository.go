@@ -70,3 +70,8 @@ func (r *Repository) NewMember() Member {
 func (r *Repository) NewOrganizer() Organizer {
 	return &organizerRepo{repo: *r}
 }
+
+// NewOrganizer creates a new Organizer repository
+func (r *Repository) NewAnnouncements() Announcement {
+	return &announcementRepo{repo: *r}
+}
