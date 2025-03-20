@@ -56,7 +56,7 @@ A docker container gets build every time main gets updated.
 
 ### Prerequisites
 
-- Install the required versions of `Golang` and `Typescript`. Can be found in the [asdf tool versions file](.tool-version).
+- Install the required versions of `Golang` and `Typescript`. Can be found in the [asdf tool versions file](.tool-versions).
 - Install pre-commit hooks `git config --local core.hooksPath .githooks/`.
 - Install sqlc `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest`.
 - Install goose `go install github.com/pressly/goose/v3/cmd/goose@latest`.
