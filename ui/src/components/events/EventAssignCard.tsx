@@ -1,4 +1,5 @@
-import type { Event, Organizer } from "@/lib/types/types";
+import type { Event } from "@/lib/types/event";
+import type { Organizer } from "@/lib/types/organizer";
 import { formatDate } from "@/lib/utils/utils";
 import { CircleAlert } from "lucide-react";
 import { useState } from "react";

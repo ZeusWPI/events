@@ -1,14 +1,17 @@
-import type { Event, Year } from "../types/types";
+import type { Event } from "../types/event";
+import type { Year } from "../types/year";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { convertEventsToModel, convertEventToJSON } from "../utils/converter";
+import { convertEventsToModel, convertEventToJSON } from "../types/event";
 import { getApi, postApi } from "../utils/query";
 
 const ENDPOINT = "event";
+const MIN_5 = 5 * 60 * 1000;
 
-export function useEventByYear({ id }: Year) {
+export function useEventByYear({ id }: Pick<Year, "id">) {
   return useQuery({
     queryKey: ["event", id],
     queryFn: async () => getApi(`${ENDPOINT}/year/${id}`, convertEventsToModel),
+    staleTime: MIN_5,
   });
 }
 

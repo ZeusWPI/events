@@ -1,4 +1,4 @@
-import type { Event } from "@/lib/types/types";
+import type { Event } from "@/lib/types/event";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
@@ -29,7 +29,7 @@ export function EventCard({ event }: Props) {
     void navigate({ to: "/events/$year/$id", params: { year: event.year.formatted, id: event.id.toString() } });
 
   return (
-    <Card onClick={handleOnClick} className={`transition-transform duration-300 hover:scale-105 hover:cursor-pointer ${isOrganizer && "border-primary"}`}>
+    <Card onClick={handleOnClick} className={`transition-transform duration-300 hover:scale-102 hover:cursor-pointer ${isOrganizer && "border-primary"}`}>
       <CardHeader className="grow">
         <CardTitle>{event.name}</CardTitle>
         <CardDescription>

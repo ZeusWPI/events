@@ -2,10 +2,12 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarGroupContent, SidebarMenu, SidebarMenuAction, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem } from "@/components/ui/sidebar";
 import { useYearGetAll } from "@/lib/api/year";
-import { Link } from "@tanstack/react-router";
+import { Link, useMatch } from "@tanstack/react-router";
 import { Calendar, ChevronRight } from "lucide-react";
 
 function NavEvents() {
+  const isActive = useMatch({ from: "/events", shouldThrow: false });
+
   const { data: years } = useYearGetAll();
 
   return (
@@ -14,8 +16,8 @@ function NavEvents() {
         <Collapsible>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Events">
-              <Link to="/events" activeProps={{ className: "border-b-2 border-b-primary" }}>
-                <Calendar />
+              <Link to="/events">
+                <Calendar className={isActive && "stroke-primary"} />
                 <span>Events</span>
               </Link>
             </SidebarMenuButton>

@@ -7,6 +7,7 @@ import { useBreadcrumbs } from "@/lib/hooks/useBreadcrumb";
 import { Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 import NavEvents from "./NavEvents";
+import NavTasks from "./NavTasks";
 import { NavUser } from "./NavUser";
 
 function AppSidebar({ children }: { children: ReactNode }) {
@@ -39,6 +40,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
         <SidebarContent className="pt-[16px]">
           <SidebarGroup>
             <NavEvents />
+            <NavTasks />
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>

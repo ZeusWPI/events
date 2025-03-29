@@ -1,4 +1,4 @@
-import type { Organizer } from "../types/types";
+import type { Organizer } from "../types/organizer";
 import { createContext } from "react";
 
 interface AuthContextType {

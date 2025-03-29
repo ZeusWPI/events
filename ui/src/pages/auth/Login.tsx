@@ -18,7 +18,7 @@ export function Login() {
           <DividerText className="py-1">or</DividerText>
           <div className="grid gap-4 sm:grid-cols-2">
             <Button variant="outline" className="w-full" asChild>
-              <a href="https://github.com/zeusWPI/zess" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/zeusWPI/events" target="_blank" rel="noopener noreferrer">
                 <GithubIcon className="stroke-secondary-foreground" />
                 Github
               </a>
