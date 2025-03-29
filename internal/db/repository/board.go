@@ -31,7 +31,7 @@ var _ Board = (*boardRepo)(nil)
 func (r *boardRepo) GetAllWithMemberYear(ctx context.Context) ([]*model.Board, error) {
 	boards, err := r.repo.queries(ctx).BoardGetAllWithMemberYear(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all boards | %v", err)
+		return nil, fmt.Errorf("unable to get all boards | %w", err)
 	}
 
 	return util.SliceMap(boards, func(b sqlc.BoardGetAllWithMemberYearRow) *model.Board {
@@ -60,7 +60,7 @@ func (r *boardRepo) GetAllWithMemberYear(ctx context.Context) ([]*model.Board, e
 func (r *boardRepo) GetByYearWithMemberYear(ctx context.Context, year model.Year) ([]*model.Board, error) {
 	boards, err := r.repo.queries(ctx).BoardGetByYearWithMemberYear(ctx, int32(year.ID))
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all boards by year %+v | %v", year, err)
+		return nil, fmt.Errorf("unable to get all boards by year %+v | %w", year, err)
 	}
 
 	return util.SliceMap(boards, func(b sqlc.BoardGetByYearWithMemberYearRow) *model.Board {
@@ -92,7 +92,7 @@ func (r *boardRepo) GetByMemberYear(ctx context.Context, member model.Member, ye
 		ID_2: int32(year.ID),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to get board by member and year %+v | %+v | %v", member, year, err)
+		return nil, fmt.Errorf("unable to get board by member and year %+v | %+v | %w", member, year, err)
 	}
 
 	username := ""
@@ -144,7 +144,7 @@ func (r *boardRepo) Save(ctx context.Context, b *model.Board) error {
 			Role:   b.Role,
 		})
 		if err != nil {
-			return fmt.Errorf("unable to save board %+v | %v", *b, err)
+			return fmt.Errorf("unable to save board %+v | %w", *b, err)
 		}
 
 		b.ID = int(id)

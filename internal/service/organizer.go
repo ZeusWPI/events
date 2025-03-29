@@ -78,7 +78,7 @@ func (s *organizerService) GetByZauth(ctx context.Context, zauth zauth.User) (dt
 		member.ZauthID = zauth.ID
 		member.Username = zauth.Username
 
-		if err = s.member.Save(ctx, member); err != nil {
+		if err := s.member.Save(ctx, member); err != nil {
 			return dto.Organizer{}, err
 		}
 	}

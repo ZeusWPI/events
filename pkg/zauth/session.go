@@ -30,7 +30,11 @@ func (s *Session) GetAuthURL() (string, error) {
 
 // Marshal the session into a string
 func (s *Session) Marshal() string {
-	b, _ := json.Marshal(*s)
+	b, err := json.Marshal(*s)
+	if err != nil {
+		return ""
+	}
+
 	return string(b)
 }
 
@@ -39,7 +43,7 @@ func (s *Session) Authorize(gothProvider goth.Provider, params goth.Params) (str
 	p := gothProvider.(*Provider)
 	token, err := p.config.Exchange(goth.ContextForClient(p.client()), params.Get("code"))
 	if err != nil {
-		return "", fmt.Errorf("unable to exchange codes %v", err)
+		return "", fmt.Errorf("unable to exchange codes %w", err)
 	}
 
 	if !token.Valid() {

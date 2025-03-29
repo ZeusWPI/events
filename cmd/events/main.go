@@ -4,6 +4,7 @@ package main
 import (
 	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/pkg/task"
 	"github.com/ZeusWPI/events/internal/pkg/website"
 	"github.com/ZeusWPI/events/internal/service"
 	"github.com/ZeusWPI/events/pkg/config"
@@ -34,11 +35,18 @@ func main() {
 
 	repo := repository.New(db)
 
+	manager, err := task.NewManager(*repo)
+	if err != nil {
+		zap.S().Fatalf("Unable to create task manager %v", err)
+	}
+
 	// Start website
 	website := website.New(*repo)
-	cmd.RunWebsitePeriodic(website)
+	if err := cmd.Website(manager, *website); err != nil {
+		zap.S().Fatalf("Unable to start website tasks %v", err)
+	}
 
-	service := service.New(*repo)
+	service := service.New(*repo, manager)
 	if err := cmd.API(*service, db.Pool()); err != nil {
 		zap.S().Error(err)
 	}

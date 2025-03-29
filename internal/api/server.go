@@ -33,6 +33,7 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 		BodyLimit:      1024 * 1024 * 1024,
 		ReadBufferSize: 8096,
 	})
+
 	app.Use(fiberzap.New(fiberzap.Config{
 		Logger: zap.L(),
 	}))
@@ -64,6 +65,7 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 	api.NewEventRouter(service, protectedRouter)
 	api.NewYearRouter(service, protectedRouter)
 	api.NewOrganizerRouter(service, protectedRouter)
+	api.NewTaskRouter(service, protectedRouter)
 
 	if env != "development" {
 		app.Static("/", "./public")

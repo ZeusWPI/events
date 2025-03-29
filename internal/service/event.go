@@ -7,6 +7,8 @@ import (
 	"github.com/ZeusWPI/events/internal/api/dto"
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/pkg/task"
+	"github.com/ZeusWPI/events/internal/pkg/website"
 	"github.com/ZeusWPI/events/pkg/util"
 )
 
@@ -14,10 +16,12 @@ import (
 type Event interface {
 	GetByYear(context.Context, dto.Year) ([]dto.Event, error)
 	UpdateOrganizers(context.Context, []dto.Event) error
+	Sync() error
 }
 
 type eventService struct {
 	service Service
+	manager *task.Manager
 
 	board     repository.Board
 	event     repository.Event
@@ -92,4 +96,12 @@ func (s *eventService) UpdateOrganizers(ctx context.Context, events []dto.Event)
 
 		return nil
 	})
+}
+
+func (s *eventService) Sync() error {
+	if err := s.manager.RunByName(website.YearTask); err != nil {
+		return err
+	}
+
+	return nil
 }

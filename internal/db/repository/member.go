@@ -29,7 +29,7 @@ var _ Member = (*memberRepo)(nil)
 func (r *memberRepo) GetAll(ctx context.Context) ([]*model.Member, error) {
 	members, err := r.repo.queries(ctx).MemberGetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all members %v", err)
+		return nil, fmt.Errorf("unable to get all members %w", err)
 	}
 
 	return util.SliceMap(members, func(m sqlc.Member) *model.Member {
@@ -56,7 +56,7 @@ func (r *memberRepo) GetAll(ctx context.Context) ([]*model.Member, error) {
 func (r *memberRepo) GetByID(ctx context.Context, id int) (*model.Member, error) {
 	member, err := r.repo.queries(ctx).MemberGetByID(ctx, int32(id))
 	if err != nil {
-		return nil, fmt.Errorf("unable to get member by ID %d | %v", id, err)
+		return nil, fmt.Errorf("unable to get member by ID %d | %w", id, err)
 	}
 
 	zauthID := 0
@@ -137,7 +137,7 @@ func (r *memberRepo) Save(ctx context.Context, m *model.Member) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("unable to save member %+v | %v", *m, err)
+		return fmt.Errorf("unable to save member %+v | %w", *m, err)
 	}
 
 	m.ID = int(id)

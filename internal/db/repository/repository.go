@@ -70,3 +70,8 @@ func (r *Repository) NewMember() Member {
 func (r *Repository) NewOrganizer() Organizer {
 	return &organizerRepo{repo: *r}
 }
+
+// NewTask creates a new Task repository
+func (r *Repository) NewTask() Task {
+	return &taskRepo{repo: *r}
+}

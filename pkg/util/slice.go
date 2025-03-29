@@ -1,4 +1,3 @@
-// Package util provides some common utility functions
 package util
 
 // SliceMap maps a slice of type T to a slice of type U
