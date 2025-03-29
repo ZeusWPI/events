@@ -10,10 +10,13 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/gocolly/colly"
-	"go.uber.org/zap"
 )
 
-const yearURL = "https://zeus.gent/events"
+const (
+	// YearTask is the name of the recurring task that updates all years
+	YearTask = "Years Update"
+	yearURL  = "https://zeus.gent/events"
+)
 
 // Get all years
 func (w *Website) fetchAllYears() ([]string, error) {
@@ -55,7 +58,7 @@ func (w *Website) fetchAllYears() ([]string, error) {
 
 	err := c.Visit(yearURL)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to visit Zeus WPI website %s | %v", yearURL, err)
+		return nil, fmt.Errorf("unable to visit Zeus WPI website %s | %w", yearURL, err)
 	}
 
 	c.Wait()
@@ -69,8 +72,6 @@ func (w *Website) fetchAllYears() ([]string, error) {
 
 // UpdateAllYears years
 func (w *Website) UpdateAllYears() error {
-	zap.S().Debug("Updating all years")
-
 	yearsWebsite, err := w.fetchAllYears()
 	if err != nil {
 		return err
@@ -101,7 +102,7 @@ func (w *Website) UpdateAllYears() error {
 		start, err1 := strconv.Atoi("20" + parts[0]) // Come find me when this breaks
 		end, err2 := strconv.Atoi("20" + parts[1])
 		if err1 != nil || err2 != nil {
-			errs = append(errs, fmt.Errorf("Unable to convert string year to int %s | %v | %v", y, err1, err2))
+			errs = append(errs, fmt.Errorf("unable to convert string year to int %s | %w | %w", y, err1, err2))
 		}
 
 		if err := w.yearRepo.Save(context.Background(), &model.Year{
@@ -112,7 +113,7 @@ func (w *Website) UpdateAllYears() error {
 	}
 
 	if errs != nil {
-		return fmt.Errorf("Unable to update all years %v", errors.Join(errs...))
+		return fmt.Errorf("unable to update all years %w", errors.Join(errs...))
 	}
 
 	return nil

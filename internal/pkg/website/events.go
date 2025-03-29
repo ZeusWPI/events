@@ -12,10 +12,11 @@ import (
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/pkg/util"
 	"github.com/gocolly/colly"
-	"go.uber.org/zap"
 )
 
 const (
+	// EventTask is the name of the recurring task that updates all events
+	EventTask      = "Events Update"
 	eventURL       = "https://zeus.gent/events"
 	eventStartYear = 2000
 )
@@ -43,7 +44,7 @@ func (w *Website) fetchEventURLSByYear(year model.Year) ([]string, error) {
 	url := fmt.Sprintf("%s/%s", eventURL, year.String())
 	err := c.Visit(url)
 	if err != nil {
-		return nil, fmt.Errorf("unable to visit url %s | %v", url, err)
+		return nil, fmt.Errorf("unable to visit url %s | %w", url, err)
 	}
 
 	c.Wait()
@@ -72,7 +73,7 @@ func (w *Website) UpdateEvent(event *model.Event) error {
 		startRaw := e.ChildAttr(".fa-ul > li:nth-child(1) > span:nth-child(2)", "content")
 		start, err := time.Parse("2006-01-02T15:04:05-07:00", startRaw)
 		if err != nil {
-			errs = append(errs, fmt.Errorf("unable to parse event start time %s | %+v | %v", startRaw, *event, err))
+			errs = append(errs, fmt.Errorf("unable to parse event start time %s | %+v | %w", startRaw, *event, err))
 		}
 		event.StartTime = start
 		// End time is not necessary
@@ -86,7 +87,7 @@ func (w *Website) UpdateEvent(event *model.Event) error {
 	url := fmt.Sprintf("%s/%s/%s", eventURL, event.Year.String(), event.URL)
 	err := c.Visit(url)
 	if err != nil {
-		return fmt.Errorf("unable to visit url %s | %v", url, err)
+		return fmt.Errorf("unable to visit url %s | %w", url, err)
 	}
 
 	c.Wait()
@@ -100,8 +101,6 @@ func (w *Website) UpdateEvent(event *model.Event) error {
 
 // UpdateAllEvents synchronizes all events with the website
 func (w *Website) UpdateAllEvents() error {
-	zap.S().Debug("Updating all events")
-
 	years, err := w.yearRepo.GetAll(context.Background())
 	if err != nil {
 		return err

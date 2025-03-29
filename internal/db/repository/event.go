@@ -32,7 +32,7 @@ var _ Event = (*eventRepo)(nil)
 func (r *eventRepo) GetAllWithYear(ctx context.Context) ([]*model.Event, error) {
 	events, err := r.repo.queries(ctx).EventGetAllWithYear(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all events %v", err)
+		return nil, fmt.Errorf("unable to get all events %w", err)
 	}
 
 	return util.SliceMap(events, func(e sqlc.EventGetAllWithYearRow) *model.Event {
@@ -61,7 +61,7 @@ func (r *eventRepo) GetAllWithYear(ctx context.Context) ([]*model.Event, error) 
 func (r *eventRepo) GetByYearWithAll(ctx context.Context, year model.Year) ([]*model.Event, error) {
 	eventsDB, err := r.repo.queries(ctx).EventGetByYearWithYear(ctx, int32(year.ID))
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all events by year %+v | %v", year, err)
+		return nil, fmt.Errorf("unable to get all events by year %+v | %w", year, err)
 	}
 
 	organizers, err := r.organizer.GetByYearWithBoard(ctx, year)
@@ -134,7 +134,7 @@ func (r *eventRepo) Save(ctx context.Context, e *model.Event) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("unable to save event %+v | %v", *e, err)
+		return fmt.Errorf("unable to save event %+v | %w", *e, err)
 	}
 
 	e.ID = int(id)
@@ -149,7 +149,7 @@ func (r *eventRepo) Delete(ctx context.Context, e *model.Event) error {
 	}
 
 	if err := r.repo.queries(ctx).EventDelete(ctx, int32(e.ID)); err != nil {
-		return fmt.Errorf("unable to delete event %+v | %v", *e, err)
+		return fmt.Errorf("unable to delete event %+v | %w", *e, err)
 	}
 
 	e.DeletedAt = time.Now() // Close enough

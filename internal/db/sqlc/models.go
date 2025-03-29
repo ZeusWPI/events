@@ -44,6 +44,15 @@ type Organizer struct {
 	Board int32
 }
 
+type Task struct {
+	ID        int32
+	Name      string
+	Result    pgtype.Text
+	RunAt     pgtype.Timestamptz
+	Error     pgtype.Text
+	Recurring bool
+}
+
 type Year struct {
 	ID        int32
 	StartYear int32

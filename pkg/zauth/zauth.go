@@ -44,7 +44,7 @@ func New(clientKey, secret, callbackURL string) *Provider {
 		clientKey:    clientKey,
 		secret:       secret,
 		callbackURL:  callbackURL,
-		userURL:      fmt.Sprintf("%s/current_user", endpoint),
+		userURL:      endpoint + "/current_user",
 		providerName: "zauth",
 	}
 	c := &oauth2.Config{
@@ -52,8 +52,8 @@ func New(clientKey, secret, callbackURL string) *Provider {
 		ClientSecret: p.secret,
 		RedirectURL:  p.callbackURL,
 		Endpoint: oauth2.Endpoint{
-			AuthURL:   fmt.Sprintf("%s/oauth/authorize", endpoint),
-			TokenURL:  fmt.Sprintf("%s/oauth/token", endpoint),
+			AuthURL:   endpoint + "/oauth/authorize",
+			TokenURL:  endpoint + "/oauth/token",
 			AuthStyle: oauth2.AuthStyleInHeader,
 		},
 	}
@@ -90,7 +90,7 @@ func (p *Provider) UnmarshalSession(data string) (goth.Session, error) {
 
 	err := json.NewDecoder(strings.NewReader(data)).Decode(s)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal data into session %s | %v", data, err)
+		return nil, fmt.Errorf("failed to unmarshal data into session %s | %w", data, err)
 	}
 
 	return s, nil
@@ -103,32 +103,32 @@ func (p *Provider) FetchUser(gothSession goth.Session) (goth.User, error) {
 		return goth.User{}, fmt.Errorf("unable to fetch user information without an access token %+v", *s)
 	}
 
-	req, err := http.NewRequestWithContext(goth.ContextForClient(p.client()), "GET", p.userURL, nil)
+	req, err := http.NewRequestWithContext(goth.ContextForClient(p.client()), "GET", p.userURL, http.NoBody)
 	if err != nil {
-		return goth.User{}, fmt.Errorf("unable to create a new http request %v", err)
+		return goth.User{}, fmt.Errorf("unable to create a new http request %w", err)
 	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.AccessToken))
+	req.Header.Set("Authorization", "Bearer "+s.AccessToken)
 
 	response, err := p.client().Do(req)
 	if err != nil {
-		return goth.User{}, fmt.Errorf("received error from oauth2 user fetch call %+v | %v", *p, err)
+		return goth.User{}, fmt.Errorf("received error from oauth2 user fetch call %+v | %w", *p, err)
 	}
 	defer func() {
 		_ = response.Body.Close()
 	}()
 
 	if response.StatusCode != http.StatusOK {
-		return goth.User{}, fmt.Errorf("received wrong http status code %d | %+v | %v", response.StatusCode, *p, err)
+		return goth.User{}, fmt.Errorf("received wrong http status code %d | %+v | %w", response.StatusCode, *p, err)
 	}
 
 	responseBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return goth.User{}, fmt.Errorf("unable to read zauth response body %v", err)
+		return goth.User{}, fmt.Errorf("unable to read zauth response body %w", err)
 	}
 
 	var u User
 	if err := json.Unmarshal(responseBytes, &u); err != nil {
-		return goth.User{}, fmt.Errorf("unable to unmarshal zauth response into zauthUser %s | %v", string(responseBytes), err)
+		return goth.User{}, fmt.Errorf("unable to unmarshal zauth response into zauthUser %s | %w", string(responseBytes), err)
 	}
 
 	user := goth.User{

@@ -5,17 +5,20 @@ import (
 	"context"
 
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/pkg/task"
 )
 
 // Service is used to create specific services
 type Service struct {
-	repo repository.Repository
+	repo    repository.Repository
+	manager *task.Manager
 }
 
 // New creates a new Service
-func New(repo repository.Repository) *Service {
+func New(repo repository.Repository, manager *task.Manager) *Service {
 	return &Service{
-		repo: repo,
+		repo:    repo,
+		manager: manager,
 	}
 }
 
@@ -25,7 +28,7 @@ func (s *Service) withRollback(ctx context.Context, fn func(context.Context) err
 
 // NewEvent creates a new Event service
 func (s *Service) NewEvent() Event {
-	return &eventService{service: *s, board: s.repo.NewBoard(), event: s.repo.NewEvent(), organizer: s.repo.NewOrganizer()}
+	return &eventService{service: *s, manager: s.manager, board: s.repo.NewBoard(), event: s.repo.NewEvent(), organizer: s.repo.NewOrganizer()}
 }
 
 // NewOrganizer creates a new Organizer service
@@ -36,4 +39,9 @@ func (s *Service) NewOrganizer() Organizer {
 // NewYear creates a new Year service
 func (s *Service) NewYear() Year {
 	return &yearService{service: *s, year: s.repo.NewYear()}
+}
+
+// NewTask creates a new Task service
+func (s *Service) NewTask() Task {
+	return &taskService{service: *s, manager: s.manager, task: s.repo.NewTask()}
 }

@@ -19,8 +19,6 @@ services:
       - .:/backend
       - /backend/ui
       - backend_packages:/go/pkg/mod
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
       - db
 
@@ -33,8 +31,6 @@ services:
     volumes:
       - ./ui:/frontend
       - frontend_packages:/frontend/node_modules
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 volumes:
   events_data:

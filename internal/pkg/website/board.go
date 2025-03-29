@@ -12,10 +12,13 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/gocolly/colly"
-	"go.uber.org/zap"
 )
 
-const boardURL = "https://zeus.gent/about/oud-bestuur/"
+const (
+	// BoardTask is the name of the recurring task that updates the board
+	BoardTask = "Boards Update"
+	boardURL  = "https://zeus.gent/about/oud-bestuur/"
+)
 
 func (w *Website) fetchAllBoards() ([]model.Board, error) {
 	var boards []model.Board
@@ -34,6 +37,7 @@ func (w *Website) fetchAllBoards() ([]model.Board, error) {
 		yearEnd, err2 := strconv.Atoi(match[2])
 
 		if err1 != nil || err2 != nil {
+			errs = append(errs, err1, err2)
 			return
 		}
 
@@ -60,7 +64,7 @@ func (w *Website) fetchAllBoards() ([]model.Board, error) {
 
 	err := c.Visit(boardURL)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to visit Zeus WPI website %s | %v", boardURL, err)
+		return nil, fmt.Errorf("unable to visit Zeus WPI website %s | %w", boardURL, err)
 	}
 
 	c.Wait()
@@ -74,8 +78,6 @@ func (w *Website) fetchAllBoards() ([]model.Board, error) {
 
 // UpdateAllBoards updates all boards
 func (w *Website) UpdateAllBoards() error {
-	zap.S().Debug("Updating entire board")
-
 	// Fetch all data from website or DB
 	boardsWebsite, err := w.fetchAllBoards()
 	if err != nil {

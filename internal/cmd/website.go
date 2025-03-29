@@ -2,38 +2,42 @@
 package cmd
 
 import (
+	"context"
 	"time"
 
+	"github.com/ZeusWPI/events/internal/pkg/task"
 	"github.com/ZeusWPI/events/internal/pkg/website"
 	"github.com/ZeusWPI/events/pkg/config"
 )
 
-// RunWebsitePeriodic starts all the periodic background tasks for the website package
-func RunWebsitePeriodic(w *website.Website) {
-	// Making sure fetching the years is run at least once before the events are fetched.
-	_ = w.UpdateAllYears()
-
-	yearsTask := &periodicTask{
-		name:     "update years",
-		interval: time.Duration(config.GetDefaultInt("website.years_s", 86400)) * time.Second,
-		done:     make(chan bool),
-		task:     func() error { return w.UpdateAllYears() },
+// Website starts all background tasks for the website pkg
+func Website(m *task.Manager, w website.Website) error {
+	// Add fetching years
+	if err := m.Add(task.NewTask(
+		website.YearTask,
+		time.Duration(config.GetDefaultInt("website.years_s", 86400))*time.Second,
+		func(_ context.Context) error { return w.UpdateAllYears() },
+	)); err != nil {
+		return err
 	}
-	go yearsTask.run()
 
-	eventsTask := &periodicTask{
-		name:     "update events",
-		interval: time.Duration(config.GetDefaultInt("website.events_s", 3600)) * time.Second,
-		done:     make(chan bool),
-		task:     func() error { return w.UpdateAllEvents() },
+	// Add fetching events
+	if err := m.Add(task.NewTask(
+		website.EventTask,
+		time.Duration(config.GetDefaultInt("website.events_s", 3600))*time.Second,
+		func(_ context.Context) error { return w.UpdateAllEvents() },
+	)); err != nil {
+		return err
 	}
-	go eventsTask.run()
 
-	boardsTask := &periodicTask{
-		name:     "update board members",
-		interval: time.Duration(config.GetDefaultInt("website.boards_s", 86400)) * time.Second,
-		done:     make(chan bool),
-		task:     func() error { return w.UpdateAllBoards() },
+	// Add fetching board members
+	if err := m.Add(task.NewTask(
+		website.BoardTask,
+		time.Duration(config.GetDefaultInt("website.boards_s", 86400))*time.Second,
+		func(_ context.Context) error { return w.UpdateAllBoards() },
+	)); err != nil {
+		return err
 	}
-	go boardsTask.run()
+
+	return nil
 }

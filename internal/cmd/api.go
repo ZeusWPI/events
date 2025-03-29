@@ -16,7 +16,7 @@ func API(service service.Service, pool *pgxpool.Pool) error {
 	zap.S().Infof("Server is running on %s", server.Addr)
 
 	if err := server.App.Listen(server.Addr); err != nil {
-		return fmt.Errorf("API unknown error %v", err)
+		return fmt.Errorf("API unknown error %w", err)
 	}
 
 	return nil

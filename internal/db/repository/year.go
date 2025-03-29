@@ -27,7 +27,7 @@ var _ Year = (*yearRepo)(nil)
 func (r *yearRepo) GetAll(ctx context.Context) ([]*model.Year, error) {
 	yearsDB, err := r.repo.queries(ctx).YearGetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all years | %v", err)
+		return nil, fmt.Errorf("unable to get all years | %w", err)
 	}
 
 	return util.SliceMap(yearsDB, func(y sqlc.Year) *model.Year {
@@ -42,7 +42,7 @@ func (r *yearRepo) GetAll(ctx context.Context) ([]*model.Year, error) {
 func (r *yearRepo) GetLatest(ctx context.Context) (*model.Year, error) {
 	year, err := r.repo.queries(ctx).YearGetLatest(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get latest year %v", err)
+		return nil, fmt.Errorf("unable to get latest year %w", err)
 	}
 
 	return &model.Year{
@@ -74,7 +74,7 @@ func (r *yearRepo) Save(ctx context.Context, a *model.Year) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf("unable to save year %+v | %v", *a, err)
+		return fmt.Errorf("unable to save year %+v | %w", *a, err)
 	}
 
 	a.ID = int(id)
