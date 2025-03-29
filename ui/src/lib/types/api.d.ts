@@ -26,4 +26,23 @@ export namespace API {
     role: string;
     name: string;
   }
+
+  export interface Task extends Base {
+    name: string;
+    status: string;
+    next_run: string;
+    recurring: boolean;
+    last_status?: string;
+    last_run?: string;
+    last_error?: string;
+    interval?: number;
+  }
+
+  export interface TaskHistory extends Base {
+    name: string;
+    result: string;
+    run_at: string;
+    error?: string;
+    recurring: boolean;
+  }
 }

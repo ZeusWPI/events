@@ -50,15 +50,11 @@ export function EventsYear() {
     <div className="flex flex-col gap-8">
       <PageHeader>
         <Title>{`${!isMobile ? "Events " : ""} ${yearString}`}</Title>
-        <div className="flex items-center gap-6">
-          <Button size="lg" variant="outline" asChild>
-            <Link to="/events/$year/assign" params={{ year: yearString }}>
-              Assign
-            </Link>
-          </Button>
-          {/* TODO: Implement */}
-          <Button disabled>Sync</Button>
-        </div>
+        <Button size="lg" variant="outline" asChild>
+          <Link to="/events/$year/assign" params={{ year: yearString }}>
+            Assign
+          </Link>
+        </Button>
       </PageHeader>
       <div className="flex justify-between gap-6">
         <MultiSelect

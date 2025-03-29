@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { convertOrganizerToModel } from "../utils/converter";
+import { convertOrganizerToModel } from "../types/organizer";
 import { getApi, postApi } from "../utils/query";
 
 export function useUser() {

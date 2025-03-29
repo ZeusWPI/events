@@ -7,6 +7,10 @@ import { EventsAssign } from "./pages/events/EventsAssign";
 import { EventsDetail } from "./pages/events/EventsDetail";
 import { EventsYear } from "./pages/events/EventsYear";
 import Index from "./pages/Index";
+import { Tasks } from "./pages/tasks/Tasks";
+import { TasksDetail } from "./pages/tasks/TasksDetail";
+import { TasksHistory } from "./pages/tasks/TasksHistory";
+import { TasksOverview } from "./pages/tasks/TasksOverview";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -19,6 +23,10 @@ const indexRoute = createRoute({
   path: "/",
   component: Index,
 });
+
+//
+// Events
+//
 
 const eventsRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -44,11 +52,40 @@ const eventsYearAssignRoute = createRoute({
   component: EventsAssign,
 });
 
+//
+// Tasks
+//
+
+const tasksRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/tasks",
+  component: Tasks,
+});
+
+const tasksOverviewRoute = createRoute({
+  getParentRoute: () => tasksRoute,
+  path: "/",
+  component: TasksOverview,
+});
+
+const tasksDetailRoute = createRoute({
+  getParentRoute: () => tasksRoute,
+  path: "/$id",
+  component: TasksDetail,
+});
+
+const tasksHistory = createRoute({
+  getParentRoute: () => tasksRoute,
+  path: "/history",
+  component: TasksHistory,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   eventsRoute.addChildren([
     eventsYearRoute.addChildren([eventsYearDetailRoute, eventsYearAssignRoute]),
   ]),
+  tasksRoute.addChildren([tasksOverviewRoute, tasksDetailRoute, tasksHistory]),
 ]);
 
 export const router = createRouter({

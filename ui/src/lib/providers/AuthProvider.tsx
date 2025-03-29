@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Organizer } from "../types/types";
+import type { Organizer } from "../types/organizer";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useUser, useUserLogout } from "../api/user";
@@ -39,11 +39,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     logoutMutation(undefined, {
-      onSuccess: () => setUser(null),
+      onSuccess: () => toast.success("Logged out"),
       onError: (err) => {
         toast.error("Logout failed");
         console.error(err);
       },
+      onSettled: () => setUser(null),
     });
   }, [logoutMutation]);
 
