@@ -1,34 +1,39 @@
+version: "2"
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  fix: true
+
 run:
   timeout: 5m
   modules-download-mode: readonly
 
 linters:
   enable:
-    - bodyclose # checks whether HTTP response body is closed successfully
-    - copyloopvar # detects copy loop variable
-    - errcheck # checks for unchecked errors in go programs
-    - errname # checks that sentinel errors are prefixed with the `Err` and error types are suffixed with the `Error`
-    - gochecknoinits # checks that no init functions are present in Go code
-    - goimports # check import statements are formatted correctly
-    - gosimple # checks for code simplifications in Go code
-    - govet # runs the go vet tool
-    - importas # enforces consistent import aliases
-    - ineffassign # detects when assignments to existing variables are not used
-    - noctx # finds sending http request without context.Context
-    - prealloc # finds slice declarations that could potentially be preallocated
-    - revive # checks for golang coding style
-    - rowserrcheck # checks whether Err of rows is checked successfully
-    - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
-    - staticcheck # Applies static code analysis
-    - testpackage # makes you use a separate _test package
-    - thelper # detects golang test helpers without t.Helper() call and checks consistency of test helpers
-    - unconvert # removes unnecessary type conversions
-    - unparam # removes unused function parameters
-    - unused # finds unused variables
-    - usetesting # reports uses of functions with replacement inside the testing package
-  fast: true
+    - copyloopvar # https://github.com/karamaru-alpha/copyloopvar?tab=readme-ov-file
+    - errchkjson # https://github.com/breml/errchkjson
+    - errname # https://github.com/Antonboom/errname
+    - errorlint # https://github.com/polyfloyd/go-errorlint
+    - exhaustive # https://github.com/nishanths/exhaustive
+    - exptostd # https://github.com/ldez/exptostd
+    - gocritic # https://github.com/go-critic/go-critic?tab=readme-ov-file
+    - loggercheck # https://github.com/timonwong/loggercheck
+    - perfsprint # https://github.com/catenacyber/perfsprint
+    - prealloc # https://github.com/alexkohler/prealloc
+    - revive # https://github.com/mgechev/revive?tab=readme-ov-file#available-rules
+    - unconvert # https://github.com/mdempsky/unconvert
+    - unparam # https://github.com/mvdan/unparam
 
-issues:
-  exclude-use-default: false
-  max-issues-per-linter: 0
-  max-same-issues: 0
+  settings:
+    copyloopvar:
+      check-alias: true
+    errchkjson:
+      report-no-exported: true
+    exhaustive:
+      default-signifies-exhaustive: true
+    loggercheck:
+      kitlog: false
+      klog: false
+      logr: false
+      slog: false
