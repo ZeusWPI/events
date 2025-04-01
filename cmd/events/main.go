@@ -46,6 +46,7 @@ func main() {
 		zap.S().Fatalf("Unable to start website tasks %v", err)
 	}
 
+	// Start API
 	service := service.New(*repo, manager)
 	if err := cmd.API(*service, db.Pool()); err != nil {
 		zap.S().Error(err)

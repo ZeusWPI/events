@@ -14,6 +14,12 @@ auth:
   callback_url: http://localhost:4000/api/auth/callback/zauth
   redirect_url: http://localhost:5173
 
+mail:
+  from: Events
+  from_address: events@zeus.ugent.be
+  host: smtp.ugent.be
+  port: 25
+
 website:
   years_s: 86400
   events_s: 3600

@@ -115,7 +115,7 @@
 }
 
 @theme {
-  --font-sans: "sans-serif";
+  --font-sans: sans-serif;
 }
 
 @layer base {
