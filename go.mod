@@ -13,9 +13,11 @@ require (
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/joho/godotenv v1.5.1
 	github.com/markbates/goth v1.80.0
+	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pressly/goose/v3 v3.24.1
 	github.com/shareed2k/goth_fiber v0.3.0
 	github.com/spf13/viper v1.20.0
+	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/zap v1.27.0
 	golang.org/x/oauth2 v0.28.0
 )
