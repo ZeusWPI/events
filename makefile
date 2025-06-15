@@ -5,10 +5,10 @@ setup:
 	@cd ui && pnpm install
 
 build:
-	@go build -o main cmd/events/main.go
+	@go build -o main cmd/api/main.go
 
 run:
-	@go run cmd/events/main.go
+	@go run cmd/api/main.go
 
 watch:
 	@docker compose up backend frontend

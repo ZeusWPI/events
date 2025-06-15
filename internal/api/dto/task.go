@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
-	"github.com/ZeusWPI/events/internal/pkg/task"
+	"github.com/ZeusWPI/events/internal/task"
 )
 
 // TaskHistoryStatus are the possible results a TaskHistory

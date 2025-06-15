@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/ZeusWPI/events/internal/service"
+	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/ZeusWPI/events/pkg/util"
 	"github.com/ZeusWPI/events/pkg/zauth"
@@ -11,8 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-// AuthRouter contains all api routes related to authentication
-type AuthRouter struct {
+// Auth contains all api routes related to authentication
+type Auth struct {
 	router fiber.Router
 
 	organizer service.Organizer
@@ -20,8 +20,8 @@ type AuthRouter struct {
 	redirectURL string
 }
 
-// NewAuthRouter creates a new authentication router
-func NewAuthRouter(service service.Service, router fiber.Router) *AuthRouter {
+// NewAuth creates a new authentication router
+func NewAuth(service service.Service, router fiber.Router) *Auth {
 	goth.UseProviders(
 		zauth.New(
 			config.GetString("auth.client"),
@@ -30,7 +30,7 @@ func NewAuthRouter(service service.Service, router fiber.Router) *AuthRouter {
 		),
 	)
 
-	api := &AuthRouter{
+	api := &Auth{
 		router:      router.Group("/auth"),
 		organizer:   service.NewOrganizer(),
 		redirectURL: config.GetDefaultString("auth.redirect_url", "/"),
@@ -40,13 +40,13 @@ func NewAuthRouter(service service.Service, router fiber.Router) *AuthRouter {
 	return api
 }
 
-func (r *AuthRouter) createRoutes() {
+func (r *Auth) createRoutes() {
 	r.router.Get("/login/:provider", goth_fiber.BeginAuthHandler)
 	r.router.Get("/callback/:provider", r.loginCallback)
 	r.router.Post("/logout", r.logoutHandler)
 }
 
-func (r *AuthRouter) loginCallback(c *fiber.Ctx) error {
+func (r *Auth) loginCallback(c *fiber.Ctx) error {
 	user, err := goth_fiber.CompleteUserAuth(c)
 	if err != nil {
 		zap.S().Error(err)
@@ -95,7 +95,7 @@ func (r *AuthRouter) loginCallback(c *fiber.Ctx) error {
 	return c.Redirect(r.redirectURL)
 }
 
-func (r *AuthRouter) logoutHandler(c *fiber.Ctx) error {
+func (r *Auth) logoutHandler(c *fiber.Ctx) error {
 	if err := goth_fiber.Logout(c); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError

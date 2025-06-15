@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ZeusWPI/events/internal/api/api"
 	"github.com/ZeusWPI/events/internal/api/middleware"
-	"github.com/ZeusWPI/events/internal/service"
+	api "github.com/ZeusWPI/events/internal/api/routers"
+	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
@@ -58,14 +58,14 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 
 	// Initialize all routes
 	apiRouter := app.Group("/api")
-	api.NewAuthRouter(service, apiRouter)
+	api.NewAuth(service, apiRouter)
 
 	protectedRouter := apiRouter.Use(middleware.ProtectedRoute)
 
-	api.NewEventRouter(service, protectedRouter)
-	api.NewYearRouter(service, protectedRouter)
-	api.NewOrganizerRouter(service, protectedRouter)
-	api.NewTaskRouter(service, protectedRouter)
+	api.NewEvent(service, protectedRouter)
+	api.NewYear(service, protectedRouter)
+	api.NewOrganizer(service, protectedRouter)
+	api.NewTask(service, protectedRouter)
 
 	if env != "development" {
 		app.Static("/", "./public")

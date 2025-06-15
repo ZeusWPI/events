@@ -4,21 +4,21 @@ import (
 	"strconv"
 
 	"github.com/ZeusWPI/events/internal/api/dto"
-	"github.com/ZeusWPI/events/internal/service"
+	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
-// TaskRouter contains all api routes regarding tasks
-type TaskRouter struct {
+// Task contains all api routes regarding tasks
+type Task struct {
 	router fiber.Router
 
 	task service.Task
 }
 
-// NewTaskRouter creates a new task router
-func NewTaskRouter(service service.Service, router fiber.Router) *TaskRouter {
-	api := &TaskRouter{
+// NewTask creates a new task router
+func NewTask(service service.Service, router fiber.Router) *Task {
+	api := &Task{
 		router: router.Group("/task"),
 		task:   service.NewTask(),
 	}
@@ -28,13 +28,13 @@ func NewTaskRouter(service service.Service, router fiber.Router) *TaskRouter {
 	return api
 }
 
-func (r *TaskRouter) createRoutes() {
+func (r *Task) createRoutes() {
 	r.router.Get("/history", r.getHistory)
 	r.router.Post("/:id", r.start)
 	r.router.Get("/", r.getAll)
 }
 
-func (r *TaskRouter) getAll(c *fiber.Ctx) error {
+func (r *Task) getAll(c *fiber.Ctx) error {
 	tasks, err := r.task.GetAll()
 	if err != nil {
 		zap.S().Error(err)
@@ -44,7 +44,7 @@ func (r *TaskRouter) getAll(c *fiber.Ctx) error {
 	return c.JSON(tasks)
 }
 
-func (r *TaskRouter) getHistory(c *fiber.Ctx) error {
+func (r *Task) getHistory(c *fiber.Ctx) error {
 	name := c.Query("name")
 	onlyErrored := c.Query("only_errored", "false") == "true"
 
@@ -76,7 +76,7 @@ func (r *TaskRouter) getHistory(c *fiber.Ctx) error {
 	return c.JSON(tasks)
 }
 
-func (r *TaskRouter) start(c *fiber.Ctx) error {
+func (r *Task) start(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
 		return fiber.ErrBadRequest

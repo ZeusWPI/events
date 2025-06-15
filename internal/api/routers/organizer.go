@@ -2,21 +2,21 @@ package api
 
 import (
 	"github.com/ZeusWPI/events/internal/api/dto"
-	"github.com/ZeusWPI/events/internal/service"
+	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
-// OrganizerRouter contains all api routes related to organizers
-type OrganizerRouter struct {
+// Organizer contains all api routes related to organizers
+type Organizer struct {
 	router fiber.Router
 
 	organizer service.Organizer
 }
 
-// NewOrganizerRouter creates a new organizer router
-func NewOrganizerRouter(service service.Service, router fiber.Router) *OrganizerRouter {
-	api := &OrganizerRouter{
+// NewOrganizer creates a new organizer router
+func NewOrganizer(service service.Service, router fiber.Router) *Organizer {
+	api := &Organizer{
 		router:    router.Group("/organizer"),
 		organizer: service.NewOrganizer(),
 	}
@@ -26,12 +26,12 @@ func NewOrganizerRouter(service service.Service, router fiber.Router) *Organizer
 	return api
 }
 
-func (r *OrganizerRouter) createRoutes() {
+func (r *Organizer) createRoutes() {
 	r.router.Get("/year/:id", r.getByYear)
 	r.router.Get("/me", r.meHandler)
 }
 
-func (r *OrganizerRouter) getByYear(c *fiber.Ctx) error {
+func (r *Organizer) getByYear(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
 		return fiber.ErrBadRequest
@@ -46,7 +46,7 @@ func (r *OrganizerRouter) getByYear(c *fiber.Ctx) error {
 	return c.JSON(organizers)
 }
 
-func (r *OrganizerRouter) meHandler(c *fiber.Ctx) error {
+func (r *Organizer) meHandler(c *fiber.Ctx) error {
 	memberID := c.Locals("memberID").(int)
 
 	user, err := r.organizer.GetByID(c.Context(), memberID)

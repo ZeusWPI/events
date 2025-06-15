@@ -3,21 +3,21 @@ package api
 
 import (
 	"github.com/ZeusWPI/events/internal/api/dto"
-	"github.com/ZeusWPI/events/internal/service"
+	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
-// EventRouter contains all api routes related to events
-type EventRouter struct {
+// Event contains all api routes related to events
+type Event struct {
 	router fiber.Router
 
 	event service.Event
 }
 
-// NewEventRouter creates a new event router
-func NewEventRouter(service service.Service, router fiber.Router) *EventRouter {
-	api := &EventRouter{
+// NewEvent creates a new event router
+func NewEvent(service service.Service, router fiber.Router) *Event {
+	api := &Event{
 		router: router.Group("/event"),
 		event:  service.NewEvent(),
 	}
@@ -26,13 +26,13 @@ func NewEventRouter(service service.Service, router fiber.Router) *EventRouter {
 	return api
 }
 
-func (r *EventRouter) createRoutes() {
+func (r *Event) createRoutes() {
 	r.router.Get("/year/:id", r.getByYear)
 	r.router.Post("/organizers", r.updateOrganizers)
 	r.router.Post("/sync", r.sync)
 }
 
-func (r *EventRouter) getByYear(c *fiber.Ctx) error {
+func (r *Event) getByYear(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
 		return fiber.ErrBadRequest
@@ -47,7 +47,7 @@ func (r *EventRouter) getByYear(c *fiber.Ctx) error {
 	return c.JSON(events)
 }
 
-func (r *EventRouter) updateOrganizers(c *fiber.Ctx) error {
+func (r *Event) updateOrganizers(c *fiber.Ctx) error {
 	var events []dto.Event
 	if err := c.BodyParser(&events); err != nil {
 		return fiber.ErrBadRequest
@@ -67,7 +67,7 @@ func (r *EventRouter) updateOrganizers(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
-func (r *EventRouter) sync(c *fiber.Ctx) error {
+func (r *Event) sync(c *fiber.Ctx) error {
 	if err := r.event.Sync(); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError

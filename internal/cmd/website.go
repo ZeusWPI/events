@@ -5,8 +5,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/ZeusWPI/events/internal/pkg/task"
-	"github.com/ZeusWPI/events/internal/pkg/website"
+	"github.com/ZeusWPI/events/internal/task"
+	"github.com/ZeusWPI/events/internal/website"
 	"github.com/ZeusWPI/events/pkg/config"
 )
 

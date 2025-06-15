@@ -6,7 +6,7 @@ import (
 	"github.com/ZeusWPI/events/internal/api/dto"
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/internal/pkg/task"
+	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/pkg/util"
 )
 

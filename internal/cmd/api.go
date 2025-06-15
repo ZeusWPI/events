@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/api"
-	"github.com/ZeusWPI/events/internal/service"
+	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )

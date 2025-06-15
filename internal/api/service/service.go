@@ -5,7 +5,7 @@ import (
 	"context"
 
 	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/internal/pkg/task"
+	"github.com/ZeusWPI/events/internal/task"
 )
 
 // Service is used to create specific services

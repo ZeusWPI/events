@@ -2,11 +2,11 @@
 package main
 
 import (
+	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/internal/pkg/task"
-	"github.com/ZeusWPI/events/internal/pkg/website"
-	"github.com/ZeusWPI/events/internal/service"
+	"github.com/ZeusWPI/events/internal/task"
+	"github.com/ZeusWPI/events/internal/website"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/ZeusWPI/events/pkg/db"
 	"github.com/ZeusWPI/events/pkg/logger"
