@@ -1,9 +1,9 @@
-import type { Breadcrumb } from "../context/breadcrumbContext";
-import { useContext, useEffect } from "react";
-import { BreadcrumbContext } from "../context/breadcrumbContext";
+import type { Breadcrumb } from "../contexts/breadcrumbContext";
+import { use, useEffect } from "react";
+import { BreadcrumbContext } from "../contexts/breadcrumbContext";
 
 export function useBreadcrumbs() {
-  const context = useContext(BreadcrumbContext);
+  const context = use(BreadcrumbContext);
   if (!context) {
     throw new Error("useBreadcrumbs must be used within a BreadcrumbProvider");
   }

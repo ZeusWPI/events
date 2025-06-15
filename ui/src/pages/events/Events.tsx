@@ -1,9 +1,9 @@
+import { Navigate, Outlet, useParams } from "@tanstack/react-router";
+import { CalendarPlus2 } from "lucide-react";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Button } from "@/components/ui/button";
 import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
-import { Navigate, Outlet, useParams } from "@tanstack/react-router";
-import { CalendarPlus2 } from "lucide-react";
 import Error404 from "../404";
 
 function Events() {

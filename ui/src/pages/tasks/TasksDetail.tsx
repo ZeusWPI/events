@@ -1,3 +1,8 @@
+import { useParams } from "@tanstack/react-router";
+import { LoaderCircle, Play } from "lucide-react";
+import { useMemo, useState } from "react";
+import useInfiniteScroll from "react-infinite-scroll-hook";
+import { toast } from "sonner";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Pill } from "@/components/atoms/Pill";
 import { Title } from "@/components/atoms/Title";
@@ -10,11 +15,6 @@ import { useTaskGetAll, useTaskGetHistory, useTaskStart } from "@/lib/api/task";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { TaskStatus } from "@/lib/types/task";
 import { formatDate } from "@/lib/utils/utils";
-import { useParams } from "@tanstack/react-router";
-import { LoaderCircle, Play } from "lucide-react";
-import { useMemo, useState } from "react";
-import useInfiniteScroll from "react-infinite-scroll-hook";
-import { toast } from "sonner";
 import Error404 from "../404";
 
 interface Interval {

@@ -1,8 +1,8 @@
 import type { Event } from "@/lib/types/event";
 import type { Organizer } from "@/lib/types/organizer";
-import { formatDate } from "@/lib/utils/utils";
 import { CircleAlert } from "lucide-react";
 import { useState } from "react";
+import { formatDate } from "@/lib/utils/utils";
 import { MultiSelect } from "../organisms/MultiSelect";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 

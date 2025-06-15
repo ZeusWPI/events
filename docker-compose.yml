@@ -13,6 +13,7 @@ services:
   backend:
     build:
       dockerfile: Dockerfile.dev
+    command: sh -c "go mod tidy && air -c .air.toml"
     ports:
       - 4000:4000
     volumes:
@@ -31,6 +32,8 @@ services:
     volumes:
       - ./ui:/frontend
       - frontend_packages:/frontend/node_modules
+    depends_on:
+      - backend
 
 volumes:
   events_data:

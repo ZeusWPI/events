@@ -1,7 +1,7 @@
 import type { Task, TaskHistoryFilter } from "../types/task";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { convertTaskHistoryToModel, convertTasksToModel } from "../types/task";
-import { getApi, postApi } from "../utils/query";
+import { apiGet, apiPost } from "./query";
 
 const ENDPOINT = "task";
 const PAGE_LIMIT = 100;
@@ -13,7 +13,7 @@ export function useTaskGetAll() {
 
   return useQuery({
     queryKey: ["task"],
-    queryFn: async () => getApi(ENDPOINT, convertTasksToModel),
+    queryFn: async () => (await apiGet(ENDPOINT, convertTasksToModel)).data,
     refetchInterval: REFETCH_SEC_30,
     structuralSharing(oldData, newData) {
       if (JSON.stringify(oldData) !== JSON.stringify(newData)) {
@@ -47,7 +47,7 @@ export function useTaskGetHistory(filters?: TaskHistoryFilter) {
       }
 
       const url = `${ENDPOINT}/history?${queryParams.toString()}`;
-      return getApi(url, convertTaskHistoryToModel);
+      return (await apiGet(url, convertTaskHistoryToModel)).data;
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
@@ -75,7 +75,7 @@ export function useTaskStart() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id }: Pick<Task, "id">) => postApi(`${ENDPOINT}/${id}`),
+    mutationFn: async ({ id }: Pick<Task, "id">) => apiPost(`${ENDPOINT}/${id}`),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["task"] });
       void queryClient.invalidateQueries({ queryKey: ["task_history"] });

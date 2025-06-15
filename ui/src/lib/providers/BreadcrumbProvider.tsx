@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import type { BreadcrumbAction, BreadcrumbState } from "../context/breadcrumbContext";
+import type { BreadcrumbAction, BreadcrumbState } from "../contexts/breadcrumbContext";
 import { useMemo, useReducer } from "react";
-import { BreadcrumbContext } from "../context/breadcrumbContext";
+import { BreadcrumbContext } from "../contexts/breadcrumbContext";
 
 function breadcrumbReducer(state: BreadcrumbState, action: BreadcrumbAction): BreadcrumbState {
   switch (action.type) {

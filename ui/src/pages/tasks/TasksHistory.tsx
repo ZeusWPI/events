@@ -1,4 +1,7 @@
 import type { TaskHistoryFilter } from "@/lib/types/task";
+import { Calendar, CalendarDays, CircleX } from "lucide-react";
+import { useState } from "react";
+import useInfiniteScroll from "react-infinite-scroll-hook";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Title } from "@/components/atoms/Title";
 import { BottomOfPage } from "@/components/molecules/BottomOfPage";
@@ -8,9 +11,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTaskGetHistory } from "@/lib/api/task";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
-import { Calendar, CalendarDays, CircleX } from "lucide-react";
-import { useState } from "react";
-import useInfiniteScroll from "react-infinite-scroll-hook";
 
 export function TasksHistory() {
   const [filters, setFilters] = useState<TaskHistoryFilter>({ onlyErrored: false, recurring: undefined });

@@ -1,9 +1,9 @@
+import { Link, useMatch } from "@tanstack/react-router";
+import { Calendar, ChevronRight } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarGroupContent, SidebarMenu, SidebarMenuAction, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem } from "@/components/ui/sidebar";
 import { useYearGetAll } from "@/lib/api/year";
-import { Link, useMatch } from "@tanstack/react-router";
-import { Calendar, ChevronRight } from "lucide-react";
 
 function NavEvents() {
   const isActive = useMatch({ from: "/events", shouldThrow: false });

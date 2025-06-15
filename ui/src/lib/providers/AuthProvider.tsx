@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 import type { Organizer } from "../types/organizer";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useUser, useUserLogout } from "../api/user";
-import { AuthContext } from "../context/authContext";
-import { isResponseNot200Error } from "../utils/query";
+import { isResponseNot200Error } from "../api/query";
+import { useUser, useUserLogin, useUserLogout } from "../api/user";
+import { AuthContext } from "../contexts/authContext";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Organizer | null>(null);
@@ -31,12 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setForbidden(false);
   }, [error]);
 
-  const url = import.meta.env.VITE_BACKEND_URL as string;
-
-  const login = useCallback(() => {
-    window.location.href = `${url}/auth/login/zauth`;
-  }, [url]);
-
   const logout = useCallback(() => {
     logoutMutation(undefined, {
       onSuccess: () => toast.success("Logged out"),
@@ -48,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, [logoutMutation]);
 
-  const value = useMemo(() => ({ user, isLoading, forbidden, login, logout }), [user, isLoading, forbidden, login, logout]);
+  const value = useMemo(() => ({ user, isLoading, forbidden, login: useUserLogin, logout }), [user, isLoading, forbidden, logout]);
 
   return <AuthContext value={value}>{children}</AuthContext>;
 }

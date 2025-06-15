@@ -1,7 +1,15 @@
 import type { VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
+import {
+  CheckIcon,
+  ChevronDown,
+  WandSparkles,
+  XIcon,
+} from "lucide-react";
+
+import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-
 import {
   Command,
   CommandEmpty,
@@ -17,14 +25,6 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils/utils";
-import { cva } from "class-variance-authority";
-import {
-  CheckIcon,
-  ChevronDown,
-  WandSparkles,
-  XIcon,
-} from "lucide-react";
-import * as React from "react";
 
 // Slightly modified version of https://github.com/sersavan/shadcn-multi-select-component
 

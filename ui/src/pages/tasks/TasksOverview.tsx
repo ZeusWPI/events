@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+import useInfiniteScroll from "react-infinite-scroll-hook";
 import { DividerText } from "@/components/atoms/DividerText";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Title } from "@/components/atoms/Title";
@@ -7,8 +9,6 @@ import { TaskCard } from "@/components/tasks/TaskCard";
 import { TaskHistoryTable } from "@/components/tasks/TaskHistoryTable";
 import { Button } from "@/components/ui/button";
 import { useTaskGetAll, useTaskGetHistory } from "@/lib/api/task";
-import { Link } from "@tanstack/react-router";
-import useInfiniteScroll from "react-infinite-scroll-hook";
 
 export function TasksOverview() {
   const { data: tasks = [], isLoading } = useTaskGetAll();

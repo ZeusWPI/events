@@ -1,3 +1,8 @@
+import { Link, useParams } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { Fragment, useState } from "react";
+import { toast } from "sonner";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Title } from "@/components/atoms/Title";
 import { EventAssignCard } from "@/components/events/EventAssignCard";
@@ -8,14 +13,9 @@ import { Separator } from "@/components/ui/separator";
 import { useEventByYear, useEventSaveOrganizers } from "@/lib/api/event";
 import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useYearGetAll } from "@/lib/api/year";
+
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
-import { Link, useParams } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { ArrowLeft, LoaderCircle } from "lucide-react";
-
-import { Fragment, useState } from "react";
-import { toast } from "sonner";
 
 export function EventsAssign() {
   const { year: yearString } = useParams({ from: "/events/$year" });

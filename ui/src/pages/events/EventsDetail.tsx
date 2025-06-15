@@ -1,3 +1,5 @@
+import { useParams } from "@tanstack/react-router";
+import { Link, UserRound } from "lucide-react";
 import { Title } from "@/components/atoms/Title";
 import { Datalist, DatalistItem, DatalistItemContent, DatalistItemTitle } from "@/components/molecules/Datalist";
 import { HeadlessCard } from "@/components/molecules/HeadlessCard";
@@ -9,8 +11,6 @@ import { useEventByYear } from "@/lib/api/event";
 import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { formatDate } from "@/lib/utils/utils";
-import { useParams } from "@tanstack/react-router";
-import { Link, UserRound } from "lucide-react";
 import Error404 from "../404";
 
 export function EventsDetail() {

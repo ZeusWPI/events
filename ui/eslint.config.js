@@ -19,6 +19,7 @@ export default antfu(
     ],
     rules: {
       "ts/strict-boolean-expressions": "off",
+      "react-hooks-extra/no-direct-set-state-in-use-effect": "off",
     },
   },
 ).prepend(...pluginQuery.configs["flat/recommended"]);

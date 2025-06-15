@@ -1,6 +1,6 @@
-import { SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Link, useMatch } from "@tanstack/react-router";
 import { ClipboardCheck } from "lucide-react";
+import { SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 
 function NavTasks() {
   const isActive = useMatch({ from: "/tasks", shouldThrow: false });

@@ -1,5 +1,5 @@
 # Build backend
-FROM golang:1.24.0-alpine3.20 as build_backend
+FROM golang:1.24.4 as build_backend
 
 RUN apk add upx alpine-sdk
 
@@ -20,7 +20,7 @@ RUN upx --best --lzma migrate
 
 
 # Build frontend
-FROM node:22.8.0-alpine3.20 as build_frontend
+FROM node:22.16.0 as build_frontend
 
 WORKDIR /frontend
 
@@ -38,7 +38,7 @@ RUN pnpm run build
 
 
 # End container
-FROM alpine:3.20
+FROM alpine:3.22
 
 WORKDIR /
 

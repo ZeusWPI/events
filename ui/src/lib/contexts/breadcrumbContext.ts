@@ -6,9 +6,9 @@ export interface Breadcrumb {
   link?: LinkProps;
 }
 
-export type BreadcrumbAction =
-  | { type: "ADD"; payload: Breadcrumb }
-  | { type: "REMOVE"; payload: Breadcrumb };
+export type BreadcrumbAction
+  = | { type: "ADD"; payload: Breadcrumb }
+    | { type: "REMOVE"; payload: Breadcrumb };
 
 export type BreadcrumbState = Breadcrumb[];
 

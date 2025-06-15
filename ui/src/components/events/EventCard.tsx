@@ -1,8 +1,8 @@
 import type { Event } from "@/lib/types/event";
-import { useAuth } from "@/lib/hooks/useAuth";
-import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { ClipboardList, UserRound } from "lucide-react";
+import { useAuth } from "@/lib/hooks/useAuth";
+import { formatDate } from "@/lib/utils/utils";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 

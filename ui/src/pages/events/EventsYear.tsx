@@ -1,3 +1,6 @@
+import { Link, Outlet, useMatch, useParams } from "@tanstack/react-router";
+import { isAfter, isBefore } from "date-fns";
+import { useEffect, useState } from "react";
 import { DividerText } from "@/components/atoms/DividerText";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Title } from "@/components/atoms/Title";
@@ -10,9 +13,6 @@ import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useYearGetAll } from "@/lib/api/year";
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
-import { Link, Outlet, useMatch, useParams } from "@tanstack/react-router";
-import { isAfter, isBefore } from "date-fns";
-import { useEffect, useState } from "react";
 
 export function EventsYear() {
   const isDetail = useMatch({ from: "/events/$year/$id", shouldThrow: false });
