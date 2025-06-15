@@ -82,7 +82,7 @@ func (e *Event) Create(ctx context.Context, event *model.Event) error {
 		Name:        event.Name,
 		Description: pgtype.Text{String: event.Description, Valid: true},
 		StartTime:   pgtype.Timestamptz{Time: event.StartTime, Valid: true},
-		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: true},
+		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: !event.EndTime.IsZero()},
 		YearID:      int32(event.Year.ID),
 		Location:    pgtype.Text{String: event.Location, Valid: true},
 	})

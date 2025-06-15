@@ -58,7 +58,7 @@ func (w *Website) fetchAllYears() ([]string, error) {
 
 	err := c.Visit(yearURL)
 	if err != nil {
-		return nil, fmt.Errorf("unable to visit Zeus WPI website %s | %w", yearURL, err)
+		return nil, fmt.Errorf("visit Zeus WPI website %s | %w", yearURL, err)
 	}
 
 	c.Wait()
@@ -102,7 +102,7 @@ func (w *Website) UpdateAllYears() error {
 		start, err1 := strconv.Atoi("20" + parts[0]) // Come find me when this breaks
 		end, err2 := strconv.Atoi("20" + parts[1])
 		if err1 != nil || err2 != nil {
-			errs = append(errs, fmt.Errorf("unable to convert string year to int %s | %w | %w", y, err1, err2))
+			errs = append(errs, fmt.Errorf("convert string year to int %s | %w | %w", y, err1, err2))
 		}
 
 		if err := w.yearRepo.Create(context.Background(), &model.Year{
@@ -113,7 +113,7 @@ func (w *Website) UpdateAllYears() error {
 	}
 
 	if errs != nil {
-		return fmt.Errorf("unable to update all years %w", errors.Join(errs...))
+		return fmt.Errorf("update all years %w", errors.Join(errs...))
 	}
 
 	return nil

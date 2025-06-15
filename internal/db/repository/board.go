@@ -124,16 +124,14 @@ func (b *Board) GetByMemberYear(ctx context.Context, member model.Member, year m
 }
 
 func (b *Board) Create(ctx context.Context, board *model.Board) error {
+	// If year hasn't been added yet we just wait for the next task run
+	if board.Year.ID == 0 {
+		return nil
+	}
+
 	return b.repo.WithRollback(ctx, func(c context.Context) error {
 		if board.Member.ID == 0 {
 			err := b.member.Create(c, &board.Member)
-			if err != nil {
-				return err
-			}
-		}
-
-		if board.Year.ID == 0 {
-			err := b.year.Create(c, &board.Year)
 			if err != nil {
 				return err
 			}

@@ -21,6 +21,9 @@ func Website(m *task.Manager, w website.Website) error {
 		return err
 	}
 
+	// Temp fix because the next 2 tasks are dependant on the years
+	time.Sleep(2 * time.Second)
+
 	// Add fetching events
 	if err := m.Add(task.NewTask(
 		website.EventTask,
