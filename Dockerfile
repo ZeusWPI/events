@@ -11,7 +11,7 @@ RUN go mod download
 COPY . .
 
 # Build server executable
-RUN CGO_ENABLED=1 go build -ldflags "-s -w" -v -tags musl -o main ./cmd/events/main.go
+RUN CGO_ENABLED=1 go build -ldflags "-s -w" -v -tags musl -o main ./cmd/api/main.go
 RUN upx --best --lzma main
 
 # Build migration executable
