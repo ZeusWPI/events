@@ -2,19 +2,19 @@ import type { API } from "./api";
 
 export interface Year {
   id: number;
-  startYear: number;
-  endYear: number;
+  start: number;
+  end: number;
   formatted: string;
 }
 
 export function convertYearToModel(year: API.Year): Year {
-  const startFormatted = (year.start_year % 100).toString().padStart(2, "0");
-  const endFormatted = (year.end_year % 100).toString().padStart(2, "0");
+  const startFormatted = (year.start % 100).toString().padStart(2, "0");
+  const endFormatted = (year.end % 100).toString().padStart(2, "0");
 
   return {
     id: year.id,
-    startYear: year.start_year,
-    endYear: year.end_year,
+    start: year.start,
+    end: year.end,
     formatted: `${startFormatted}-${endFormatted}`,
   };
 }
@@ -26,7 +26,7 @@ export function convertYearsToModel(years: API.Year[]): Year[] {
 export function convertYearToJSON(year: Year): API.Year {
   return {
     id: year.id,
-    start_year: year.startYear,
-    end_year: year.endYear,
+    start: year.start,
+    end: year.end,
   };
 }

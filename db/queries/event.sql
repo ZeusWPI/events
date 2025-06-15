@@ -20,8 +20,8 @@ SELECT jsonb_build_object(
   'year', (
     SELECT jsonb_build_object(
       'id', y.id,
-      'year_start', y.start_time,
-      'year_end', y.end_year
+      'year_start', y.year_start,
+      'year_end', y.year_end
     )
     FROM year y
     WHERE y.id = e.year_id
@@ -45,15 +45,15 @@ SELECT jsonb_build_object(
       'year', (
         SELECT jsonb_build_object(
           'id', y.id,
-          'year_start', y.start_time,
-          'year_end', y.end_year
+          'year_start', y.year_start,
+          'year_end', y.year_end
         )
         FROM year y
         WHERE y.id = b.year_id
       )
     )), '[]')
     FROM board b 
-    INNER JOIN organizer o ON o.member_id = b.id
+    INNER JOIN organizer o ON o.board_id = b.id
     WHERE o.event_id = e.id
   )
 )

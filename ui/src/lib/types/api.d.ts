@@ -18,8 +18,8 @@ export namespace API {
   }
 
   export interface Year extends Base {
-    start_year: number;
-    end_year: number;
+    start: number;
+    end: number;
   }
 
   export interface Organizer extends Base {

@@ -127,7 +127,7 @@ func (w *Website) UpdateAllBoards() error {
 				}
 			}
 
-			if board.ID != 0 {
+			if board.ID == 0 {
 				err := w.boardRepo.Create(context.Background(), &board)
 				if err != nil {
 					errs = append(errs, err)

@@ -96,7 +96,7 @@ func (w *Website) UpdateEvent(event *model.Event) error {
 		return errors.Join(errs...)
 	}
 
-	if event.ID != 0 {
+	if event.ID == 0 {
 		return w.eventRepo.Create(context.Background(), event)
 	}
 

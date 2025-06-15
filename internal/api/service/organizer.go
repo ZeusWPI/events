@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ZeusWPI/events/internal/api/dto"
+	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/ZeusWPI/events/pkg/zauth"
@@ -75,13 +76,11 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 		return dto.Organizer{}, err
 	}
 	if member == nil {
-		return dto.Organizer{}, fiber.ErrBadRequest
-	}
-
-	if member.ZauthID == 0 {
 		// First time querying for this user
-		member.ZauthID = zauth.ID
-		member.Username = zauth.Username
+		member = &model.Member{
+			ZauthID:  zauth.ID,
+			Username: zauth.Username,
+		}
 
 		if err := o.member.Create(ctx, member); err != nil {
 			zap.S().Error(err)

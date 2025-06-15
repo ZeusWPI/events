@@ -1,6 +1,8 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/gofiber/fiber/v2"
 )
@@ -46,6 +48,9 @@ func (r *Organizer) me(c *fiber.Ctx) error {
 
 	user, err := r.organizer.GetByID(c.Context(), memberID)
 	if err != nil {
+		if errors.Is(err, fiber.ErrBadRequest) {
+			return fiber.ErrForbidden
+		}
 		return err
 	}
 

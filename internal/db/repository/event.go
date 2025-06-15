@@ -66,11 +66,11 @@ func (e *Event) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Ev
 
 	events := make([]*model.Event, 0, len(eventsDB))
 	for _, bytes := range eventsDB {
-		var event *model.Event
-		if err := json.Unmarshal(bytes, event); err != nil {
+		var event model.Event
+		if err := json.Unmarshal(bytes, &event); err != nil {
 			return nil, fmt.Errorf("unmarshal event json %w", err)
 		}
-		events = append(events, event)
+		events = append(events, &event)
 	}
 
 	return events, nil
