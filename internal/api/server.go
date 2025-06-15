@@ -62,10 +62,10 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 
 	protectedRouter := apiRouter.Use(middleware.ProtectedRoute)
 
-	api.NewEvent(service, protectedRouter)
-	api.NewYear(service, protectedRouter)
-	api.NewOrganizer(service, protectedRouter)
-	api.NewTask(service, protectedRouter)
+	api.NewEvent(protectedRouter, service)
+	api.NewYear(protectedRouter, service)
+	api.NewOrganizer(protectedRouter, service)
+	api.NewTask(protectedRouter, service)
 
 	if env != "development" {
 		app.Static("/", "./public")

@@ -19,9 +19,9 @@ type Website struct {
 // New creates a new website instance
 func New(repo repository.Repository) *Website {
 	return &Website{
-		eventRepo:  repo.NewEvent(),
-		yearRepo:   repo.NewYear(),
-		boardRepo:  repo.NewBoard(),
-		memberRepo: repo.NewMember(),
+		eventRepo:  *repo.NewEvent(),
+		yearRepo:   *repo.NewYear(),
+		boardRepo:  *repo.NewBoard(),
+		memberRepo: *repo.NewMember(),
 	}
 }

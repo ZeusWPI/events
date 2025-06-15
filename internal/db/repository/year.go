@@ -6,78 +6,47 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/sqlc"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/pkg/utils"
 )
 
-// Year provides all model.Year related database operations
-type Year interface {
-	GetAll(context.Context) ([]*model.Year, error)
-	GetLatest(context.Context) (*model.Year, error)
-	Save(context.Context, *model.Year) error
-}
-
-type yearRepo struct {
+type Year struct {
 	repo Repository
 }
 
-// Interface compliance
-var _ Year = (*yearRepo)(nil)
-
-// GetAll returns all year in desc order according to start year
-func (r *yearRepo) GetAll(ctx context.Context) ([]*model.Year, error) {
-	yearsDB, err := r.repo.queries(ctx).YearGetAll(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get all years | %w", err)
+func newYear(repo Repository) *Year {
+	return &Year{
+		repo: repo,
 	}
-
-	return util.SliceMap(yearsDB, func(y sqlc.Year) *model.Year {
-		return &model.Year{
-			ID:        int(y.ID),
-			StartYear: int(y.StartYear),
-			EndYear:   int(y.EndYear),
-		}
-	}), nil
 }
 
-func (r *yearRepo) GetLatest(ctx context.Context) (*model.Year, error) {
-	year, err := r.repo.queries(ctx).YearGetLatest(ctx)
+func (y *Year) GetAll(ctx context.Context) ([]*model.Year, error) {
+	yearsDB, err := y.repo.queries(ctx).YearGetAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get latest year %w", err)
+		return nil, fmt.Errorf("get all years | %w", err)
 	}
 
-	return &model.Year{
-		ID:        int(year.ID),
-		StartYear: int(year.StartYear),
-		EndYear:   int(year.EndYear),
-	}, nil
+	return utils.SliceMap(yearsDB, model.YearModel), nil
 }
 
-// Save creates a new year or updates an existing one
-func (r *yearRepo) Save(ctx context.Context, a *model.Year) error {
-	var id int32
-	var err error
-
-	if a.ID == 0 {
-		// Create
-		id, err = r.repo.queries(ctx).YearCreate(ctx, sqlc.YearCreateParams{
-			StartYear: int32(a.StartYear),
-			EndYear:   int32(a.EndYear),
-		})
-	} else {
-		// Update
-		id = int32(a.ID)
-		err = r.repo.queries(ctx).YearUpdate(ctx, sqlc.YearUpdateParams{
-			ID:        int32(a.ID),
-			StartYear: int32(a.StartYear),
-			EndYear:   int32(a.EndYear),
-		})
-	}
-
+func (y *Year) GetLast(ctx context.Context) (*model.Year, error) {
+	year, err := y.repo.queries(ctx).YearGetLast(ctx)
 	if err != nil {
-		return fmt.Errorf("unable to save year %+v | %w", *a, err)
+		return nil, fmt.Errorf("get last year %w", err)
 	}
 
-	a.ID = int(id)
+	return model.YearModel(year), nil
+}
+
+func (y *Year) Create(ctx context.Context, year *model.Year) error {
+	id, err := y.repo.queries(ctx).YearCreate(ctx, sqlc.YearCreateParams{
+		YearStart: int32(year.Start),
+		YearEnd:   int32(year.End),
+	})
+	if err != nil {
+		return fmt.Errorf("create year %+v | %w", *year, err)
+	}
+
+	year.ID = int(id)
 
 	return nil
 }

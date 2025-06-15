@@ -2,45 +2,46 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/sqlc"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// Task provides all model.Task related database operations
-type Task interface {
-	GetByName(context.Context, string) ([]*model.Task, error)
-	GetFiltered(context.Context, model.TaskFilter) ([]*model.Task, error)
-	Save(context.Context, *model.Task) error
-}
-
-type taskRepo struct {
+type Task struct {
 	repo Repository
 }
 
-// Interface compliance
-var _ Task = (*taskRepo)(nil)
-
-func (r *taskRepo) GetByName(ctx context.Context, name string) ([]*model.Task, error) {
-	tasks, err := r.repo.queries(ctx).TaskGet(ctx, name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get task %s | %w", name, err)
+func newTask(repo Repository) *Task {
+	return &Task{
+		repo: repo,
 	}
-
-	return util.SliceMap(tasks, r.convert), nil
 }
 
-func (r *taskRepo) GetFiltered(ctx context.Context, filters model.TaskFilter) ([]*model.Task, error) {
-	tasks, err := r.repo.queries(ctx).TaskGetAll(ctx)
+func (t *Task) GetByName(ctx context.Context, name string) ([]*model.Task, error) {
+	tasks, err := t.repo.queries(ctx).TaskGet(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get all tasks %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get task by name %s | %w", name, err)
 	}
 
-	// TODO: Do filtering & pagination in SQL
+	return utils.SliceMap(tasks, model.TaskModel), nil
+}
+
+func (t *Task) GetFiltered(ctx context.Context, filters model.TaskFilter) ([]*model.Task, error) {
+	tasks, err := t.repo.queries(ctx).TaskGetAll(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all tasks %w", err)
+	}
 
 	filtered := tasks[:0]
 
@@ -72,44 +73,28 @@ func (r *taskRepo) GetFiltered(ctx context.Context, filters model.TaskFilter) ([
 		end = len(filtered)
 	}
 
-	return util.SliceMap(filtered[start:end], r.convert), nil
+	return utils.SliceMap(filtered[start:end], model.TaskModel), nil
 }
 
-func (r *taskRepo) Save(ctx context.Context, t *model.Task) error {
+func (t *Task) Create(ctx context.Context, task *model.Task) error {
 	errTask := pgtype.Text{Valid: false}
-	if t.Error != nil {
-		errTask.String = t.Error.Error()
+	if task.Error != nil {
+		errTask.String = task.Error.Error()
 		errTask.Valid = true
 	}
 
-	id, err := r.repo.queries(ctx).TaskCreate(ctx, sqlc.TaskCreateParams{
-		Name:      t.Name,
-		Result:    pgtype.Text{String: string(t.Result), Valid: true},
-		RunAt:     pgtype.Timestamptz{Time: t.RunAt, Valid: true},
-		Error:     errTask,
-		Recurring: t.Recurring,
-	})
-	if err != nil {
-		return fmt.Errorf("unable to save task %+v | %w", *t, err)
-	}
-
-	t.ID = int(id)
-
-	return nil
-}
-
-func (r *taskRepo) convert(task sqlc.Task) *model.Task {
-	var errTask error
-	if task.Error.Valid {
-		errTask = errors.New(task.Error.String)
-	}
-
-	return &model.Task{
-		ID:        int(task.ID),
+	id, err := t.repo.queries(ctx).TaskCreate(ctx, sqlc.TaskCreateParams{
 		Name:      task.Name,
-		Result:    model.TaskResult(task.Result.String),
-		RunAt:     task.RunAt.Time,
+		Result:    pgtype.Text{String: string(task.Result), Valid: true},
+		RunAt:     pgtype.Timestamptz{Time: task.RunAt, Valid: true},
 		Error:     errTask,
 		Recurring: task.Recurring,
+	})
+	if err != nil {
+		return fmt.Errorf("create task %+v | %w", *t, err)
 	}
+
+	task.ID = int(id)
+
+	return nil
 }

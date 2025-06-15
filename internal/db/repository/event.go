@@ -2,157 +2,120 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
-	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/sqlc"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-// Event provides all model.Event related database operations
-type Event interface {
-	GetAllWithYear(context.Context) ([]*model.Event, error)
-	GetByYearWithAll(context.Context, model.Year) ([]*model.Event, error)
-	Save(context.Context, *model.Event) error
-	Delete(context.Context, *model.Event) error
-}
-
-type eventRepo struct {
+type Event struct {
 	repo Repository
 
 	organizer Organizer
 }
 
-// Interface compliance
-var _ Event = (*eventRepo)(nil)
+func newEvent(repo Repository) *Event {
+	return &Event{
+		repo:      repo,
+		organizer: *repo.NewOrganizer(),
+	}
+}
 
-// GetAll returns all events
-func (r *eventRepo) GetAllWithYear(ctx context.Context) ([]*model.Event, error) {
-	events, err := r.repo.queries(ctx).EventGetAllWithYear(ctx)
+func (e *Event) GetAllWithYear(ctx context.Context) ([]*model.Event, error) {
+	events, err := e.repo.queries(ctx).EventGetAllWithYear(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all events %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all events with year %w", err)
 	}
 
-	return util.SliceMap(events, func(e sqlc.EventGetAllWithYearRow) *model.Event {
+	return utils.SliceMap(events, func(e sqlc.EventGetAllWithYearRow) *model.Event {
 		return &model.Event{
 			ID:          int(e.ID),
-			URL:         e.Url,
+			FileName:    e.FileName,
 			Name:        e.Name,
 			Description: e.Description.String,
 			StartTime:   e.StartTime.Time,
 			EndTime:     e.EndTime.Time,
+			YearID:      int(e.YearID),
+			Location:    e.Location.String,
 			Year: model.Year{
-				ID:        int(e.ID_2),
-				StartYear: int(e.StartYear),
-				EndYear:   int(e.EndYear),
+				ID:    int(e.ID_2),
+				Start: int(e.YearStart),
+				End:   int(e.YearEnd),
 			},
-			Location:   e.Location.String,
 			Organizers: make([]model.Board, 0),
-			CreatedAt:  e.CreatedAt.Time,
-			UpdatedAt:  e.UpdatedAt.Time,
-			DeletedAt:  e.DeletedAt.Time,
 		}
 	}), nil
 }
 
-// GetByYearWithAll returns all events of a given year with all model.Event fields populated
-func (r *eventRepo) GetByYearWithAll(ctx context.Context, year model.Year) ([]*model.Event, error) {
-	eventsDB, err := r.repo.queries(ctx).EventGetByYearWithYear(ctx, int32(year.ID))
+func (e *Event) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Event, error) {
+	eventsDB, err := e.repo.queries(ctx).EventGetByYearPopulated(ctx, int32(yearID))
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all events by year %+v | %w", year, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all populated events by year %d | %w", yearID, err)
 	}
 
-	organizers, err := r.organizer.GetByYearWithBoard(ctx, year)
-	if err != nil {
-		return nil, err
-	}
-
-	events := util.SliceMap(eventsDB, func(e sqlc.EventGetByYearWithYearRow) *model.Event {
-		return &model.Event{
-			ID:          int(e.ID),
-			URL:         e.Url,
-			Name:        e.Name,
-			Description: e.Description.String,
-			StartTime:   e.StartTime.Time,
-			EndTime:     e.EndTime.Time,
-			Location:    e.Location.String,
-			Year: model.Year{
-				ID:        int(e.Year),
-				StartYear: int(e.StartYear),
-				EndYear:   int(e.EndYear),
-			},
-			Organizers: make([]model.Board, 0),
-			CreatedAt:  e.CreatedAt.Time,
-			UpdatedAt:  e.UpdatedAt.Time,
-			DeletedAt:  e.DeletedAt.Time,
+	events := make([]*model.Event, 0, len(eventsDB))
+	for _, bytes := range eventsDB {
+		var event *model.Event
+		if err := json.Unmarshal(bytes, event); err != nil {
+			return nil, fmt.Errorf("unmarshal event json %w", err)
 		}
-	})
-
-	for _, organizer := range organizers {
-		for i, event := range events {
-			if organizer.Event.ID == event.ID {
-				events[i].Organizers = append(events[i].Organizers, organizer.Board)
-				break
-			}
-		}
+		events = append(events, event)
 	}
 
 	return events, nil
 }
 
-// Save creates a new event or updates an existing one
-func (r *eventRepo) Save(ctx context.Context, e *model.Event) error {
-	var id int32
-	var err error
-
-	if e.ID == 0 {
-		// Create
-		id, err = r.repo.queries(ctx).EventCreate(ctx, sqlc.EventCreateParams{
-			Url:         e.URL,
-			Name:        e.Name,
-			Description: pgtype.Text{String: e.Description, Valid: true},
-			StartTime:   pgtype.Timestamptz{Time: e.StartTime, Valid: true},
-			EndTime:     pgtype.Timestamptz{Time: e.EndTime, Valid: true},
-			Year:        int32(e.Year.ID),
-			Location:    pgtype.Text{String: e.Location, Valid: true},
-		})
-	} else {
-		// Update
-		id = int32(e.ID)
-		err = r.repo.queries(ctx).EventUpdate(ctx, sqlc.EventUpdateParams{
-			ID:          int32(e.ID),
-			Url:         e.URL,
-			Name:        e.Name,
-			Description: pgtype.Text{String: e.Description, Valid: true},
-			StartTime:   pgtype.Timestamptz{Time: e.StartTime, Valid: true},
-			EndTime:     pgtype.Timestamptz{Time: e.EndTime, Valid: true},
-			Year:        int32(e.Year.ID),
-			Location:    pgtype.Text{String: e.Location, Valid: true},
-		})
-	}
-
+func (e *Event) Create(ctx context.Context, event *model.Event) error {
+	id, err := e.repo.queries(ctx).EventCreate(ctx, sqlc.EventCreateParams{
+		FileName:    event.FileName,
+		Name:        event.Name,
+		Description: pgtype.Text{String: event.Description, Valid: true},
+		StartTime:   pgtype.Timestamptz{Time: event.StartTime, Valid: true},
+		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: true},
+		YearID:      int32(event.Year.ID),
+		Location:    pgtype.Text{String: event.Location, Valid: true},
+	})
 	if err != nil {
-		return fmt.Errorf("unable to save event %+v | %w", *e, err)
+		return fmt.Errorf("create event %+v | %w", *event, err)
 	}
 
-	e.ID = int(id)
+	event.ID = int(id)
 
 	return nil
 }
 
-// Delete soft deletes an event
-func (r *eventRepo) Delete(ctx context.Context, e *model.Event) error {
-	if e.ID == 0 {
-		return fmt.Errorf("Event has no ID %+v", *e)
+func (e *Event) Update(ctx context.Context, event model.Event) error {
+	if err := e.repo.queries(ctx).EventUpdate(ctx, sqlc.EventUpdateParams{
+		ID:          int32(event.ID),
+		FileName:    event.FileName,
+		Name:        event.Name,
+		Description: pgtype.Text{String: event.Description, Valid: true},
+		StartTime:   pgtype.Timestamptz{Time: event.StartTime, Valid: true},
+		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: true},
+		YearID:      int32(event.Year.ID),
+		Location:    pgtype.Text{String: event.Location, Valid: true},
+	}); err != nil {
+		return fmt.Errorf("update event %+v | %w", e, err)
 	}
 
-	if err := r.repo.queries(ctx).EventDelete(ctx, int32(e.ID)); err != nil {
-		return fmt.Errorf("unable to delete event %+v | %w", *e, err)
-	}
+	return nil
+}
 
-	e.DeletedAt = time.Now() // Close enough
+func (e *Event) Delete(ctx context.Context, event *model.Event) error {
+	if err := e.repo.queries(ctx).EventDelete(ctx, int32(event.ID)); err != nil {
+		return fmt.Errorf("delete event %+v | %w", *event, err)
+	}
 
 	return nil
 }

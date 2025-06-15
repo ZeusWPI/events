@@ -26,22 +26,18 @@ func (s *Service) withRollback(ctx context.Context, fn func(context.Context) err
 	return s.repo.WithRollback(ctx, fn)
 }
 
-// NewEvent creates a new Event service
-func (s *Service) NewEvent() Event {
-	return &eventService{service: *s, manager: s.manager, board: s.repo.NewBoard(), event: s.repo.NewEvent(), organizer: s.repo.NewOrganizer()}
+func (s *Service) NewEvent() *Event {
+	return newEvent(*s)
 }
 
-// NewOrganizer creates a new Organizer service
-func (s *Service) NewOrganizer() Organizer {
-	return &organizerService{service: *s, board: s.repo.NewBoard(), member: s.repo.NewMember(), year: s.repo.NewYear()}
+func (s *Service) NewOrganizer() *Organizer {
+	return newOrganizer(*s)
 }
 
-// NewYear creates a new Year service
-func (s *Service) NewYear() Year {
-	return &yearService{service: *s, year: s.repo.NewYear()}
+func (s *Service) NewYear() *Year {
+	return newYear(*s)
 }
 
-// NewTask creates a new Task service
-func (s *Service) NewTask() Task {
-	return &taskService{service: *s, manager: s.manager, task: s.repo.NewTask()}
+func (s *Service) NewTask() *Task {
+	return newTask(*s)
 }

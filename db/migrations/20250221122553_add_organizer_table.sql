@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS organizer (
+CREATE TABLE organizer (
   id SERIAL PRIMARY KEY,
   event INTEGER NOT NULL REFERENCES event (id),
   board INTEGER NOT NULL REFERENCES board (id)
@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS organizer (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS organizer;
+DROP TABLE organizer;
 -- +goose StatementEnd

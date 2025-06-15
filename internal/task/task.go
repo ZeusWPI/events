@@ -26,27 +26,21 @@ type Task interface {
 	Ctx() context.Context
 }
 
-// Status represents the possible statuses of a task
 type Status string
 
 const (
-	// Waiting indicates a task is waiting to be executed
 	Waiting Status = "waiting"
-	// Running indicates a task is being executed
 	Running Status = "running"
 )
 
-// LastStatus represents the possible statuses of the previous execution of a task
 type LastStatus string
 
 const (
-	// Success indicates a task exited without any errors
 	Success LastStatus = "success"
-	// Failed indicates a task exited with an error
-	Failed LastStatus = "failed"
+	Failed  LastStatus = "failed"
 )
 
-// Stat represents a task with some statistics .
+// Stat represents a task with some statistics
 // For one time tasks some fields are not used
 type Stat struct {
 	ID         int

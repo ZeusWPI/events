@@ -1,26 +1,23 @@
-// Package api provides all routes
 package api
 
 import (
 	"github.com/ZeusWPI/events/internal/api/dto"
 	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
 )
 
-// Event contains all api routes related to events
 type Event struct {
 	router fiber.Router
 
 	event service.Event
 }
 
-// NewEvent creates a new event router
-func NewEvent(service service.Service, router fiber.Router) *Event {
+func NewEvent(router fiber.Router, service service.Service) *Event {
 	api := &Event{
 		router: router.Group("/event"),
-		event:  service.NewEvent(),
+		event:  *service.NewEvent(),
 	}
+
 	api.createRoutes()
 
 	return api
@@ -38,10 +35,9 @@ func (r *Event) getByYear(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	events, err := r.event.GetByYear(c.Context(), dto.Year{ID: id})
+	events, err := r.event.GetByYear(c.Context(), id)
 	if err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
+		return err
 	}
 
 	return c.JSON(events)
@@ -60,17 +56,15 @@ func (r *Event) updateOrganizers(c *fiber.Ctx) error {
 	}
 
 	if err := r.event.UpdateOrganizers(c.Context(), events); err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
+		return err
 	}
 
-	return c.SendStatus(fiber.StatusCreated)
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func (r *Event) sync(c *fiber.Ctx) error {
 	if err := r.event.Sync(); err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
+		return err
 	}
 
 	return c.SendStatus(fiber.StatusAccepted)

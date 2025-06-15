@@ -20,6 +20,7 @@ require (
 	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/zap v1.27.0
 	golang.org/x/oauth2 v0.28.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -129,7 +130,6 @@ require (
 	google.golang.org/grpc v1.71.1 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v1.0.1 // indirect
 	modernc.org/libc v1.65.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect

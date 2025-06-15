@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS task (
+CREATE TABLE task (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   result VARCHAR(255) CHECK (result IN ('success', 'failed')),
@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS task (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS task;
+DROP TABLE task;
 -- +goose StatementEnd

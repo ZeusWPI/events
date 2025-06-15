@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS event (
+CREATE TABLE event (
   id SERIAL PRIMARY KEY,
   url VARCHAR(255) NOT NULL,
   name TEXT NOT NULL,
@@ -18,5 +18,5 @@ CREATE TABLE IF NOT EXISTS event (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS event;
+DROP TABLE event;
 -- +goose StatementEnd

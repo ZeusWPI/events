@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/gocolly/colly"
 )
 
@@ -23,7 +23,7 @@ const (
 
 // Get all event urls for a given year
 func (w *Website) fetchEventURLSByYear(year model.Year) ([]string, error) {
-	if year.StartYear < eventStartYear {
+	if year.Start < eventStartYear {
 		return nil, nil
 	}
 
@@ -58,7 +58,7 @@ func (w *Website) fetchEventURLSByYear(year model.Year) ([]string, error) {
 
 // UpdateEvent scrapes the website for event data and saves it
 func (w *Website) UpdateEvent(event *model.Event) error {
-	if event.URL == "" || (event.Year == model.Year{}) {
+	if event.FileName == "" || (event.Year == model.Year{}) {
 		return fmt.Errorf("event has no URL or acdemic year: %+v", event)
 	}
 
@@ -84,7 +84,7 @@ func (w *Website) UpdateEvent(event *model.Event) error {
 		}
 	})
 
-	url := fmt.Sprintf("%s/%s/%s", eventURL, event.Year.String(), event.URL)
+	url := fmt.Sprintf("%s/%s/%s", eventURL, event.Year.String(), event.FileName)
 	err := c.Visit(url)
 	if err != nil {
 		return fmt.Errorf("unable to visit url %s | %w", url, err)
@@ -96,7 +96,11 @@ func (w *Website) UpdateEvent(event *model.Event) error {
 		return errors.Join(errs...)
 	}
 
-	return w.eventRepo.Save(context.Background(), event)
+	if event.ID != 0 {
+		return w.eventRepo.Create(context.Background(), event)
+	}
+
+	return w.eventRepo.Update(context.Background(), *event)
 }
 
 // UpdateAllEvents synchronizes all events with the website
@@ -129,14 +133,14 @@ func (w *Website) UpdateAllEvents() error {
 				var event *model.Event
 				for _, e := range events {
 					// Try to find existing event
-					if e.URL == url && e.Year.Equal(year) {
+					if e.FileName == url && e.Year.Equal(year) {
 						event = e
 						break
 					}
 				}
 				if event == nil {
 					// Not found, create one
-					event = &model.Event{URL: url, Year: year}
+					event = &model.Event{FileName: url, Year: year}
 				}
 
 				if err = w.UpdateEvent(event); err != nil {
@@ -145,8 +149,8 @@ func (w *Website) UpdateAllEvents() error {
 			}
 
 			// Mark existing events that weren't found as deleted
-			for _, event := range util.SliceFilter(events, func(e *model.Event) bool { return e.Year == year }) {
-				if !slices.Contains(urls, event.URL) {
+			for _, event := range utils.SliceFilter(events, func(e *model.Event) bool { return e.Year == year }) {
+				if !slices.Contains(urls, event.FileName) {
 					if err = w.eventRepo.Delete(context.Background(), event); err != nil {
 						errs = append(errs, err)
 					}

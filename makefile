@@ -23,14 +23,14 @@ goose:
 	@docker compose up db -d
 	@docker compose exec db bash -c 'until pg_isready -U postgres; do sleep 1; done'
 	@read -p "Action: " action; \
-	go tool goose -dir ./db/migrations postgres "user=postgres password=postgres host=localhost port=5431 dbname=fm sslmode=disable" $$action
+	go tool goose -dir ./db/migrations postgres "user=postgres password=postgres host=localhost port=5432 dbname=events sslmode=disable" $$action
 	@docker compose down db
 
 migrate:
 	@docker compose down
 	@docker compose up db -d
 	@docker compose exec db bash -c 'until pg_isready -U postgres; do sleep 1; done'
-	@go tool goose -dir ./db/migrations postgres "user=postgres password=postgres host=localhost port=5431 dbname=fm sslmode=disable" up
+	@go tool goose -dir ./db/migrations postgres "user=postgres password=postgres host=localhost port=5432 dbname=events sslmode=disable" up
 	@docker compose down db
 
 create-migration:

@@ -1,4 +1,3 @@
-// Package middleware provides various middlewares
 package middleware
 
 import (
@@ -7,7 +6,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// ProtectedRoute only allows authenticated users to go through
 func ProtectedRoute(c *fiber.Ctx) error {
 	session, err := goth_fiber.SessionStore.Get(c)
 	if err != nil {

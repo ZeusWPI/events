@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS year (
+CREATE TABLE year (
   id SERIAL PRIMARY KEY,
   start_year INTEGER NOT NULL,
   end_year INTEGER NOT NULL
@@ -21,5 +21,5 @@ DROP COLUMN year;
 ALTER TABLE event
 ADD COLUMN year VARCHAR(255);
 
-DROP TABLE IF EXISTS year;
+DROP TABLE year;
 -- +goose StatementEnd

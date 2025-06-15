@@ -105,8 +105,8 @@ func (w *Website) UpdateAllYears() error {
 			errs = append(errs, fmt.Errorf("unable to convert string year to int %s | %w | %w", y, err1, err2))
 		}
 
-		if err := w.yearRepo.Save(context.Background(), &model.Year{
-			StartYear: start, EndYear: end,
+		if err := w.yearRepo.Create(context.Background(), &model.Year{
+			Start: start, End: end,
 		}); err != nil {
 			errs = append(errs, err)
 		}

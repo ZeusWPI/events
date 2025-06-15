@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS member (
+CREATE TABLE member (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   username VARCHAR(255)
@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS member (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS member;
+DROP TABLE member;
 -- +goose StatementEnd

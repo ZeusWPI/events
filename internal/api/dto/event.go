@@ -2,15 +2,15 @@ package dto
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/pkg/utils"
 )
 
 const eventURL = "https://zeus.gent/events"
 
-// Event is the data transferable object version of the model Event
 type Event struct {
 	ID          int         `json:"id"`
 	URL         string      `json:"url"`
@@ -23,62 +23,57 @@ type Event struct {
 	Organizers  []Organizer `json:"organizers"`
 }
 
-// EventDTO converts a model Event to a DTO Event
-func EventDTO(e *model.Event) Event {
-	endTime := &e.EndTime
-	if e.EndTime.IsZero() {
+func EventDTO(event *model.Event) Event {
+	endTime := &event.EndTime
+	if event.EndTime.IsZero() {
 		endTime = nil
 	}
 
-	organizers := make([]Organizer, 0, len(e.Organizers))
-	for _, o := range e.Organizers {
-		organizers = append(organizers, Organizer{
-			ID:   o.Member.ID,
-			Name: o.Member.Name,
-			Role: o.Role,
-		})
-	}
-
 	return Event{
-		ID:          e.ID,
-		URL:         fmt.Sprintf("%s/%s/%s", eventURL, e.Year.String(), e.URL),
-		Name:        e.Name,
-		Description: e.Description,
-		StartTime:   e.StartTime,
+		ID:          event.ID,
+		URL:         fmt.Sprintf("%s/%s/%s", eventURL, event.Year.String(), event.FileName),
+		Name:        event.Name,
+		Description: event.Description,
+		StartTime:   event.StartTime,
 		EndTime:     endTime,
-		Location:    e.Location,
+		Location:    event.Location,
 		Year: Year{
-			ID:        e.Year.ID,
-			StartYear: e.Year.StartYear,
-			EndYear:   e.Year.EndYear,
+			ID:    event.Year.ID,
+			Start: event.Year.Start,
+			End:   event.Year.End,
 		},
-		Organizers: organizers,
+		Organizers: utils.SliceMap(utils.SliceReference(event.Organizers), OrganizerDTO),
 	}
 }
 
-// ToModel coverts a dto Event to a model Event
-func (e *Event) ToModel() *model.Event {
+func (event *Event) ToModel() *model.Event {
 	endTime := time.Time{}
-	if e.EndTime != nil {
-		endTime = *e.EndTime
+	if event.EndTime != nil {
+		endTime = *event.EndTime
+	}
+
+	fileName := ""
+	urlParts := strings.Split(event.URL, "/")
+	if len(urlParts) == 3 {
+		fileName = urlParts[2]
 	}
 
 	return &model.Event{
-		ID:          e.ID,
-		URL:         e.URL,
-		Name:        e.Name,
-		Description: e.Description,
-		StartTime:   e.StartTime,
+		ID:          event.ID,
+		FileName:    fileName,
+		Name:        event.Name,
+		Description: event.Description,
+		StartTime:   event.StartTime,
 		EndTime:     endTime,
-		Location:    e.Location,
-		Year:        *e.Year.ToModel(),
-		Organizers: util.SliceMap(e.Organizers, func(o Organizer) model.Board {
+		Location:    event.Location,
+		Year:        *event.Year.ToModel(),
+		Organizers: utils.SliceMap(event.Organizers, func(o Organizer) model.Board {
 			return model.Board{
 				Member: model.Member{
 					ID:   o.ID,
 					Name: o.Name,
 				},
-				Year: *e.Year.ToModel(),
+				Year: *event.Year.ToModel(),
 				Role: o.Role,
 			}
 		}),

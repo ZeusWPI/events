@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS board (
+CREATE TABLE board (
   id SERIAL PRIMARY KEY,
   member INTEGER NOT NULL REFERENCES member (id),
   year INTEGER NOT NULL REFERENCES year (id),
@@ -12,5 +12,5 @@ CREATE TABLE IF NOT EXISTS board (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS board;
+DROP TABLE board;
 -- +goose StatementEnd

@@ -5,18 +5,13 @@ import (
 
 	"github.com/ZeusWPI/events/internal/api/dto"
 	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/ZeusWPI/events/pkg/zauth"
+	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
-// Organizer represents all business logic regarding organizers
-type Organizer interface {
-	GetByID(context.Context, int) (dto.Organizer, error)
-	GetByYear(context.Context, dto.Year) ([]dto.Organizer, error)
-	GetByZauth(context.Context, zauth.User) (dto.Organizer, error)
-}
-
-type organizerService struct {
+type Organizer struct {
 	service Service
 
 	board  repository.Board
@@ -24,53 +19,63 @@ type organizerService struct {
 	year   repository.Year
 }
 
-// Interface compliance
-var _ Organizer = (*organizerService)(nil)
-
-// GetByID returns an organizer given an id.
-// It's associated role is the one for the current year or empty
-func (s *organizerService) GetByID(ctx context.Context, id int) (dto.Organizer, error) {
-	member, err := s.member.GetByID(ctx, id)
-	if err != nil {
-		return dto.Organizer{}, err
+func newOrganizer(service Service) *Organizer {
+	return &Organizer{
+		service: service,
+		board:   *service.repo.NewBoard(),
+		member:  *service.repo.NewMember(),
+		year:    *service.repo.NewYear(),
 	}
-
-	year, err := s.year.GetLatest(ctx)
-	if err != nil {
-		return dto.Organizer{}, err
-	}
-
-	board, err := s.board.GetByMemberYear(ctx, *member, *year)
-	if err != nil {
-		return dto.Organizer{}, err
-	}
-
-	if board.ID == 0 {
-		// No board entry found, manually populate
-		board.Member = *member
-	}
-
-	organizer := dto.OrganizerDTO(board)
-
-	return organizer, nil
 }
 
-// GetByYear returns all possible organizers for a given year
-func (s *organizerService) GetByYear(ctx context.Context, year dto.Year) ([]dto.Organizer, error) {
-	organizers, err := s.board.GetByYearWithMemberYear(ctx, *year.ToModel())
+func (o *Organizer) GetByID(ctx context.Context, id int) (dto.Organizer, error) {
+	member, err := o.member.GetByID(ctx, id)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Organizer{}, fiber.ErrInternalServerError
+	}
+	if member == nil {
+		return dto.Organizer{}, fiber.ErrBadRequest
+	}
+
+	year, err := o.year.GetLast(ctx)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Organizer{}, fiber.ErrInternalServerError
+	}
+
+	board, err := o.board.GetByMemberYear(ctx, *member, *year)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Organizer{}, fiber.ErrInternalServerError
+	}
+	if board == nil {
+		return dto.Organizer{}, fiber.ErrBadRequest
+	}
+
+	return dto.OrganizerDTO(board), nil
+}
+
+func (o *Organizer) GetByYear(ctx context.Context, yearID int) ([]dto.Organizer, error) {
+	organizers, err := o.board.GetByYearPopulated(ctx, yearID)
 	if err != nil {
 		return nil, err
 	}
+	if organizers == nil {
+		return []dto.Organizer{}, nil
+	}
 
-	return util.SliceMap(organizers, dto.OrganizerDTO), nil
+	return utils.SliceMap(organizers, dto.OrganizerDTO), nil
 }
 
-// GetByZauth returns the organizer associated with a zauth user
-// If no organizer is found the returned struct will have an ID of 0
-func (s *organizerService) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organizer, error) {
-	member, err := s.member.GetByName(ctx, zauth.FullName)
+func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organizer, error) {
+	member, err := o.member.GetByName(ctx, zauth.FullName)
 	if err != nil {
+		zap.S().Error(err)
 		return dto.Organizer{}, err
+	}
+	if member == nil {
+		return dto.Organizer{}, fiber.ErrBadRequest
 	}
 
 	if member.ZauthID == 0 {
@@ -78,7 +83,8 @@ func (s *organizerService) GetByZauth(ctx context.Context, zauth zauth.User) (dt
 		member.ZauthID = zauth.ID
 		member.Username = zauth.Username
 
-		if err := s.member.Save(ctx, member); err != nil {
+		if err := o.member.Create(ctx, member); err != nil {
+			zap.S().Error(err)
 			return dto.Organizer{}, err
 		}
 	}

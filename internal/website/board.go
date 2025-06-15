@@ -54,8 +54,8 @@ func (w *Website) fetchAllBoards() ([]model.Board, error) {
 					Name: name,
 				},
 				Year: model.Year{
-					StartYear: yearStart,
-					EndYear:   yearEnd,
+					Start: yearStart,
+					End:   yearEnd,
 				},
 				Role: role,
 			})
@@ -94,7 +94,7 @@ func (w *Website) UpdateAllBoards() error {
 		return nil
 	}
 
-	boards, err := w.boardRepo.GetAllWithMemberYear(context.Background())
+	boards, err := w.boardRepo.GetAllPopulated(context.Background())
 	if err != nil {
 		return err
 	}
@@ -127,10 +127,12 @@ func (w *Website) UpdateAllBoards() error {
 				}
 			}
 
-			err := w.boardRepo.Save(context.Background(), &board)
-			if err != nil {
-				errs = append(errs, err)
-				break
+			if board.ID != 0 {
+				err := w.boardRepo.Create(context.Background(), &board)
+				if err != nil {
+					errs = append(errs, err)
+					break
+				}
 			}
 
 			// Update the existing member and year list

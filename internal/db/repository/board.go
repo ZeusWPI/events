@@ -2,39 +2,40 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/sqlc"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/pkg/utils"
 )
 
-// Board provides all model.Board related database operations
-type Board interface {
-	GetAllWithMemberYear(context.Context) ([]*model.Board, error)
-	GetByYearWithMemberYear(context.Context, model.Year) ([]*model.Board, error)
-	GetByMemberYear(context.Context, model.Member, model.Year) (*model.Board, error)
-	Save(context.Context, *model.Board) error
-}
-
-type boardRepo struct {
+type Board struct {
 	repo Repository
 
 	year   Year
 	member Member
 }
 
-// Interface compliance
-var _ Board = (*boardRepo)(nil)
+func newBoard(repo Repository) *Board {
+	return &Board{
+		repo:   repo,
+		year:   *repo.NewYear(),
+		member: *repo.NewMember(),
+	}
+}
 
-// GetAll returns all boards
-func (r *boardRepo) GetAllWithMemberYear(ctx context.Context) ([]*model.Board, error) {
-	boards, err := r.repo.queries(ctx).BoardGetAllWithMemberYear(ctx)
+func (b *Board) GetAllPopulated(ctx context.Context) ([]*model.Board, error) {
+	boards, err := b.repo.queries(ctx).BoardGetAllPopulated(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all boards | %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all populated boards | %w", err)
 	}
 
-	return util.SliceMap(boards, func(b sqlc.BoardGetAllWithMemberYearRow) *model.Board {
+	return utils.SliceMap(boards, func(b sqlc.BoardGetAllPopulatedRow) *model.Board {
 		username := ""
 		if b.Username.Valid {
 			username = b.Username.String
@@ -48,22 +49,25 @@ func (r *boardRepo) GetAllWithMemberYear(ctx context.Context) ([]*model.Board, e
 				Username: username,
 			},
 			Year: model.Year{
-				ID:        int(b.ID_3),
-				StartYear: int(b.StartYear),
-				EndYear:   int(b.EndYear),
+				ID:    int(b.ID_3),
+				Start: int(b.YearStart),
+				End:   int(b.YearEnd),
 			},
 			Role: b.Role,
 		}
 	}), nil
 }
 
-func (r *boardRepo) GetByYearWithMemberYear(ctx context.Context, year model.Year) ([]*model.Board, error) {
-	boards, err := r.repo.queries(ctx).BoardGetByYearWithMemberYear(ctx, int32(year.ID))
+func (b *Board) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Board, error) {
+	boards, err := b.repo.queries(ctx).BoardGetByYearPopulated(ctx, int32(yearID))
 	if err != nil {
-		return nil, fmt.Errorf("unable to get all boards by year %+v | %w", year, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all populated boards by year %w", err)
 	}
 
-	return util.SliceMap(boards, func(b sqlc.BoardGetByYearWithMemberYearRow) *model.Board {
+	return utils.SliceMap(boards, func(b sqlc.BoardGetByYearPopulatedRow) *model.Board {
 		username := ""
 		if b.Username.Valid {
 			username = b.Username.String
@@ -77,22 +81,25 @@ func (r *boardRepo) GetByYearWithMemberYear(ctx context.Context, year model.Year
 				Username: username,
 			},
 			Year: model.Year{
-				ID:        int(b.ID_3),
-				StartYear: int(b.StartYear),
-				EndYear:   int(b.EndYear),
+				ID:    int(b.ID_3),
+				Start: int(b.YearStart),
+				End:   int(b.YearEnd),
 			},
 			Role: b.Role,
 		}
 	}), nil
 }
 
-func (r *boardRepo) GetByMemberYear(ctx context.Context, member model.Member, year model.Year) (*model.Board, error) {
-	board, err := r.repo.queries(ctx).BoardGetByMemberYear(ctx, sqlc.BoardGetByMemberYearParams{
+func (b *Board) GetByMemberYear(ctx context.Context, member model.Member, year model.Year) (*model.Board, error) {
+	board, err := b.repo.queries(ctx).BoardGetByMemberYear(ctx, sqlc.BoardGetByMemberYearParams{
 		ID:   int32(member.ID),
 		ID_2: int32(year.ID),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("unable to get board by member and year %+v | %+v | %w", member, year, err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get board by member and year %+v | %+v | %w", member, year, err)
 	}
 
 	username := ""
@@ -108,46 +115,40 @@ func (r *boardRepo) GetByMemberYear(ctx context.Context, member model.Member, ye
 			Username: username,
 		},
 		Year: model.Year{
-			ID:        int(board.ID_3),
-			StartYear: int(board.StartYear),
-			EndYear:   int(board.EndYear),
+			ID:    int(board.ID_3),
+			Start: int(board.YearStart),
+			End:   int(board.YearEnd),
 		},
 		Role: board.Role,
 	}, nil
 }
 
-// Save creates a new board
-func (r *boardRepo) Save(ctx context.Context, b *model.Board) error {
-	if b.ID != 0 {
-		// Already in database
-		return nil
-	}
-
-	return r.repo.WithRollback(ctx, func(c context.Context) error {
-		if b.Member.ID == 0 {
-			err := r.member.Save(c, &b.Member)
+func (b *Board) Create(ctx context.Context, board *model.Board) error {
+	return b.repo.WithRollback(ctx, func(c context.Context) error {
+		if board.Member.ID == 0 {
+			err := b.member.Create(c, &board.Member)
 			if err != nil {
 				return err
 			}
 		}
 
-		if b.Year.ID == 0 {
-			err := r.year.Save(c, &b.Year)
+		if board.Year.ID == 0 {
+			err := b.year.Create(c, &board.Year)
 			if err != nil {
 				return err
 			}
 		}
 
-		id, err := r.repo.queries(c).BoardCreate(c, sqlc.BoardCreateParams{
-			Member: int32(b.Member.ID),
-			Year:   int32(b.Year.ID),
-			Role:   b.Role,
+		id, err := b.repo.queries(c).BoardCreate(c, sqlc.BoardCreateParams{
+			MemberID: int32(board.Member.ID),
+			YearID:   int32(board.Year.ID),
+			Role:     board.Role,
 		})
 		if err != nil {
-			return fmt.Errorf("unable to save board %+v | %w", *b, err)
+			return fmt.Errorf("create board %+v | %w", *board, err)
 		}
 
-		b.ID = int(id)
+		board.ID = int(id)
 
 		return nil
 	})

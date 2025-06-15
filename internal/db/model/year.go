@@ -2,21 +2,28 @@ package model
 
 import (
 	"fmt"
+
+	"github.com/ZeusWPI/events/internal/db/sqlc"
 )
 
-// Year represents an academic year
 type Year struct {
-	ID        int
-	StartYear int
-	EndYear   int
+	ID    int `json:"id"`
+	Start int `json:"year_start"`
+	End   int `json:"year_end"`
 }
 
-// String returns the shortened string version
-func (a *Year) String() string {
-	return fmt.Sprintf("%02d-%02d", a.StartYear%100, a.EndYear%100)
+func YearModel(year sqlc.Year) *Year {
+	return &Year{
+		ID:    int(year.ID),
+		Start: int(year.YearStart),
+		End:   int(year.YearEnd),
+	}
 }
 
-// Equal returns true if 2 years are equal
-func (a *Year) Equal(a2 Year) bool {
-	return a.StartYear == a2.StartYear && a.EndYear == a2.EndYear
+func (y *Year) String() string {
+	return fmt.Sprintf("%02d-%02d", y.Start%100, y.End%100)
+}
+
+func (y *Year) Equal(y2 Year) bool {
+	return y.Start == y2.Start && y.End == y2.End
 }

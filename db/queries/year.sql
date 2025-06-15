@@ -1,19 +1,13 @@
 -- name: YearGetAll :many 
 SELECT * FROM year
-ORDER BY start_year DESC;  
+ORDER BY year_start DESC;  
 
--- name: YearGetLatest :one 
+-- name: YearGetLast :one 
 SELECT * FROM year 
-ORDER BY start_year DESC
+ORDER BY year_start DESC
 LIMIT 1;
 
 -- name: YearCreate :one 
-INSERT INTO year (start_year, end_year)
+INSERT INTO year (year_start, year_end)
 VALUES ($1, $2)
 RETURNING id;
-
--- name: YearUpdate :exec
-UPDATE year
-SET start_year = $1, end_year = $2 
-WHERE id = $3;
-

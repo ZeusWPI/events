@@ -7,17 +7,13 @@ import (
 	"github.com/ZeusWPI/events/internal/task"
 )
 
-// TaskHistoryStatus are the possible results a TaskHistory
 type TaskHistoryStatus string
 
 const (
-	// Success indicates the task succeeded
 	Success TaskHistoryStatus = "Success"
-	// Failed indicates the task returned an error
-	Failed TaskHistoryStatus = "Failed"
+	Failed  TaskHistoryStatus = "Failed"
 )
 
-// TaskHistory is the data transferable object version of the model Task
 type TaskHistory struct {
 	ID        int               `json:"id"`
 	Name      string            `json:"name"`
@@ -27,7 +23,6 @@ type TaskHistory struct {
 	Recurring bool              `json:"recurring"`
 }
 
-// TaskHistoryDTO converts a model Task to a DTO TaskHistory
 func TaskHistoryDTO(task *model.Task) TaskHistory {
 	taskError := ""
 	if task.Error != nil {
@@ -44,7 +39,6 @@ func TaskHistoryDTO(task *model.Task) TaskHistory {
 	}
 }
 
-// TaskHistoryFilter is the filter used for task histories
 type TaskHistoryFilter struct {
 	Name        string
 	OnlyErrored bool
@@ -53,17 +47,13 @@ type TaskHistoryFilter struct {
 	Limit       int
 }
 
-// TaskStatus are the different statuses a Task can have
 type TaskStatus string
 
 const (
-	// Running indicates the task is currently running
 	Running TaskStatus = "Running"
-	// Waiting indicates the task is currently waiting to be executed
 	Waiting TaskStatus = "Waiting"
 )
 
-// Task is the data transferable object version of a task.Stat returned by the task manager
 type Task struct {
 	ID         int               `json:"id"`
 	Name       string            `json:"name"`
@@ -76,7 +66,6 @@ type Task struct {
 	Interval   *time.Duration    `json:"interval,omitempty"`
 }
 
-// TaskDTO converts a task.Stat to a DTO Task
 func TaskDTO(task task.Stat) Task {
 	t := Task{
 		ID:        task.ID,

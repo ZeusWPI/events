@@ -6,21 +6,18 @@ import (
 	"github.com/ZeusWPI/events/internal/api/dto"
 	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
 )
 
-// Task contains all api routes regarding tasks
 type Task struct {
 	router fiber.Router
 
 	task service.Task
 }
 
-// NewTask creates a new task router
-func NewTask(service service.Service, router fiber.Router) *Task {
+func NewTask(router fiber.Router, service service.Service) *Task {
 	api := &Task{
 		router: router.Group("/task"),
-		task:   service.NewTask(),
+		task:   *service.NewTask(),
 	}
 
 	api.createRoutes()
@@ -37,8 +34,7 @@ func (r *Task) createRoutes() {
 func (r *Task) getAll(c *fiber.Ctx) error {
 	tasks, err := r.task.GetAll()
 	if err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
+		return err
 	}
 
 	return c.JSON(tasks)
@@ -69,8 +65,7 @@ func (r *Task) getHistory(c *fiber.Ctx) error {
 		Limit:       limit,
 	})
 	if err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
+		return err
 	}
 
 	return c.JSON(tasks)
@@ -83,7 +78,7 @@ func (r *Task) start(c *fiber.Ctx) error {
 	}
 
 	if err := r.task.Start(id); err != nil {
-		return fiber.ErrInternalServerError
+		return err
 	}
 
 	return c.SendStatus(fiber.StatusAccepted)

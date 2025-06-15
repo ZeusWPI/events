@@ -11,7 +11,6 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/pkg/util"
 	"github.com/go-co-op/gocron/v2"
 	"go.uber.org/zap"
 )
@@ -48,7 +47,6 @@ type Manager struct {
 	jobsOnce      map[int]jobOnce
 }
 
-// NewManager creates a new Manager
 func NewManager(repo repository.Repository) (*Manager, error) {
 	scheduler, err := gocron.NewScheduler()
 	if err != nil {
@@ -59,7 +57,7 @@ func NewManager(repo repository.Repository) (*Manager, error) {
 
 	return &Manager{
 		scheduler:     scheduler,
-		repo:          repo.NewTask(),
+		repo:          *repo.NewTask(),
 		jobID:         1,
 		jobsRecurring: make(map[int]jobRecurring),
 		jobsOnce:      make(map[int]jobOnce),
@@ -256,14 +254,19 @@ func (m *Manager) wrapRecurring(id int, task Task) func(context.Context) {
 		err := task.Func()(ctx)
 
 		// Save result
+		result := model.Success
+		if err != nil {
+			result = model.Failed
+		}
+
 		task := &model.Task{
 			Name:      task.Name(),
-			Result:    util.If(err == nil, model.Success, model.Failed),
+			Result:    result,
 			RunAt:     time.Now(),
 			Error:     err,
 			Recurring: true,
 		}
-		if errDB := m.repo.Save(ctx, task); errDB != nil {
+		if errDB := m.repo.Create(ctx, task); errDB != nil {
 			zap.S().Errorf("failed to save recurring task result in database %+v | %v", *task, err)
 		}
 
@@ -272,7 +275,7 @@ func (m *Manager) wrapRecurring(id int, task Task) func(context.Context) {
 
 		info = m.jobsRecurring[id]
 		info.status = Waiting
-		info.lastStatus = util.If(err == nil, Success, Failed)
+		info.lastStatus = LastStatus(result)
 		info.lastError = err
 		m.jobsRecurring[id] = info
 	}
@@ -296,14 +299,18 @@ func (m *Manager) wrapOnce(id int, task Task) func(context.Context) {
 		err := task.Func()(ctx)
 
 		// Save result
+		result := model.Success
+		if err != nil {
+			result = model.Failed
+		}
 		task := &model.Task{
 			Name:      task.Name(),
-			Result:    util.If(err == nil, model.Success, model.Failed),
+			Result:    result,
 			RunAt:     time.Now(),
 			Error:     err,
 			Recurring: false,
 		}
-		if err := m.repo.Save(ctx, task); err != nil {
+		if err := m.repo.Create(ctx, task); err != nil {
 			zap.S().Errorf("failed to save one time task result in database %+v | %v", *task, err)
 		}
 

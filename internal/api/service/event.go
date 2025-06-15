@@ -7,78 +7,84 @@ import (
 	"github.com/ZeusWPI/events/internal/api/dto"
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/internal/website"
-	"github.com/ZeusWPI/events/pkg/util"
+	"github.com/ZeusWPI/events/pkg/utils"
+	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
-// Event represents all business logic regarding events
-type Event interface {
-	GetByYear(context.Context, dto.Year) ([]dto.Event, error)
-	UpdateOrganizers(context.Context, []dto.Event) error
-	Sync() error
-}
-
-type eventService struct {
+type Event struct {
 	service Service
-	manager *task.Manager
 
 	board     repository.Board
 	event     repository.Event
 	organizer repository.Organizer
 }
 
-// Interface compliance
-var _ Event = (*eventService)(nil)
-
-// GetByYear returns all events occuring in a given year
-func (s *eventService) GetByYear(ctx context.Context, year dto.Year) ([]dto.Event, error) {
-	events, err := s.event.GetByYearWithAll(ctx, *year.ToModel())
-	if err != nil {
-		return nil, err
+func newEvent(service Service) *Event {
+	return &Event{
+		service:   service,
+		board:     *service.repo.NewBoard(),
+		event:     *service.repo.NewEvent(),
+		organizer: *service.repo.NewOrganizer(),
 	}
-
-	return util.SliceMap(events, dto.EventDTO), nil
 }
 
-// UpdateOrganizers updates the organizers for each given event
-func (s *eventService) UpdateOrganizers(ctx context.Context, events []dto.Event) error {
+func (e *Event) GetByYear(ctx context.Context, id int) ([]dto.Event, error) {
+	events, err := e.event.GetByYearPopulated(ctx, id)
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+	if events == nil {
+		return []dto.Event{}, nil
+	}
+
+	return utils.SliceMap(events, dto.EventDTO), nil
+}
+
+func (e *Event) UpdateOrganizers(ctx context.Context, events []dto.Event) error {
 	if len(events) == 0 {
 		return nil
 	}
 
-	eventsDB, err := s.event.GetByYearWithAll(ctx, *events[0].Year.ToModel())
+	eventsDB, err := e.event.GetByYearPopulated(ctx, events[0].Year.ID)
 	if err != nil {
-		return err
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if eventsDB == nil {
+		eventsDB = []*model.Event{}
 	}
 
-	boardsDB, err := s.board.GetByYearWithMemberYear(ctx, *events[0].Year.ToModel())
+	boardsDB, err := e.board.GetByYearPopulated(ctx, events[0].Year.ID)
 	if err != nil {
-		return err
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if boardsDB == nil {
+		boardsDB = []*model.Board{}
 	}
 
-	return s.service.withRollback(ctx, func(c context.Context) error {
+	return e.service.withRollback(ctx, func(c context.Context) error {
 		for _, event := range events {
-			// Find existing event
-			eventDB, found := util.SliceFind(eventsDB, func(e *model.Event) bool { return event.ID == e.ID })
+			eventDB, found := utils.SliceFind(eventsDB, func(e *model.Event) bool { return event.ID == e.ID })
 			if !found {
-				return fmt.Errorf("unable to find event %+v", event)
+				return fmt.Errorf("find event %+v", event)
 			}
 
-			// Find corresponding board members
 			boards := make([]model.Board, 0, len(event.Organizers))
 			for _, organizer := range event.Organizers {
-				board, found := util.SliceFind(boardsDB, func(b *model.Board) bool { return b.Member.ID == organizer.ID })
+				board, found := utils.SliceFind(boardsDB, func(b *model.Board) bool { return b.Member.ID == organizer.ID })
 				if !found {
-					return fmt.Errorf("unable to find given organizer for event %+v | %+v", organizer, event)
+					return fmt.Errorf("find given organizer for event %+v | %+v", organizer, event)
 				}
 				boards = append(boards, *board)
 			}
 
-			// Add new organizers
 			for _, board := range boards {
-				if _, found := util.SliceFind(eventDB.Organizers, func(b model.Board) bool { return board.ID == b.ID }); !found {
-					if err := s.organizer.Save(c, &model.Organizer{Board: board, Event: model.Event{ID: event.ID}}); err != nil {
+				if _, found := utils.SliceFind(eventDB.Organizers, func(b model.Board) bool { return board.ID == b.ID }); !found {
+					if err := e.organizer.Create(c, board.ID, event.ID); err != nil {
 						return err
 					}
 				}
@@ -86,8 +92,8 @@ func (s *eventService) UpdateOrganizers(ctx context.Context, events []dto.Event)
 
 			// Remove old organizers
 			for _, organizer := range eventDB.Organizers {
-				if _, found := util.SliceFind(boards, func(b model.Board) bool { return organizer.ID == b.ID }); !found {
-					if err := s.organizer.Delete(c, model.Organizer{Board: organizer, Event: model.Event{ID: event.ID}}); err != nil {
+				if _, found := utils.SliceFind(boards, func(b model.Board) bool { return organizer.ID == b.ID }); !found {
+					if err := e.organizer.DeleteByBoardEvent(c, organizer.ID, event.ID); err != nil {
 						return err
 					}
 				}
@@ -98,8 +104,8 @@ func (s *eventService) UpdateOrganizers(ctx context.Context, events []dto.Event)
 	})
 }
 
-func (s *eventService) Sync() error {
-	if err := s.manager.RunByName(website.YearTask); err != nil {
+func (e *Event) Sync() error {
+	if err := e.service.manager.RunByName(website.YearTask); err != nil {
 		return err
 	}
 
