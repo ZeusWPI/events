@@ -1,4 +1,3 @@
-// Package task provides a manager to schedule one time and recurring tasks
 package task
 
 import (
@@ -12,10 +11,8 @@ import (
 // It shouldn't be used with a recurring task
 const Now = time.Duration(0)
 
-// Task represents a task.
 // It's recommended to create a task with the NewTask function for added features
 type Task interface {
-	// Name returns the name of the Task.
 	// This has to be unique for recurring tasks
 	Name() string
 	// Interval returns the time between executions.
@@ -40,7 +37,6 @@ const (
 	Failed  LastStatus = "failed"
 )
 
-// Stat represents a task with some statistics
 // For one time tasks some fields are not used
 type Stat struct {
 	ID         int

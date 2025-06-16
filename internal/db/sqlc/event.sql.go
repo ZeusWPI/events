@@ -179,12 +179,11 @@ func (q *Queries) EventGetByYearPopulated(ctx context.Context, yearID int32) ([]
 
 const eventUpdate = `-- name: EventUpdate :exec
 UPDATE event 
-SET file_name = $1, name = $2, description = $3, start_time = $4, end_time = $5, year_id = $6, location = $7
-WHERE id = $8
+SET name = $1, description = $2, start_time = $3, end_time = $4, year_id = $5, location = $6
+WHERE id = $7
 `
 
 type EventUpdateParams struct {
-	FileName    string
 	Name        string
 	Description pgtype.Text
 	StartTime   pgtype.Timestamptz
@@ -196,7 +195,6 @@ type EventUpdateParams struct {
 
 func (q *Queries) EventUpdate(ctx context.Context, arg EventUpdateParams) error {
 	_, err := q.db.Exec(ctx, eventUpdate,
-		arg.FileName,
 		arg.Name,
 		arg.Description,
 		arg.StartTime,

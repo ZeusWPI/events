@@ -34,9 +34,8 @@ type jobOnce struct {
 	job
 }
 
-// Manager manages all tasks.
 // It keeps a logs inside the database.
-// However it does not automatically reshedule tasks after a application reboot
+// However it does not automatically reshedule tasks after an application reboot
 type Manager struct {
 	scheduler gocron.Scheduler
 	repo      repository.Task

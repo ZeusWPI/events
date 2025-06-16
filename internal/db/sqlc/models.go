@@ -15,6 +15,13 @@ type Board struct {
 	Role     string
 }
 
+type Check struct {
+	ID          int32
+	EventID     int32
+	Description string
+	Done        bool
+}
+
 type Event struct {
 	ID          int32
 	FileName    string
