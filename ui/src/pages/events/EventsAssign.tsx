@@ -23,8 +23,8 @@ export function EventsAssign() {
   const { data: years } = useYearGetAll();
   // Event component makes sure it exists
   const year = years!.find(({ formatted }) => formatted === yearString)!;
-  const { data: events } = useEventByYear(year);
-  const { data: organizers } = useOrganizerByYear(year);
+  const { data: events, isLoading: isLoadingEvents } = useEventByYear(year);
+  const { data: organizers, isLoading: isLoadingOrganizers } = useOrganizerByYear(year);
 
   const { mutate: updateOrganizers } = useEventSaveOrganizers();
 
@@ -41,7 +41,6 @@ export function EventsAssign() {
   })).sort((a, b) => b.events - a.events || a.name.localeCompare(b.name)) ?? [];
 
   const handleDiscard = () => {
-    // TODO: Ask for confirmation ?
     setIsDirty(false);
   };
 
@@ -68,7 +67,7 @@ export function EventsAssign() {
     setIsDirty(true);
   };
 
-  if (!events) {
+  if (isLoadingEvents || isLoadingOrganizers) {
     return <Indeterminate />;
   }
 
@@ -82,11 +81,11 @@ export function EventsAssign() {
               {isDirty
                 ? "Discard"
                 : (
-                    <>
-                      <ArrowLeft />
-                      <span>Go back</span>
-                    </>
-                  )}
+                  <>
+                    <ArrowLeft />
+                    <span>Go back</span>
+                  </>
+                )}
             </Link>
           </Button>
           <Button disabled={!isDirty || isSaving} onClick={handleSave} className="w-16">
@@ -110,7 +109,7 @@ export function EventsAssign() {
         {updatedEvents.map((event, i) => (
           <Fragment key={event.id}>
             <EventAssignCard event={event} organizers={organizers ?? []} onAssign={handleAssign} />
-            {i !== events.length - 1 && <Separator />}
+            {i !== (events?.length ?? 0) - 1 && <Separator />}
           </Fragment>
         ))}
       </div>

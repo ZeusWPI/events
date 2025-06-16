@@ -1,4 +1,3 @@
-/* eslint-disable ts/no-namespace */
 export namespace CONTENT_TYPE {
   export const JSON = "application/json";
   export const MULTIPART = "multipart/form-data";

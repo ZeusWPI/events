@@ -11,5 +11,6 @@ export function useOrganizerByYear({ id }: Pick<Year, "id">) {
     queryKey: ["organizer", id],
     queryFn: async () => (await apiGet(`${ENDPOINT}/year/${id}`, convertOrganizersToModel)).data,
     staleTime: MIN_5,
+    throwOnError: true,
   });
 }

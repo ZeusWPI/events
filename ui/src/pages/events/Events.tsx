@@ -1,7 +1,6 @@
 import { Navigate, Outlet, useParams } from "@tanstack/react-router";
 import { CalendarPlus2 } from "lucide-react";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
-import { Button } from "@/components/ui/button";
 import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import Error404 from "../404";
@@ -9,12 +8,16 @@ import Error404 from "../404";
 function Events() {
   const yearString = useParams({ from: "/events/$year", shouldThrow: false });
 
-  const { data: years } = useYearGetAll();
+  const { data: years, isLoading } = useYearGetAll();
 
   useBreadcrumb({ title: "Events", link: { to: "/events" } });
 
-  if (!years) {
+  if (isLoading) {
     return <Indeterminate />;
+  }
+
+  if (!years) {
+    return null; // Caught by error component
   }
 
   if (!years.length) {
@@ -23,7 +26,6 @@ function Events() {
         <CalendarPlus2 className="size-12 text-muted-foreground" />
         <h3 className="text-lg font-semibold">No events found</h3>
         <h5 className="text-md text-muted-foreground">Get started by scraping the website for events</h5>
-        <Button>TODO</Button>
       </div>
     );
   }

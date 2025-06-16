@@ -22,6 +22,7 @@ export function useTaskGetAll() {
 
       return newData;
     },
+    throwOnError: true,
   });
 }
 
@@ -55,6 +56,7 @@ export function useTaskGetHistory(filters?: TaskHistoryFilter) {
     },
     enabled: filters !== undefined,
     staleTime: STALE_MIN_5,
+    throwOnError: true,
   });
 
   const history = data?.pages.flat() ?? [];

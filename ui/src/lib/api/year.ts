@@ -10,5 +10,6 @@ export function useYearGetAll() {
     queryKey: ["year"],
     queryFn: async () => (await apiGet(ENDPOINT, convertYearsToModel)).data,
     staleTime: STALE_MIN_60,
+    throwOnError: true,
   });
 }

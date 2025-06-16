@@ -16,7 +16,6 @@ export function useUser() {
   });
 }
 
-// eslint-disable-next-line react-hooks-extra/no-unnecessary-use-prefix
 export function useUserLogin() {
   window.location.href = `/api/${ENDPOINT_AUTH}/login/zauth`;
 }

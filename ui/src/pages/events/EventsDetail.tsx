@@ -12,6 +12,7 @@ import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { formatDate } from "@/lib/utils/utils";
 import Error404 from "../404";
+import { Indeterminate } from "@/components/atoms/Indeterminate";
 
 export function EventsDetail() {
   const { year: yearString, id: eventID } = useParams({ from: "/events/$year/$id" });
@@ -19,10 +20,14 @@ export function EventsDetail() {
   const { data: years } = useYearGetAll();
   // Event component makes sure it exists
   const year = years!.find(({ formatted }) => formatted === yearString)!;
-  const { data: events } = useEventByYear(year);
+  const { data: events, isLoading } = useEventByYear(year);
   const event = events?.find(event => event.id.toString() === eventID);
 
   useBreadcrumb({ title: event?.name ?? "", link: { to: "/events/$year/$id", params: { year: yearString, id: eventID } } });
+
+  if (isLoading) {
+    return <Indeterminate />
+  }
 
   if (!event) {
     return <Error404 />;
@@ -33,7 +38,7 @@ export function EventsDetail() {
       <PageHeader className="col-span-full">
         <Title>{event.name}</Title>
         <Button variant="outline" size="icon" asChild>
-          <a href={event.url} target="_blank">
+          <a href={event.url} rel="noopener noreferrer" target="_blank">
             <Link />
           </a>
         </Button>
@@ -81,11 +86,11 @@ export function EventsDetail() {
             <CardContent className="flex flex-col space-y-1 px-0">
               {event.organizers.length
                 ? event.organizers.map(organizer => (
-                    <span key={organizer.id}>{organizer.name}</span>
-                  ))
+                  <span key={organizer.id}>{organizer.name}</span>
+                ))
                 : (
-                    <span>No one assigned</span>
-                  )}
+                  <span>No one assigned</span>
+                )}
             </CardContent>
           </HeadlessCard>
         </div>

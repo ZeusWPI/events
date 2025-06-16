@@ -1,6 +1,6 @@
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Forbidden } from "@/pages/auth/Forbidden";
-import { Login } from "@/pages/auth/Login";
+import { Forbidden } from "@/pages/Forbidden";
+import { Login } from "@/pages/Login";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading, forbidden } = useAuth();

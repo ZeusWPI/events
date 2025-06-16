@@ -22,16 +22,16 @@ export function EventsYear() {
   const { data: years } = useYearGetAll();
   // Event component makes sure it exists
   const year = years!.find(({ formatted }) => formatted === yearString)!;
-  const { data: events } = useEventByYear(year);
+  const { data: events, isLoading: isLoadingEvents } = useEventByYear(year);
 
-  const { data: organizers } = useOrganizerByYear(year);
+  const { data: organizers, isLoading: isLoadingOrganizers } = useOrganizerByYear(year);
   const [selectedOrganizers, setSelectedOrganizers] = useState<string[]>([]);
   useEffect(() => setSelectedOrganizers([]), [yearString]);
 
   useBreadcrumb({ title: yearString, link: { to: "/events/$year", params: { year: yearString } } });
   const isMobile = useIsMobile();
 
-  if (!events) {
+  if (isLoadingEvents || isLoadingOrganizers) {
     return <Indeterminate />;
   }
 
@@ -42,9 +42,9 @@ export function EventsYear() {
   const handleValueChange = (value: string[]) => setSelectedOrganizers(value);
 
   const now = Date.now();
-  const filteredEvents = selectedOrganizers.length ? events.filter(event => event.organizers.find(({ id }) => selectedOrganizers.includes(id.toString()))) : events;
-  const futureEvents = filteredEvents.filter(event => isAfter(event.endTime ?? event.startTime, now));
-  const pastEvents = filteredEvents.filter(event => isBefore(event.endTime ?? event.startTime, now)).sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+  const filteredEvents = selectedOrganizers.length ? events?.filter(event => event.organizers.find(({ id }) => selectedOrganizers.includes(id.toString()))) : events;
+  const futureEvents = filteredEvents?.filter(event => isAfter(event.endTime ?? event.startTime, now)) ?? [];
+  const pastEvents = filteredEvents?.filter(event => isBefore(event.endTime ?? event.startTime, now)).sort((a, b) => b.startTime.getTime() - a.startTime.getTime()) ?? [];
 
   return (
     <div className="flex flex-col gap-8">
