@@ -3,8 +3,8 @@ package api
 import (
 	"strconv"
 
-	"github.com/ZeusWPI/events/internal/api/dto"
-	"github.com/ZeusWPI/events/internal/api/service"
+	"github.com/ZeusWPI/events/internal/server/dto"
+	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/gofiber/fiber/v2"
 )
 

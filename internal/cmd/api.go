@@ -3,15 +3,15 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/ZeusWPI/events/internal/api"
-	"github.com/ZeusWPI/events/internal/api/service"
+	"github.com/ZeusWPI/events/internal/server"
+	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
 )
 
 // API starts the webserver serving the API and static files
 func API(service service.Service, pool *pgxpool.Pool) error {
-	server := api.NewServer(service, pool)
+	server := server.NewServer(service, pool)
 
 	zap.S().Infof("Server is running on %s", server.Addr)
 

@@ -16,9 +16,9 @@ type Member struct {
 	repo Repository
 }
 
-func newMember(repo Repository) *Member {
+func (r *Repository) NewMember() *Member {
 	return &Member{
-		repo: repo,
+		repo: *r,
 	}
 }
 
@@ -87,6 +87,14 @@ func (m *Member) Update(ctx context.Context, member model.Member) error {
 		Username: username,
 	}); err != nil {
 		return fmt.Errorf("update member %+v | %w", member, err)
+	}
+
+	return nil
+}
+
+func (m *Member) Delete(ctx context.Context, memberID int) error {
+	if err := m.repo.queries(ctx).MemberDelete(ctx, int32(memberID)); err != nil {
+		return fmt.Errorf("delete member %d | %w", memberID, err)
 	}
 
 	return nil

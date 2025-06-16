@@ -45,3 +45,13 @@ func EventModel(event sqlc.Event) *Event {
 		Location:    location,
 	}
 }
+
+func (e *Event) Equal(e2 Event) bool {
+	return e.FileName == e2.FileName &&
+		e.Name == e2.Name &&
+		e.Description == e2.Description &&
+		e.StartTime.Equal(e2.StartTime) &&
+		e.EndTime.Equal(e2.EndTime) &&
+		e.Location == e2.Location &&
+		e.Year.Equal(e2.Year)
+}

@@ -30,6 +30,16 @@ func (q *Queries) MemberCreate(ctx context.Context, arg MemberCreateParams) (int
 	return id, err
 }
 
+const memberDelete = `-- name: MemberDelete :exec
+DELETE FROM member 
+WHERE id = $1
+`
+
+func (q *Queries) MemberDelete(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, memberDelete, id)
+	return err
+}
+
 const memberGetAll = `-- name: MemberGetAll :many
 SELECT id, name, username, zauth_id FROM member
 `

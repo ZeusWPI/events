@@ -13,9 +13,9 @@ type Year struct {
 	repo Repository
 }
 
-func newYear(repo Repository) *Year {
+func (r *Repository) NewYear() *Year {
 	return &Year{
-		repo: repo,
+		repo: *r,
 	}
 }
 

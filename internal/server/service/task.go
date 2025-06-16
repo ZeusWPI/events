@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/ZeusWPI/events/internal/api/dto"
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/pkg/utils"
 )
 
@@ -15,10 +15,10 @@ type Task struct {
 	task repository.Task
 }
 
-func newTask(service Service) *Task {
+func (s *Service) NewTask() *Task {
 	return &Task{
-		service: service,
-		task:    *service.repo.NewTask(),
+		service: *s,
+		task:    *s.repo.NewTask(),
 	}
 }
 

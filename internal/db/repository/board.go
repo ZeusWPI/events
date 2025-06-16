@@ -18,44 +18,24 @@ type Board struct {
 	member Member
 }
 
-func newBoard(repo Repository) *Board {
+func (r *Repository) NewBoard() *Board {
 	return &Board{
-		repo:   repo,
-		year:   *repo.NewYear(),
-		member: *repo.NewMember(),
+		repo:   *r,
+		year:   *r.NewYear(),
+		member: *r.NewMember(),
 	}
 }
 
-func (b *Board) GetAllPopulated(ctx context.Context) ([]*model.Board, error) {
-	boards, err := b.repo.queries(ctx).BoardGetAllPopulated(ctx)
+func (b *Board) GetAll(ctx context.Context) ([]*model.Board, error) {
+	boards, err := b.repo.queries(ctx).BoardGetAll(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get all populated boards | %w", err)
+		return nil, fmt.Errorf("get all boards %w", err)
 	}
 
-	return utils.SliceMap(boards, func(b sqlc.BoardGetAllPopulatedRow) *model.Board {
-		username := ""
-		if b.Username.Valid {
-			username = b.Username.String
-		}
-
-		return &model.Board{
-			ID: int(b.ID),
-			Member: model.Member{
-				ID:       int(b.ID_2),
-				Name:     b.Name,
-				Username: username,
-			},
-			Year: model.Year{
-				ID:    int(b.ID_3),
-				Start: int(b.YearStart),
-				End:   int(b.YearEnd),
-			},
-			Role: b.Role,
-		}
-	}), nil
+	return utils.SliceMap(boards, model.BoardModel), nil
 }
 
 func (b *Board) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Board, error) {
@@ -124,29 +104,37 @@ func (b *Board) GetByMemberYear(ctx context.Context, member model.Member, year m
 }
 
 func (b *Board) Create(ctx context.Context, board *model.Board) error {
-	// If year hasn't been added yet we just wait for the next task run
-	if board.Year.ID == 0 {
-		return nil
+	id, err := b.repo.queries(ctx).BoardCreate(ctx, sqlc.BoardCreateParams{
+		MemberID: int32(board.MemberID),
+		YearID:   int32(board.YearID),
+		Role:     board.Role,
+	})
+	if err != nil {
+		return fmt.Errorf("create board %+v | %w", *board, err)
 	}
 
-	return b.repo.WithRollback(ctx, func(c context.Context) error {
-		if board.Member.ID == 0 {
-			err := b.member.Create(c, &board.Member)
-			if err != nil {
+	board.ID = int(id)
+
+	return nil
+}
+
+func (b *Board) Delete(ctx context.Context, board model.Board) error {
+	return b.repo.WithRollback(ctx, func(ctx context.Context) error {
+		if err := b.repo.queries(ctx).BoardDelete(ctx, int32(board.ID)); err != nil {
+			return fmt.Errorf("Delete board %+v | %w", board, err)
+		}
+
+		boards, err := b.repo.queries(ctx).BoardGetByMemberID(ctx, int32(board.MemberID))
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("get board by member id %+v | %w", board, err)
+		}
+
+		if len(boards) == 0 || (err != nil && errors.Is(err, sql.ErrNoRows)) {
+			// No more board entries, also delete the member
+			if err := b.member.Delete(ctx, board.MemberID); err != nil {
 				return err
 			}
 		}
-
-		id, err := b.repo.queries(c).BoardCreate(c, sqlc.BoardCreateParams{
-			MemberID: int32(board.Member.ID),
-			YearID:   int32(board.Year.ID),
-			Role:     board.Role,
-		})
-		if err != nil {
-			return fmt.Errorf("create board %+v | %w", *board, err)
-		}
-
-		board.ID = int(id)
 
 		return nil
 	})

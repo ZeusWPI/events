@@ -4,10 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ZeusWPI/events/internal/api/dto"
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/internal/website"
+	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -21,12 +20,12 @@ type Event struct {
 	organizer repository.Organizer
 }
 
-func newEvent(service Service) *Event {
+func (s *Service) NewEvent() *Event {
 	return &Event{
-		service:   service,
-		board:     *service.repo.NewBoard(),
-		event:     *service.repo.NewEvent(),
-		organizer: *service.repo.NewOrganizer(),
+		service:   *s,
+		board:     *s.repo.NewBoard(),
+		event:     *s.repo.NewEvent(),
+		organizer: *s.repo.NewOrganizer(),
 	}
 }
 
@@ -102,12 +101,4 @@ func (e *Event) UpdateOrganizers(ctx context.Context, events []dto.Event) error 
 
 		return nil
 	})
-}
-
-func (e *Event) Sync() error {
-	if err := e.service.manager.RunByName(website.YearTask); err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -16,22 +16,10 @@ type Task struct {
 	repo Repository
 }
 
-func newTask(repo Repository) *Task {
+func (r *Repository) NewTask() *Task {
 	return &Task{
-		repo: repo,
+		repo: *r,
 	}
-}
-
-func (t *Task) GetByName(ctx context.Context, name string) ([]*model.Task, error) {
-	tasks, err := t.repo.queries(ctx).TaskGet(ctx, name)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("get task by name %s | %w", name, err)
-	}
-
-	return utils.SliceMap(tasks, model.TaskModel), nil
 }
 
 func (t *Task) GetFiltered(ctx context.Context, filters model.TaskFilter) ([]*model.Task, error) {

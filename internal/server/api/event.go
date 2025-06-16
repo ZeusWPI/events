@@ -1,21 +1,23 @@
 package api
 
 import (
-	"github.com/ZeusWPI/events/internal/api/dto"
-	"github.com/ZeusWPI/events/internal/api/service"
+	"github.com/ZeusWPI/events/internal/server/dto"
+	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Event struct {
 	router fiber.Router
 
-	event service.Event
+	event   service.Event
+	website service.Website
 }
 
 func NewEvent(router fiber.Router, service service.Service) *Event {
 	api := &Event{
-		router: router.Group("/event"),
-		event:  *service.NewEvent(),
+		router:  router.Group("/event"),
+		event:   *service.NewEvent(),
+		website: *service.NewWebsite(),
 	}
 
 	api.createRoutes()
@@ -63,7 +65,7 @@ func (r *Event) updateOrganizers(c *fiber.Ctx) error {
 }
 
 func (r *Event) sync(c *fiber.Ctx) error {
-	if err := r.event.Sync(); err != nil {
+	if err := r.website.Sync(); err != nil {
 		return err
 	}
 

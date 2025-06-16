@@ -3,7 +3,7 @@ package api
 import (
 	"errors"
 
-	"github.com/ZeusWPI/events/internal/api/service"
+	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/gofiber/fiber/v2"
 )
 

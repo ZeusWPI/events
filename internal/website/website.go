@@ -2,26 +2,32 @@
 package website
 
 import (
+	"errors"
+
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/pkg/config"
 )
 
-// Warning: This package contains a lot of webscraping
-// Webscraping results in ugly code
-
-// Website represents the ZeusWPI website and all related functions
 type Website struct {
+	githubToken string
+
 	eventRepo  repository.Event
 	yearRepo   repository.Year
 	boardRepo  repository.Board
 	memberRepo repository.Member
 }
 
-// New creates a new website instance
-func New(repo repository.Repository) *Website {
-	return &Website{
-		eventRepo:  *repo.NewEvent(),
-		yearRepo:   *repo.NewYear(),
-		boardRepo:  *repo.NewBoard(),
-		memberRepo: *repo.NewMember(),
+func New(repo repository.Repository) (*Website, error) {
+	github := config.GetDefaultString("website.github_token", "")
+	if github == "" {
+		return nil, errors.New("no github token set")
 	}
+
+	return &Website{
+		githubToken: github,
+		eventRepo:   *repo.NewEvent(),
+		yearRepo:    *repo.NewYear(),
+		boardRepo:   *repo.NewBoard(),
+		memberRepo:  *repo.NewMember(),
+	}, nil
 }

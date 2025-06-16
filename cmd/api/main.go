@@ -2,9 +2,9 @@
 package main
 
 import (
-	"github.com/ZeusWPI/events/internal/api/service"
 	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/internal/website"
 	"github.com/ZeusWPI/events/pkg/config"
@@ -41,13 +41,17 @@ func main() {
 	}
 
 	// Start website
-	website := website.New(*repo)
+	website, err := website.New(*repo)
+	if err != nil {
+		zap.S().Fatalf("Unable to create website %v", err)
+	}
+
 	if err := cmd.Website(manager, *website); err != nil {
 		zap.S().Fatalf("Unable to start website tasks %v", err)
 	}
 
 	// Start API
-	service := service.New(*repo, manager)
+	service := service.New(*repo, manager, *website)
 	if err := cmd.API(*service, db.Pool()); err != nil {
 		zap.S().Error(err)
 	}

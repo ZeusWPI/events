@@ -1,13 +1,13 @@
-// Package api provides all API routes and handlers
-package api
+package server
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/ZeusWPI/events/internal/api/middleware"
-	api "github.com/ZeusWPI/events/internal/api/routers"
-	"github.com/ZeusWPI/events/internal/api/service"
+	"github.com/ZeusWPI/events/internal/server/api"
+	"github.com/ZeusWPI/events/internal/server/middleware"
+	"github.com/ZeusWPI/events/internal/server/service"
+	"github.com/ZeusWPI/events/internal/server/webhook"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/gofiber/contrib/fiberzap"
 	"github.com/gofiber/fiber/v2"
@@ -19,7 +19,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Server represents the api
 type Server struct {
 	Addr string
 	App  *fiber.App
@@ -27,7 +26,6 @@ type Server struct {
 
 const port = 4000
 
-// NewServer creates a new Server
 func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 	app := fiber.New(fiber.Config{
 		BodyLimit:      1024 * 1024 * 1024,
@@ -57,6 +55,8 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 	})
 
 	// Initialize all routes
+
+	// Api
 	apiRouter := app.Group("/api")
 	api.NewAuth(service, apiRouter)
 
@@ -66,6 +66,11 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 	api.NewYear(protectedRouter, service)
 	api.NewOrganizer(protectedRouter, service)
 	api.NewTask(protectedRouter, service)
+
+	// Webhook
+
+	webhookRouter := app.Group("/webhook")
+	webhook.NewGithub(webhookRouter, service)
 
 	if env != "development" {
 		app.Static("/", "./public")

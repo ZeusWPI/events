@@ -177,58 +177,6 @@ func (q *Queries) EventGetByYearPopulated(ctx context.Context, yearID int32) ([]
 	return items, nil
 }
 
-const eventGetByYearWithYear = `-- name: EventGetByYearWithYear :many
-SELECT e.id, file_name, name, description, start_time, end_time, location, year_id, y.id, year_start, year_end FROM event e
-INNER JOIN year y ON y.id = e.year_id
-WHERE y.id = $1
-`
-
-type EventGetByYearWithYearRow struct {
-	ID          int32
-	FileName    string
-	Name        string
-	Description pgtype.Text
-	StartTime   pgtype.Timestamptz
-	EndTime     pgtype.Timestamptz
-	Location    pgtype.Text
-	YearID      int32
-	ID_2        int32
-	YearStart   int32
-	YearEnd     int32
-}
-
-func (q *Queries) EventGetByYearWithYear(ctx context.Context, id int32) ([]EventGetByYearWithYearRow, error) {
-	rows, err := q.db.Query(ctx, eventGetByYearWithYear, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []EventGetByYearWithYearRow
-	for rows.Next() {
-		var i EventGetByYearWithYearRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.FileName,
-			&i.Name,
-			&i.Description,
-			&i.StartTime,
-			&i.EndTime,
-			&i.Location,
-			&i.YearID,
-			&i.ID_2,
-			&i.YearStart,
-			&i.YearEnd,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const eventUpdate = `-- name: EventUpdate :exec
 UPDATE event 
 SET file_name = $1, name = $2, description = $3, start_time = $4, end_time = $5, year_id = $6, location = $7

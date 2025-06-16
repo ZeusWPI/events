@@ -19,10 +19,10 @@ type Event struct {
 	organizer Organizer
 }
 
-func newEvent(repo Repository) *Event {
+func (r *Repository) NewEvent() *Event {
 	return &Event{
-		repo:      repo,
-		organizer: *repo.NewOrganizer(),
+		repo:      *r,
+		organizer: *r.NewOrganizer(),
 	}
 }
 
@@ -83,7 +83,7 @@ func (e *Event) Create(ctx context.Context, event *model.Event) error {
 		Description: pgtype.Text{String: event.Description, Valid: true},
 		StartTime:   pgtype.Timestamptz{Time: event.StartTime, Valid: true},
 		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: !event.EndTime.IsZero()},
-		YearID:      int32(event.Year.ID),
+		YearID:      int32(event.YearID),
 		Location:    pgtype.Text{String: event.Location, Valid: true},
 	})
 	if err != nil {
@@ -98,12 +98,11 @@ func (e *Event) Create(ctx context.Context, event *model.Event) error {
 func (e *Event) Update(ctx context.Context, event model.Event) error {
 	if err := e.repo.queries(ctx).EventUpdate(ctx, sqlc.EventUpdateParams{
 		ID:          int32(event.ID),
-		FileName:    event.FileName,
 		Name:        event.Name,
 		Description: pgtype.Text{String: event.Description, Valid: true},
 		StartTime:   pgtype.Timestamptz{Time: event.StartTime, Valid: true},
 		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: true},
-		YearID:      int32(event.Year.ID),
+		YearID:      int32(event.YearID),
 		Location:    pgtype.Text{String: event.Location, Valid: true},
 	}); err != nil {
 		return fmt.Errorf("update event %+v | %w", e, err)
@@ -112,9 +111,9 @@ func (e *Event) Update(ctx context.Context, event model.Event) error {
 	return nil
 }
 
-func (e *Event) Delete(ctx context.Context, event *model.Event) error {
-	if err := e.repo.queries(ctx).EventDelete(ctx, int32(event.ID)); err != nil {
-		return fmt.Errorf("delete event %+v | %w", *event, err)
+func (e *Event) Delete(ctx context.Context, eventID int) error {
+	if err := e.repo.queries(ctx).EventDelete(ctx, int32(eventID)); err != nil {
+		return fmt.Errorf("delete event %d | %w", eventID, err)
 	}
 
 	return nil

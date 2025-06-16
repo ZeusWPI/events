@@ -7,8 +7,6 @@ package sqlc
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const organizerCreate = `-- name: OrganizerCreate :one
@@ -42,57 +40,4 @@ type OrganizerDeleteByBoardEventParams struct {
 func (q *Queries) OrganizerDeleteByBoardEvent(ctx context.Context, arg OrganizerDeleteByBoardEventParams) error {
 	_, err := q.db.Exec(ctx, organizerDeleteByBoardEvent, arg.BoardID, arg.EventID)
 	return err
-}
-
-const organizerGetByYearWithBoard = `-- name: OrganizerGetByYearWithBoard :many
-SELECT o.id, event_id, board_id, b.id, member_id, year_id, role, m.id, name, username, zauth_id FROM organizer o 
-INNER JOIN board b ON b.id = o.board_id
-INNER JOIN member m ON m.id = b.member_id
-WHERE b.year_id = $1
-`
-
-type OrganizerGetByYearWithBoardRow struct {
-	ID       int32
-	EventID  int32
-	BoardID  int32
-	ID_2     int32
-	MemberID int32
-	YearID   int32
-	Role     string
-	ID_3     int32
-	Name     string
-	Username pgtype.Text
-	ZauthID  pgtype.Int4
-}
-
-func (q *Queries) OrganizerGetByYearWithBoard(ctx context.Context, yearID int32) ([]OrganizerGetByYearWithBoardRow, error) {
-	rows, err := q.db.Query(ctx, organizerGetByYearWithBoard, yearID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []OrganizerGetByYearWithBoardRow
-	for rows.Next() {
-		var i OrganizerGetByYearWithBoardRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.EventID,
-			&i.BoardID,
-			&i.ID_2,
-			&i.MemberID,
-			&i.YearID,
-			&i.Role,
-			&i.ID_3,
-			&i.Name,
-			&i.Username,
-			&i.ZauthID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }

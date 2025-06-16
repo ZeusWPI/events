@@ -2,11 +2,6 @@
 SELECT * FROM event
 INNER JOIN year ON event.year_id = year.id;
 
--- name: EventGetByYearWithYear :many 
-SELECT * FROM event e
-INNER JOIN year y ON y.id = e.year_id
-WHERE y.id = $1; 
-
 -- name: EventGetByYearPopulated :many
 SELECT jsonb_build_object(
   'id', e.id,
@@ -67,8 +62,8 @@ RETURNING id;
 
 -- name: EventUpdate :exec
 UPDATE event 
-SET file_name = $1, name = $2, description = $3, start_time = $4, end_time = $5, year_id = $6, location = $7
-WHERE id = $8;
+SET name = $1, description = $2, start_time = $3, end_time = $4, year_id = $5, location = $6
+WHERE id = $7;
 
 -- name: EventDelete :exec
 DELETE FROM event 

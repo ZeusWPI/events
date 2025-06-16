@@ -3,9 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/ZeusWPI/events/internal/api/dto"
-	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/ZeusWPI/events/pkg/zauth"
 	"github.com/gofiber/fiber/v2"
@@ -20,12 +19,12 @@ type Organizer struct {
 	year   repository.Year
 }
 
-func newOrganizer(service Service) *Organizer {
+func (s *Service) NewOrganizer() *Organizer {
 	return &Organizer{
-		service: service,
-		board:   *service.repo.NewBoard(),
-		member:  *service.repo.NewMember(),
-		year:    *service.repo.NewYear(),
+		service: *s,
+		board:   *s.repo.NewBoard(),
+		member:  *s.repo.NewMember(),
+		year:    *s.repo.NewYear(),
 	}
 }
 
@@ -76,13 +75,14 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 		return dto.Organizer{}, err
 	}
 	if member == nil {
-		// First time querying for this user
-		member = &model.Member{
-			ZauthID:  zauth.ID,
-			Username: zauth.Username,
-		}
+		return dto.Organizer{}, fiber.ErrBadRequest
+	}
 
-		if err := o.member.Create(ctx, member); err != nil {
+	if member.ZauthID == 0 {
+		member.ZauthID = zauth.ID
+		member.Username = zauth.Username
+
+		if err = o.member.Update(ctx, *member); err != nil {
 			zap.S().Error(err)
 			return dto.Organizer{}, err
 		}

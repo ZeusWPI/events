@@ -21,6 +21,5 @@ mail:
   port: 25
 
 website:
-  years_s: 86400
-  events_s: 3600
+  events_s: 86400
   boards_s: 86400

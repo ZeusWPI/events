@@ -19,3 +19,6 @@ UPDATE member
 SET name = $1, username = $2, zauth_id = $3
 WHERE id = $4;
 
+-- name: MemberDelete :exec 
+DELETE FROM member 
+WHERE id = $1;

@@ -30,47 +30,64 @@ func (q *Queries) BoardCreate(ctx context.Context, arg BoardCreateParams) (int32
 	return id, err
 }
 
-const boardGetAllPopulated = `-- name: BoardGetAllPopulated :many
-SELECT b.id, member_id, year_id, role, m.id, name, username, zauth_id, y.id, year_start, year_end FROM board b 
-INNER JOIN member m ON b.member_id = m.id 
-INNER JOIN year y ON b.year_id = y.id
+const boardDelete = `-- name: BoardDelete :exec
+DELETE FROM board
+WHERE id = $1
 `
 
-type BoardGetAllPopulatedRow struct {
-	ID        int32
-	MemberID  int32
-	YearID    int32
-	Role      string
-	ID_2      int32
-	Name      string
-	Username  pgtype.Text
-	ZauthID   pgtype.Int4
-	ID_3      int32
-	YearStart int32
-	YearEnd   int32
+func (q *Queries) BoardDelete(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, boardDelete, id)
+	return err
 }
 
-func (q *Queries) BoardGetAllPopulated(ctx context.Context) ([]BoardGetAllPopulatedRow, error) {
-	rows, err := q.db.Query(ctx, boardGetAllPopulated)
+const boardGetAll = `-- name: BoardGetAll :many
+SELECT id, member_id, year_id, role FROM board
+`
+
+func (q *Queries) BoardGetAll(ctx context.Context) ([]Board, error) {
+	rows, err := q.db.Query(ctx, boardGetAll)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []BoardGetAllPopulatedRow
+	var items []Board
 	for rows.Next() {
-		var i BoardGetAllPopulatedRow
+		var i Board
 		if err := rows.Scan(
 			&i.ID,
 			&i.MemberID,
 			&i.YearID,
 			&i.Role,
-			&i.ID_2,
-			&i.Name,
-			&i.Username,
-			&i.ZauthID,
-			&i.ID_3,
-			&i.YearStart,
-			&i.YearEnd,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const boardGetByMemberID = `-- name: BoardGetByMemberID :many
+SELECT id, member_id, year_id, role FROM board
+WHERE member_id = $1
+`
+
+func (q *Queries) BoardGetByMemberID(ctx context.Context, memberID int32) ([]Board, error) {
+	rows, err := q.db.Query(ctx, boardGetByMemberID, memberID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Board
+	for rows.Next() {
+		var i Board
+		if err := rows.Scan(
+			&i.ID,
+			&i.MemberID,
+			&i.YearID,
+			&i.Role,
 		); err != nil {
 			return nil, err
 		}

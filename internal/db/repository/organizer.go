@@ -11,14 +11,17 @@ type Organizer struct {
 	repo Repository
 }
 
-func newOrganizer(repo Repository) *Organizer {
+func (r *Repository) NewOrganizer() *Organizer {
 	return &Organizer{
-		repo: repo,
+		repo: *r,
 	}
 }
 
 func (o *Organizer) Create(ctx context.Context, boardID, eventID int) error {
-	if _, err := o.repo.queries(ctx).OrganizerCreate(ctx, sqlc.OrganizerCreateParams{BoardID: int32(boardID), EventID: int32(eventID)}); err != nil {
+	if _, err := o.repo.queries(ctx).OrganizerCreate(ctx, sqlc.OrganizerCreateParams{
+		BoardID: int32(boardID),
+		EventID: int32(eventID),
+	}); err != nil {
 		return fmt.Errorf("create organizer %w", err)
 	}
 

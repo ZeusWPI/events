@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 
-	"github.com/ZeusWPI/events/internal/api/service"
+	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/ZeusWPI/events/pkg/zauth"

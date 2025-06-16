@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/ZeusWPI/events/internal/api/dto"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/pkg/utils"
 )
 
@@ -14,10 +14,10 @@ type Year struct {
 	year repository.Year
 }
 
-func newYear(service Service) *Year {
+func (s *Service) NewYear() *Year {
 	return &Year{
-		service: service,
-		year:    *service.repo.NewYear(),
+		service: *s,
+		year:    *s.repo.NewYear(),
 	}
 }
 
