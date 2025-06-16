@@ -15,6 +15,15 @@ export namespace API {
     location: string;
     year: Year;
     organizers: Organizer[];
+    checks?: Check[];
+  }
+
+  export interface Check extends Base {
+    event_id: number;
+    description: string;
+    done: boolean;
+    error: string;
+    source: string;
   }
 
   export interface Year extends Base {

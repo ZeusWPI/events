@@ -52,7 +52,7 @@ export function TaskHistoryTable({ history = defaultHistory, emptyText = "No his
               variant="ghost"
             >
               <Tooltip>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   {row.getIsExpanded() ? <ChevronUp /> : <ChevronDown />}
                 </TooltipTrigger>
                 <TooltipContent>

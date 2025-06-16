@@ -1,5 +1,5 @@
 import { useParams } from "@tanstack/react-router";
-import { Link, UserRound } from "lucide-react";
+import { Link, PlusIcon, UserRound } from "lucide-react";
 import { Title } from "@/components/atoms/Title";
 import { Datalist, DatalistItem, DatalistItemContent, DatalistItemTitle } from "@/components/molecules/Datalist";
 import { HeadlessCard } from "@/components/molecules/HeadlessCard";
@@ -13,6 +13,12 @@ import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { formatDate } from "@/lib/utils/utils";
 import Error404 from "../404";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
+import { CheckCard } from "@/components/check/CheckCard";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useCheckCreate } from "@/lib/api/check";
+import { toast } from "sonner";
 
 export function EventsDetail() {
   const { year: yearString, id: eventID } = useParams({ from: "/events/$year/$id" });
@@ -23,6 +29,34 @@ export function EventsDetail() {
   const { data: events, isLoading } = useEventByYear(year);
   const event = events?.find(event => event.id.toString() === eventID);
 
+  const [adding, setAdding] = useState(false)
+  const [addCheck, setAddCheck] = useState(false)
+  const [addCheckDescription, setAddCheckDescription] = useState("")
+
+  const checkCreate = useCheckCreate()
+
+  const cancelCheck = () => {
+    setAddCheck(false)
+    setAddCheckDescription("")
+  }
+  const createCheck = () => {
+    if (addCheckDescription === "") {
+      return
+    }
+
+    setAdding(true)
+
+    checkCreate.mutate({ eventId: Number(eventID), description: addCheckDescription }, {
+      onSuccess: () => {
+        toast.success("Success")
+        setAddCheck(false)
+        setAddCheckDescription("")
+      },
+      onError: error => toast.error("Failed", { description: error.message }),
+      onSettled: () => setAdding(false)
+    })
+  }
+
   useBreadcrumb({ title: event?.name ?? "", link: { to: "/events/$year/$id", params: { year: yearString, id: eventID } } });
 
   if (isLoading) {
@@ -32,6 +66,8 @@ export function EventsDetail() {
   if (!event) {
     return <Error404 />;
   }
+
+  const finishedChecks = event.checks.filter(check => check.done)
 
   return (
     <div className="grid lg:grid-cols-3 gap-8">
@@ -94,6 +130,49 @@ export function EventsDetail() {
             </CardContent>
           </HeadlessCard>
         </div>
+      </div>
+      <div className="col-span-full">
+        <HeadlessCard>
+          <CardHeader className="px-4 sm:px-0 pt-0">
+            <CardTitle>
+              <div className="flex justify-between">
+                <span>
+                  Checks <span className="font-normal">{`${finishedChecks.length}/${event.checks.length}`}</span>
+                </span>
+                {!addCheck && (
+                  <Button onClick={() => setAddCheck(true)} size="icon" variant="ghost">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <PlusIcon className="text-primary" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <span>Add a new check</span>
+                      </TooltipContent>
+                    </Tooltip>
+                  </Button>
+                )}
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-0">
+            <div className="flex flex-col gap-8">
+              {addCheck && (
+                <div className="flex w-full gap-2">
+                  <Input placeholder="Description" onChange={e => setAddCheckDescription(e.target.value)} />
+                  <Button onClick={cancelCheck} variant="outline">
+                    <span>Cancel</span>
+                  </Button>
+                  <Button onClick={createCheck} disabled={adding}>
+                    <span>Create</span>
+                  </Button>
+                </div>
+              )}
+              {event.checks.map(check => (
+                <CheckCard key={check.id} check={check} />
+              ))}
+            </div>
+          </CardContent>
+        </HeadlessCard>
       </div>
     </div>
   );

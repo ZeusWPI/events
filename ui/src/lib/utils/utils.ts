@@ -35,3 +35,7 @@ function stringCamelToSnake(str: string) {
 export function formatDate(date: Date) {
   return format(date, "eee dd MMM, HH:mm");
 }
+
+export function randomNumber() {
+  return Math.floor(Math.random() * (100000 - 10000)) + 10000;
+}

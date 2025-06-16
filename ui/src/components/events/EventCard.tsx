@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { formatDate } from "@/lib/utils/utils";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { Check } from "@/lib/types/check";
 
 interface Props {
   event: Event;
@@ -19,6 +20,14 @@ function organizersColor(amount: number) {
   }
 }
 
+function checksColor(finishedChecks: Check[], checks: Check[]) {
+  if (finishedChecks.length !== checks.length) {
+    return "text-red-500"
+  }
+
+  return "text-secondary-foreground"
+}
+
 export function EventCard({ event }: Props) {
   const navigate = useNavigate();
 
@@ -27,6 +36,8 @@ export function EventCard({ event }: Props) {
 
   const handleOnClick = () =>
     void navigate({ to: "/events/$year/$id", params: { year: event.year.formatted, id: event.id.toString() } });
+
+  const finishedChecks = event.checks.filter(check => check.done)
 
   return (
     <Card onClick={handleOnClick} className={`transition-transform duration-300 hover:scale-102 hover:cursor-pointer ${isOrganizer && "border-primary"}`}>
@@ -59,7 +70,7 @@ export function EventCard({ event }: Props) {
             )}
           </Tooltip>
           <div className="flex items-center space-x-2">
-            <span>0/5</span>
+            <span className={checksColor(finishedChecks, event.checks)}>{`${finishedChecks.length}/${event.checks.length}`}</span>
             <ClipboardList className="size-6" />
           </div>
         </div>

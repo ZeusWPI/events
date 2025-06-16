@@ -21,6 +21,7 @@ type Event struct {
 	Location    string      `json:"location"`
 	Year        Year        `json:"year"`
 	Organizers  []Organizer `json:"organizers"`
+	Checks      []Check     `json:"checks"`
 }
 
 func EventDTO(event *model.Event) Event {

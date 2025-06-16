@@ -66,6 +66,7 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 	api.NewYear(protectedRouter, service)
 	api.NewOrganizer(protectedRouter, service)
 	api.NewTask(protectedRouter, service)
+	api.NewCheck(protectedRouter, service)
 
 	// Webhook
 

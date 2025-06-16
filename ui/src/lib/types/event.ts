@@ -3,6 +3,7 @@ import type { Organizer } from "./organizer";
 import type { Year } from "./year";
 import { convertOrganizersToJSON, convertOrganizerToModel } from "./organizer";
 import { convertYearToJSON, convertYearToModel } from "./year";
+import { Check, convertCheckToModel } from "./check";
 
 export interface Event {
   id: number;
@@ -14,6 +15,7 @@ export interface Event {
   location: string;
   year: Year;
   organizers: Organizer[];
+  checks: Check[];
 }
 
 export function convertEventToModel(event: API.Event): Event {
@@ -27,6 +29,7 @@ export function convertEventToModel(event: API.Event): Event {
     location: event.location,
     year: convertYearToModel(event.year),
     organizers: event.organizers.map(convertOrganizerToModel),
+    checks: event.checks ? event.checks.map(convertCheckToModel) : [],
   };
 }
 

@@ -23,7 +23,7 @@ func (s *Service) NewTask() *Task {
 }
 
 func (t *Task) GetAll() ([]dto.Task, error) {
-	tasks, err := t.service.manager.Tasks()
+	tasks, err := t.service.task.Tasks()
 	if err != nil {
 		return nil, err
 	}
@@ -47,5 +47,5 @@ func (t *Task) GetHistory(ctx context.Context, filters dto.TaskHistoryFilter) ([
 }
 
 func (t *Task) Start(id int) error {
-	return t.service.manager.Run(id)
+	return t.service.task.Run(id)
 }

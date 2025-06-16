@@ -29,17 +29,30 @@ func (s *Service) NewEvent() *Event {
 	}
 }
 
-func (e *Event) GetByYear(ctx context.Context, id int) ([]dto.Event, error) {
-	events, err := e.event.GetByYearPopulated(ctx, id)
+func (e *Event) GetByYear(ctx context.Context, yearID int) ([]dto.Event, error) {
+	eventsDB, err := e.event.GetByYearPopulated(ctx, yearID)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, fiber.ErrInternalServerError
 	}
-	if events == nil {
+	if eventsDB == nil {
 		return []dto.Event{}, nil
 	}
 
-	return utils.SliceMap(events, dto.EventDTO), nil
+	checks, err := e.service.check.Status(ctx, yearID)
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+
+	events := utils.SliceMap(eventsDB, dto.EventDTO)
+	for idx, event := range events {
+		if check, ok := checks[event.ID]; ok {
+			events[idx].Checks = utils.SliceMap(check, dto.CheckDTO)
+		}
+	}
+
+	return events, nil
 }
 
 func (e *Event) UpdateOrganizers(ctx context.Context, events []dto.Event) error {
