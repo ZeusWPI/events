@@ -1,6 +1,7 @@
 package website
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,8 +10,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func (w *Website) fetchJSON(url string, target any) error {
-	req, err := http.NewRequest("GET", url, nil)
+func (w *Website) fetchJSON(ctx context.Context, url string, target any) error {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)
 	}
@@ -37,8 +38,8 @@ func (w *Website) fetchJSON(url string, target any) error {
 	return nil
 }
 
-func (w *Website) fetchMarkdown(url string) (string, error) {
-	req, err := http.NewRequest("GET", url, nil)
+func (w *Website) fetchMarkdown(ctx context.Context, url string) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("new http request %w", err)
 	}
@@ -66,8 +67,8 @@ func (w *Website) fetchMarkdown(url string) (string, error) {
 	return string(body), nil
 }
 
-func (w *Website) fetchYaml(url string, target any) error {
-	req, err := http.NewRequest("GET", url, nil)
+func (w *Website) fetchYaml(ctx context.Context, url string, target any) error {
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)
 	}

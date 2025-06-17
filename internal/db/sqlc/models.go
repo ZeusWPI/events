@@ -22,6 +22,12 @@ type Check struct {
 	Done        bool
 }
 
+type Dsa struct {
+	ID      int32
+	EventID int32
+	Entry   bool
+}
+
 type Event struct {
 	ID          int32
 	FileName    string

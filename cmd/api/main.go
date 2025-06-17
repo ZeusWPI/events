@@ -5,6 +5,7 @@ import (
 	"github.com/ZeusWPI/events/internal/check"
 	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/dsa"
 	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/internal/website"
@@ -49,8 +50,18 @@ func main() {
 		zap.S().Fatalf("Unable to create website %v", err)
 	}
 
-	if err := cmd.Website(taskManager, *website); err != nil {
-		zap.S().Fatalf("Unable to start website tasks %v", err)
+	if err := cmd.Website(*website, taskManager); err != nil {
+		zap.S().Fatalf("Unable to start website command %v", err)
+	}
+
+	// Start dsa
+	dsa, err := dsa.New(*repo)
+	if err != nil {
+		zap.S().Fatalf("Unable to create dsa %v", err)
+	}
+
+	if err := cmd.DSA(dsa, taskManager, checkManager); err != nil {
+		zap.S().Fatalf("Unable to start dsa command %v", err)
 	}
 
 	// Start API

@@ -24,9 +24,9 @@ type bestuurYAML struct {
 	} `yaml:"data"`
 }
 
-func (w *Website) fetchAndParseBoard() ([]model.Board, error) {
+func (w *Website) fetchAndParseBoard(ctx context.Context) ([]model.Board, error) {
 	var raw bestuurYAML
-	if err := w.fetchYaml(boardURL, &raw); err != nil {
+	if err := w.fetchYaml(ctx, boardURL, &raw); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +84,7 @@ func parseYearRange(s string) (int, int, error) {
 }
 
 func (w *Website) UpdateBoard(ctx context.Context) error {
-	boards, err := w.fetchAndParseBoard()
+	boards, err := w.fetchAndParseBoard(ctx)
 	if err != nil {
 		return err
 	}

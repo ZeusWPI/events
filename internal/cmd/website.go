@@ -8,9 +8,9 @@ import (
 	"github.com/ZeusWPI/events/pkg/config"
 )
 
-func Website(m *task.Manager, w website.Website) error {
+func Website(w website.Website, t *task.Manager) error {
 	// There's a webhook to trigger syncing but still run them periodically to be on the safe side
-	if err := m.Add(task.NewTask(
+	if err := t.Add(task.NewTask(
 		website.BoardTask,
 		time.Duration(config.GetDefaultInt("website.boards_s", 86400))*time.Second,
 		w.UpdateBoard,
@@ -18,7 +18,7 @@ func Website(m *task.Manager, w website.Website) error {
 		return err
 	}
 
-	if err := m.Add(task.NewTask(
+	if err := t.Add(task.NewTask(
 		website.EventTask,
 		time.Duration(config.GetDefaultInt("website.events_s", 86400))*time.Second,
 		w.UpdateEvent,

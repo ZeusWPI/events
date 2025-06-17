@@ -23,3 +23,7 @@ mail:
 website:
   events_s: 86400
   boards_s: 86400
+
+dsa:
+  url: "https://dsa.ugent.be/api/activiteiten?page_size=100&association=zeus"
+  activities_s: 3600

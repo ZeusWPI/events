@@ -105,8 +105,8 @@ func parseTime(s string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("parse time %s  |%w", s, err)
 }
 
-func (w *Website) parseEventFile(dirName string, f fileMeta) (model.Event, error) {
-	mdContent, err := w.fetchMarkdown(f.DownloadURL)
+func (w *Website) parseEventFile(ctx context.Context, dirName string, f fileMeta) (model.Event, error) {
+	mdContent, err := w.fetchMarkdown(ctx, f.DownloadURL)
 	if err != nil {
 		return model.Event{}, err
 	}
@@ -153,9 +153,9 @@ func (w *Website) parseEventFile(dirName string, f fileMeta) (model.Event, error
 	}, nil
 }
 
-func (w *Website) getEvents() ([]model.Event, error) {
+func (w *Website) getEvents(ctx context.Context) ([]model.Event, error) {
 	var yearDirs []fileMeta
-	if err := w.fetchJSON(eventURL, &yearDirs); err != nil {
+	if err := w.fetchJSON(ctx, eventURL, &yearDirs); err != nil {
 		return nil, fmt.Errorf("fetch year dirs: %w", err)
 	}
 
@@ -167,7 +167,7 @@ func (w *Website) getEvents() ([]model.Event, error) {
 		}
 
 		var files []fileMeta
-		if err := w.fetchJSON(fmt.Sprintf("%s/%s", eventURL, dir.Name), &files); err != nil {
+		if err := w.fetchJSON(ctx, fmt.Sprintf("%s/%s", eventURL, dir.Name), &files); err != nil {
 			return nil, fmt.Errorf("failed to fetch files for %s: %w", dir.Name, err)
 		}
 
@@ -176,7 +176,7 @@ func (w *Website) getEvents() ([]model.Event, error) {
 				continue
 			}
 
-			event, err := w.parseEventFile(dir.Name, file)
+			event, err := w.parseEventFile(ctx, dir.Name, file)
 			if err != nil {
 				return nil, err
 			}
@@ -189,7 +189,7 @@ func (w *Website) getEvents() ([]model.Event, error) {
 }
 
 func (w *Website) UpdateEvent(ctx context.Context) error {
-	events, err := w.getEvents()
+	events, err := w.getEvents(ctx)
 	if err != nil {
 		return err
 	}
