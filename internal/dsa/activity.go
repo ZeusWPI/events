@@ -64,6 +64,9 @@ func (d *DSA) UpdateActivities(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if year == nil {
+		return nil
+	}
 
 	events, err := d.repoEvent.GetByYearPopulated(ctx, year.ID)
 	if err != nil {

@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/db/model"
@@ -31,6 +33,9 @@ func (y *Year) GetAll(ctx context.Context) ([]*model.Year, error) {
 func (y *Year) GetLast(ctx context.Context) (*model.Year, error) {
 	year, err := y.repo.queries(ctx).YearGetLast(ctx)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("get last year %w", err)
 	}
 

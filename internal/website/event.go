@@ -106,6 +106,10 @@ func parseTime(s string) (time.Time, error) {
 }
 
 func (w *Website) parseEventFile(ctx context.Context, dirName string, f fileMeta) (model.Event, error) {
+	if !strings.HasSuffix(f.Name, ".md") {
+		return model.Event{}, fmt.Errorf("invalid file %+v", f)
+	}
+
 	mdContent, err := w.fetchMarkdown(ctx, f.DownloadURL)
 	if err != nil {
 		return model.Event{}, err
@@ -140,7 +144,7 @@ func (w *Website) parseEventFile(ctx context.Context, dirName string, f fileMeta
 	}
 
 	return model.Event{
-		FileName:    f.Name,
+		FileName:    strings.TrimSuffix(f.Name, ".md"),
 		Name:        head.Title,
 		Description: head.Description,
 		StartTime:   startTime,

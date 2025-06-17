@@ -23,7 +23,7 @@ func (s *Service) NewCheck() *Check {
 	}
 }
 
-func (c *Check) Create(ctx context.Context, checkSave *dto.Check) error {
+func (c *Check) Create(ctx context.Context, checkSave dto.Check) error {
 	check := model.Check{
 		EventID:     checkSave.EventID,
 		Description: checkSave.Description,

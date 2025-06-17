@@ -39,7 +39,7 @@ func (r *Check) create(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if err := r.check.Create(c.Context(), &check); err != nil {
+	if err := r.check.Create(c.Context(), check); err != nil {
 		return err
 	}
 

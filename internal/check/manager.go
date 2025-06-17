@@ -35,8 +35,9 @@ func (m *Manager) Register(check Check) error {
 		}
 	}
 
+	zap.S().Debugf("Adding check: %s", name)
+
 	m.checks = append(m.checks, check)
-	zap.S().Debug("Adding check")
 
 	return nil
 }
@@ -71,12 +72,10 @@ func (m *Manager) Status(ctx context.Context, yearID int) (map[int][]Status, err
 
 		statusses[check.EventID] = append(statusses[check.EventID], status)
 	}
-
 	// Registered checks
 	for _, check := range m.checks {
 		results := check.Status(ctx, events)
 		name := check.Description()
-		zap.S().Debugf("%s", name)
 
 		for _, result := range results {
 			status := Status{
