@@ -55,3 +55,11 @@ func (c *Check) Toggle(ctx context.Context, checkID int) error {
 
 	return nil
 }
+
+func (c *Check) Delete(ctx context.Context, checkID int) error {
+	if err := c.repo.queries(ctx).CheckDelete(ctx, int32(checkID)); err != nil {
+		return fmt.Errorf("delete check %d | %w", checkID, err)
+	}
+
+	return nil
+}

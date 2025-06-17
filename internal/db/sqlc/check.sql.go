@@ -28,6 +28,16 @@ func (q *Queries) CheckCreate(ctx context.Context, arg CheckCreateParams) (int32
 	return id, err
 }
 
+const checkDelete = `-- name: CheckDelete :exec
+DELETE FROM "check"
+WHERE id = $1
+`
+
+func (q *Queries) CheckDelete(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, checkDelete, id)
+	return err
+}
+
 const checkGetByEvents = `-- name: CheckGetByEvents :many
 SELECT id, event_id, description, done
 FROM "check"

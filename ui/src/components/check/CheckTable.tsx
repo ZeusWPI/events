@@ -1,10 +1,9 @@
 import { Check, CheckSource } from "@/lib/types/check"
-import { Tooltip, TooltipTrigger, TooltipContent } from "@radix-ui/react-tooltip";
 import { ColumnDef } from "@tanstack/react-table";
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, ClipboardCheckIcon, ClipboardXIcon, PlusIcon, XIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, ClipboardCheckIcon, ClipboardXIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Button } from "../ui/button";
-import { useCheckCreate, useCheckToggle } from "@/lib/api/check";
+import { useCheckCreate, useCheckDelete, useCheckToggle } from "@/lib/api/check";
 import { toast } from "sonner";
 import { Input } from "../ui/input";
 import { Table } from "../organisms/Table";
@@ -18,7 +17,6 @@ export function CheckTable({ checks, eventId }: Props) {
   const [adding, setAdding] = useState(false)
   const [addCheck, setAddCheck] = useState(false)
   const [addCheckDescription, setAddCheckDescription] = useState("")
-
   const checkCreate = useCheckCreate()
 
   const cancelCheck = () => {
@@ -44,7 +42,6 @@ export function CheckTable({ checks, eventId }: Props) {
   }
 
   const [toggleStatus, setToggleStatus] = useState(false)
-
   const checkToggle = useCheckToggle()
 
   const toggleDone = (check: Check) => {
@@ -54,6 +51,19 @@ export function CheckTable({ checks, eventId }: Props) {
       onSuccess: () => toast.success("Success"),
       onError: error => toast.error("Failed", { description: error.message }),
       onSettled: () => setToggleStatus(false)
+    })
+  }
+
+  const [deleteStatus, setDeleteStatus] = useState(false)
+  const checkDelete = useCheckDelete()
+
+  const deleteCheck = (check: Check) => {
+    setDeleteStatus(true)
+
+    checkDelete.mutate(check, {
+      onSuccess: () => toast.success("Success"),
+      onError: error => toast.error("Failed", { description: error.message }),
+      onSettled: () => setDeleteStatus(false),
     })
   }
 
@@ -80,9 +90,11 @@ export function CheckTable({ checks, eventId }: Props) {
         if (addCheck) return null
 
         return (
-          <Button onClick={() => setAddCheck(true)} size="icon" variant="outline">
-            <PlusIcon className="text-primary" />
-          </Button>
+          <div className="flex justify-end">
+            <Button onClick={() => setAddCheck(true)} size="icon" variant="outline">
+              <PlusIcon className="text-primary" />
+            </Button>
+          </div>
         )
       },
       cell: ({ row }) => {
@@ -95,14 +107,7 @@ export function CheckTable({ checks, eventId }: Props) {
         if (check.source === CheckSource.Automatic) {
           if (check.error) {
             <Button onClick={row.getToggleExpandedHandler()} size="icon" variant="outline">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  {row.getIsExpanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <span>{row.getIsExpanded() ? "Hide error" : "Show error"}</span>
-                </TooltipContent>
-              </Tooltip>
+              {row.getIsExpanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
             </Button>
           }
 
@@ -110,16 +115,14 @@ export function CheckTable({ checks, eventId }: Props) {
         }
 
         return (
-          <Button onClick={() => toggleDone(check)} size="icon" variant="outline" disabled={toggleStatus}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                {check.done ? <ClipboardXIcon /> : <ClipboardCheckIcon />}
-              </TooltipTrigger>
-              <TooltipContent>
-                <span>{check.done ? "Mark as undone" : "Mark as done"}</span>
-              </TooltipContent>
-            </Tooltip>
-          </Button>
+          <div className="flex">
+            <Button onClick={() => toggleDone(check)} size="icon" variant="ghost" disabled={toggleStatus}>
+              {check.done ? <ClipboardXIcon /> : <ClipboardCheckIcon />}
+            </Button>
+            <Button onClick={() => deleteCheck(check)} size="icon" variant="ghost" disabled={deleteStatus}>
+              <Trash2Icon className="text-red-500" />
+            </Button>
+          </div>
         )
       },
       meta: { small: true, horizontalAlign: "justify-end" },

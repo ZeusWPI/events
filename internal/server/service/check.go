@@ -45,3 +45,12 @@ func (c *Check) Toggle(ctx context.Context, checkID int) error {
 
 	return nil
 }
+
+func (c *Check) Delete(ctx context.Context, checkID int) error {
+	if err := c.check.Delete(ctx, checkID); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
+}

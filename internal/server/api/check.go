@@ -26,6 +26,7 @@ func NewCheck(router fiber.Router, service service.Service) *Check {
 func (r *Check) createRoutes() {
 	r.router.Post("/", r.create)
 	r.router.Post("/:id", r.toggle)
+	r.router.Delete("/:id", r.delete)
 }
 
 func (r *Check) create(c *fiber.Ctx) error {
@@ -56,4 +57,17 @@ func (r *Check) toggle(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusOK)
+}
+
+func (r *Check) delete(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if err := r.check.Delete(c.Context(), id); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }

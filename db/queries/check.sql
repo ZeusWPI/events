@@ -12,3 +12,7 @@ RETURNING Id;
 UPDATE "check"
 SET done = NOT done
 WHERE id = $1;
+
+-- name: CheckDelete :exec 
+DELETE FROM "check"
+WHERE id = $1;
