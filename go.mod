@@ -3,21 +3,21 @@ module github.com/ZeusWPI/events
 go 1.24.4
 
 require (
-	github.com/go-co-op/gocron/v2 v2.16.1
-	github.com/go-playground/validator/v10 v10.25.0
+	github.com/go-co-op/gocron/v2 v2.16.2
+	github.com/go-playground/validator/v10 v10.26.0
 	github.com/gofiber/contrib/fiberzap v1.0.2
-	github.com/gofiber/fiber/v2 v2.52.6
-	github.com/gofiber/storage/postgres/v3 v3.1.0
+	github.com/gofiber/fiber/v2 v2.52.8
+	github.com/gofiber/storage/postgres/v3 v3.2.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1
-	github.com/markbates/goth v1.80.0
+	github.com/markbates/goth v1.81.0
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pressly/goose/v3 v3.24.3
-	github.com/shareed2k/goth_fiber v0.3.0
+	github.com/shareed2k/goth_fiber v0.3.1
 	github.com/spf13/viper v1.20.1
 	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/zap v1.27.0
-	golang.org/x/oauth2 v0.28.0
+	golang.org/x/oauth2 v0.30.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -36,22 +36,22 @@ require (
 	github.com/elastic/go-windows v1.0.2 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
+	github.com/go-chi/chi/v5 v5.2.1 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.7.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-sql-driver/mysql v1.9.2 // indirect
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/google/cel-go v0.24.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/context v1.1.1 // indirect
-	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/gorilla/securecookie v1.1.1 // indirect
-	github.com/gorilla/sessions v1.1.1 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/gorilla/securecookie v1.1.2 // indirect
+	github.com/gorilla/sessions v1.4.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -95,7 +95,7 @@ require (
 	github.com/tetratelabs/wazero v1.9.0 // indirect
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.59.0 // indirect
+	github.com/valyala/fasthttp v1.62.0 // indirect
 	github.com/vertica/vertica-sql-go v1.3.3 // indirect
 	github.com/wasilibs/go-pgquery v0.0.0-20250409022910-10ac41983c07 // indirect
 	github.com/wasilibs/wazero-helpers v0.0.0-20240620070341-3dff1577cd52 // indirect
@@ -108,7 +108,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
-	golang.org/x/net v0.40.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
