@@ -66,13 +66,17 @@ func main() {
 	}
 
 	// Start mattermost
-	mattermost := mattermost.New(*repo)
+	mattermost, err := mattermost.New(*repo, taskManager)
+	if err != nil {
+		zap.S().Fatalf("Unable to create mattermost %v", err)
+	}
+
 	if err := cmd.Mattermost(mattermost, checkManager); err != nil {
 		zap.S().Fatalf("Unable to start mattermost command %v", err)
 	}
 
 	// Start API
-	service := service.New(*repo, *checkManager, taskManager, *website)
+	service := service.New(*repo, checkManager, taskManager, *website, *mattermost)
 	if err := cmd.API(*service, db.Pool()); err != nil {
 		zap.S().Error(err)
 	}

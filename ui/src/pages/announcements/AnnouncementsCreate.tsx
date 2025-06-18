@@ -52,6 +52,10 @@ export function AnnouncementsCreate() {
       toast.error("Invalid date", { description: "Date has to be in the future" })
       return
     }
+    if (event && event.startTime.getTime() < date.getTime()) {
+      toast.error("Invalid date", { description: "Date has to be before the event" })
+      return
+    }
 
     if (!content || !content.length) {
       toast.error("Invalid announcement", { description: "Announcement text can't be empty" })

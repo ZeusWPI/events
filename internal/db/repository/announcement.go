@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/db/model"
@@ -24,6 +26,18 @@ func (a *Announcement) GetByEvents(ctx context.Context, events []model.Event) ([
 	announcements, err := a.repo.queries(ctx).AnnouncementGetByEvents(ctx, utils.SliceMap(events, func(e model.Event) int32 { return int32(e.ID) }))
 	if err != nil {
 		return nil, fmt.Errorf("get announcement by events %+v | %w", events, err)
+	}
+
+	return utils.SliceMap(announcements, model.AnnouncementModel), nil
+}
+
+func (a *Announcement) GetUnsend(ctx context.Context) ([]*model.Announcement, error) {
+	announcements, err := a.repo.queries(ctx).AnnouncementGetUnsend(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get unsend announcements %w", err)
 	}
 
 	return utils.SliceMap(announcements, model.AnnouncementModel), nil
@@ -57,12 +71,20 @@ func (a *Announcement) Update(ctx context.Context, announcement model.Announceme
 	return nil
 }
 
-func (a *Announcement) Send(ctx context.Context, announcement model.Announcement) error {
-	if err := a.repo.queries(ctx).AnnouncementSend(ctx, sqlc.AnnouncementSendParams{
-		ID:   int32(announcement.ID),
-		Send: announcement.Send,
+func (a *Announcement) Send(ctx context.Context, announcementID int) error {
+	if err := a.repo.queries(ctx).AnnouncementSend(ctx, int32(announcementID)); err != nil {
+		return fmt.Errorf("send announcement %d | %w", announcementID, err)
+	}
+
+	return nil
+}
+
+func (a *Announcement) Error(ctx context.Context, announcement model.Announcement) error {
+	if err := a.repo.queries(ctx).AnnouncementError(ctx, sqlc.AnnouncementErrorParams{
+		ID:    int32(announcement.ID),
+		Error: pgtype.Text{Valid: true, String: announcement.Error},
 	}); err != nil {
-		return fmt.Errorf("send announcement %+v | %w", announcement, err)
+		return fmt.Errorf("error announcement %+v | %w", announcement, err)
 	}
 
 	return nil

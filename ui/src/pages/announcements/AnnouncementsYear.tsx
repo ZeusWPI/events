@@ -37,7 +37,7 @@ export function AnnouncementsYear() {
   const announcements = events?.filter(e => e.announcement !== undefined) ?? []
   const noAnnouncements = events?.filter(e => e.announcement === undefined) ?? []
   const upcomingAnnouncements = announcements.filter(e => e.announcement!.sendTime.getTime() > now).sort((a, b) => a.announcement!.sendTime.getTime() - b.announcement!.sendTime.getTime())
-  const passedAnnouncements = announcements.filter(e => e.announcement!.sendTime.getTime() <= now).sort((a, b) => a.announcement!.sendTime.getTime() - b.announcement!.sendTime.getTime())
+  const passedAnnouncements = announcements.filter(e => e.announcement!.sendTime.getTime() <= now).sort((a, b) => b.announcement!.sendTime.getTime() - a.announcement!.sendTime.getTime())
 
   return (
     <div className="flex flex-col gap-8">

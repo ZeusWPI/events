@@ -34,7 +34,8 @@ type jobOnce struct {
 	job
 }
 
-// It keeps a logs inside the database.
+// Manager can be used to schedule one time or recurring tasks in the background
+// It keeps logs inside the database.
 // However it does not automatically reshedule tasks after an application reboot
 type Manager struct {
 	scheduler gocron.Scheduler
@@ -110,6 +111,7 @@ func (m *Manager) Add(task Task) error {
 
 // AddOnce adds a new one time task to the manager.
 // It runs the tasks after the given interval and deletes it afterwards.
+// An unique name is not required however when a task is deleted by name, every once scheduled task with that name will be deleted
 func (m *Manager) AddOnce(task Task) error {
 	zap.S().Debugf("Adding one time task %s", task.Name())
 
@@ -143,6 +145,33 @@ func (m *Manager) AddOnce(task Task) error {
 		},
 	}
 	m.jobID++
+
+	return nil
+}
+
+// RemoveOnceByName removes, given a name, a scheduled task that only runs once
+func (m *Manager) RemoveOnceByName(name string) error {
+	zap.S().Debugf("Removing one time task %s", name)
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	var job *jobOnce
+
+	for _, v := range m.jobsOnce {
+		if v.name == name {
+			job = &v
+			break
+		}
+	}
+
+	if job == nil {
+		return fmt.Errorf("task %s not found", name)
+	}
+
+	m.scheduler.RemoveByTags(strconv.Itoa(job.id))
+
+	delete(m.jobsOnce, job.id)
 
 	return nil
 }
@@ -321,8 +350,6 @@ func (m *Manager) wrapOnce(id int, task Task) func(context.Context) {
 }
 
 func (m *Manager) run(id string) error {
-	m.mu.Lock()
-
 	var job gocron.Job
 	for _, j := range m.scheduler.Jobs() {
 		if id == j.Tags()[0] {
@@ -330,7 +357,6 @@ func (m *Manager) run(id string) error {
 			break
 		}
 	}
-	m.mu.Unlock()
 	if job == nil {
 		return fmt.Errorf("task with id %s not found", id)
 	}

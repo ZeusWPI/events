@@ -6,6 +6,7 @@ export interface Announcement {
   content: string;
   sendTime: Date;
   send: boolean;
+  error?: string;
 }
 
 export function convertAnnouncementToModel(announcement: API.Announcement): Announcement {
@@ -15,6 +16,7 @@ export function convertAnnouncementToModel(announcement: API.Announcement): Anno
     content: announcement.content,
     sendTime: new Date(announcement.send_time),
     send: announcement.send,
+    error: announcement.error
   }
 }
 

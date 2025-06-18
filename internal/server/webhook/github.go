@@ -3,7 +3,6 @@ package webhook
 import (
 	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
 )
 
 type Github struct {
@@ -31,19 +30,15 @@ type pushPayload struct {
 }
 
 func (r *Github) push(c *fiber.Ctx) error {
-	zap.S().Debug("Receive webhook")
 	var payload pushPayload
 	if err := c.BodyParser(&payload); err != nil {
-		zap.S().Debug("parsing update")
 		return fiber.ErrBadRequest
 	}
 
 	if payload.Ref != "refs/heads/master" {
-		zap.S().Debug("Not main")
 		return c.SendStatus(fiber.StatusNoContent)
 	}
 
-	zap.S().Debug("Syncing")
 	_ = r.website.Sync()
 
 	return c.SendStatus(fiber.StatusOK)

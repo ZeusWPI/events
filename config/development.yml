@@ -27,3 +27,7 @@ website:
 dsa:
   url: "https://dsa.ugent.be/api/activiteiten?page_size=100&association=zeus"
   activities_s: 3600
+
+mattermost:
+  url: https://mattermost.zeus.gent
+  announcement_channel: c48qqzyfp7dhjciniwbk7k8fgy # Test kanaal

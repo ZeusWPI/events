@@ -32,6 +32,7 @@ export namespace API {
     content: string;
     send_time: string;
     send: boolean;
+    error?: string;
   }
 
   export interface Year extends Base {

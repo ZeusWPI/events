@@ -14,6 +14,7 @@ type Announcement struct {
 	Content  string
 	SendTime pgtype.Timestamptz
 	Send     bool
+	Error    pgtype.Text
 }
 
 type Board struct {

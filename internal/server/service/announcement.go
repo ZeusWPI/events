@@ -44,13 +44,25 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 		return dto.Announcement{}, fiber.ErrBadRequest
 	}
 
-	if announcement.ID == 0 {
-		err = a.announcement.Create(ctx, &announcement)
-	} else {
-		err = a.announcement.Update(ctx, announcement)
-	}
+	if err = a.service.withRollback(ctx, func(ctx context.Context) error {
+		update := false
+		if announcement.ID == 0 {
+			err = a.announcement.Create(ctx, &announcement)
+		} else {
+			err = a.announcement.Update(ctx, announcement)
+			update = true
+		}
 
-	if err != nil {
+		if err != nil {
+			return err
+		}
+
+		if err = a.service.mattermost.ScheduleAnnouncement(ctx, announcement, update); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		zap.S().Error(err)
 		return dto.Announcement{}, fiber.ErrInternalServerError
 	}

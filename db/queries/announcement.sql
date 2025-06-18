@@ -3,9 +3,14 @@ SELECT *
 FROM announcement
 WHERE event_id = ANY($1::int[]);
 
+-- name: AnnouncementGetUnsend :many
+SELECT *
+FROM announcement
+WHERE NOT send AND error IS NULL;
+
 -- name: AnnouncementCreate :one 
-INSERT INTO announcement (event_id, content, send_time, send)
-VALUES ($1, $2, $3, $4)
+INSERT INTO announcement (event_id, content, send_time, send, error)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
 -- name: AnnouncementUpdate :exec
@@ -15,5 +20,10 @@ WHERE id = $3 AND NOT send;
 
 -- name: AnnouncementSend :exec 
 UPDATE announcement
-SET send = $1
+SET send = true
+WHERE id = $1;
+
+-- name: AnnouncementError :exec
+UPDATE announcement
+SET error = $1
 WHERE id = $2;
