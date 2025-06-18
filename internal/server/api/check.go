@@ -24,7 +24,7 @@ func NewCheck(router fiber.Router, service service.Service) *Check {
 }
 
 func (r *Check) createRoutes() {
-	r.router.Post("/", r.create)
+	r.router.Put("/", r.create)
 	r.router.Post("/:id", r.toggle)
 	r.router.Delete("/:id", r.delete)
 }

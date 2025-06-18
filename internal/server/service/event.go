@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
@@ -15,17 +16,19 @@ import (
 type Event struct {
 	service Service
 
-	board     repository.Board
-	event     repository.Event
-	organizer repository.Organizer
+	board        repository.Board
+	event        repository.Event
+	announcement repository.Announcement
+	organizer    repository.Organizer
 }
 
 func (s *Service) NewEvent() *Event {
 	return &Event{
-		service:   *s,
-		board:     *s.repo.NewBoard(),
-		event:     *s.repo.NewEvent(),
-		organizer: *s.repo.NewOrganizer(),
+		service:      *s,
+		board:        *s.repo.NewBoard(),
+		event:        *s.repo.NewEvent(),
+		announcement: *s.repo.NewAnnouncement(),
+		organizer:    *s.repo.NewOrganizer(),
 	}
 }
 
@@ -38,6 +41,9 @@ func (e *Event) GetByYear(ctx context.Context, yearID int) ([]dto.Event, error) 
 	if eventsDB == nil {
 		return []dto.Event{}, nil
 	}
+	events := utils.SliceMap(eventsDB, dto.EventDTO)
+
+	// Add checks
 
 	checks, err := e.service.check.Status(ctx, yearID)
 	if err != nil {
@@ -45,10 +51,22 @@ func (e *Event) GetByYear(ctx context.Context, yearID int) ([]dto.Event, error) 
 		return nil, fiber.ErrInternalServerError
 	}
 
-	events := utils.SliceMap(eventsDB, dto.EventDTO)
 	for idx, event := range events {
 		if check, ok := checks[event.ID]; ok {
 			events[idx].Checks = utils.SliceMap(check, dto.CheckDTO)
+		}
+	}
+
+	// Add announcements
+	announcements, err := e.announcement.GetByEvents(ctx, utils.SliceDereference(eventsDB))
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+
+	for _, announcement := range announcements {
+		if idx := slices.IndexFunc(events, func(e dto.Event) bool { return e.ID == announcement.EventID }); idx != -1 {
+			events[idx].Announcement = dto.AnnouncementDTO(*announcement)
 		}
 	}
 

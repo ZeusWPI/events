@@ -8,6 +8,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Announcement struct {
+	ID       int32
+	EventID  int32
+	Content  string
+	SendTime pgtype.Timestamptz
+	Send     bool
+}
+
 type Board struct {
 	ID       int32
 	MemberID int32

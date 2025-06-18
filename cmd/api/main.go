@@ -6,6 +6,7 @@ import (
 	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/dsa"
+	"github.com/ZeusWPI/events/internal/mattermost"
 	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/internal/website"
@@ -62,6 +63,12 @@ func main() {
 
 	if err := cmd.DSA(dsa, taskManager, checkManager); err != nil {
 		zap.S().Fatalf("Unable to start dsa command %v", err)
+	}
+
+	// Start mattermost
+	mattermost := mattermost.New(*repo)
+	if err := cmd.Mattermost(mattermost, checkManager); err != nil {
+		zap.S().Fatalf("Unable to start mattermost command %v", err)
 	}
 
 	// Start API
