@@ -1,101 +1,74 @@
 # Events
 
-**E**venementen **V**erzamelen en **E**valueren, **N**otificeren van **T**odo's en **S**tatussen
+A tool to help you plan a successful event!
 
-As the name suggests it's a tool to help remember all the required steps for a successful event!
+## Getting started
 
-## Goal
+### Quickstart
 
-It strives to create as little manual work as possible. \
-While this is not possible for every check, the vast majority of them will be fully automatic. \
-In the end the following checks will (hopefully) be supported:
+- Download the version for `golang`, `nodejs` and `pnpm`. The versions can be found inside the [asdf tool versions file](./.tool-versions) (Run `asdf install` if you're using asdf)
+- Install make
+- Run `make setup` to download the backend tools `Air`, `Goose`, `Sqlc` and frontend dependencies
+- Copy the example [environment file](./.env.example) to `.env` in the backend and change the values if needed (necessary for a clean slate run)
+- Configure the config file inside the [config directory](./config/) if needed (not necessary if you're only using the makefile)
+- Migrate the database `make migrate`
+- Run the project `make watch`
 
-- Announcements
-- A well written website event page
-- Posters
-- DSA website entry
-- Reservations (if it's not taking place in the Kelder)
-- Mentioned in a presentation for every bachelor year
-- Mentioned in an email
-- Custom checks
+At the time of writing it supports the following features
 
-With each check having it's own deadline and reminder notifications (emails) for the organisers.
+### Full Explanation
 
-## Backend
+The backend is written in Golang, the frontend in React + Typescript.
+Versions for both can be found inside the [asdf tool versions file](./.tool-versions).
 
-The backend is written in `Golang`.
-It uses (not a complete list):
+Workflows are used to ensure code quality.
+You can run them locally before each commit by installing the githook `git config --local core.hooksPath .githooks/`. It requires `Golangci-lint`, the version can again be found inside the [asdf tool versions file](./.tool-versions).
 
-- [Fiber](https://pkg.go.dev/github.com/gofiber/fiber/v2)
-- [Validator](https://pkg.go.dev/github.com/go-playground/validator/v10)
-- [Sqlc](https://pkg.go.dev/github.com/kyleconroy/sqlc)
-- [Zap](https://pkg.go.dev/go.uber.org/zap)
+A Makefile is used to simplify some workflows.
 
-## Frontend
+`make setup` downloads 2 additional golang tools.
 
-The frontend is located in [ui](./ui) and written in `Typescript`.
-It uses:
+- `goose` manages the migrations
+- `sqlc` generates statically typed golang code from SQL queries
 
-- [React](https://react.dev/)
-- [Tanstack Router](https://tanstack.com/router/latest)
-- [Tanstack Query](https://tanstack.com/query/latest)
-- [Shadcn](https://ui.shadcn.com/)
-- [Tailwind](https://tailwindcss.com/)
-- [Zod](https://zod.dev/)
+It also downloads all the frontend dependencies. To manually install them run `cd ui && pnpm install`.
 
-## Production
+`make migrate` will automatically start the postgres database and attempt to migrate it to the newest version.
+If you don't want it to use the makefile or you have a separate database you can run `go run migrate.go` which uses the database connection information defined inside the config file.
 
-A docker container gets build every time main gets updated.
+`make watch` starts the entire docker stack. It supports HMR (hot module reloading) for both the backend and frontend. It only follows the logs of the backend and frontend.
+If you want to see more logs you can use the command `docker compose up backend frontend` and add any additional container that you want to see the logs of.
+For example to include the database logs use the command `docker compose up backend frontend db`.
 
-1. Set `APP_ENV=production` in a `.env` file and mount it in the container to `.env`
-2. Create and configure a `production.yml` file and mount it to `/config/production.yml`
-3. Make sure an external database is running
-4. Run the container, the server listens to port 4000
+> [!NOTE]
+> A restart is required after adding or removing dependencies
 
-## Development
+## Server Setup
 
-### Prerequisites
+It is recommended to run the application in a docker container.
 
-- Install the required versions of `Golang` and `Nodejs`. They can be found in the [asdf tool versions file](.tool-versions).
-- (Optional) Install the pre-commit hooks
-  - Install the required version of `Golangci-lint`. It can be found in the [asdf tool versions file](.tool-versions)
-  - Install the pre-commit hooks `git config --local core.hooksPath .githooks/`.
-- Install sqlc `go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest`.
-- Install goose `go install github.com/pressly/goose/v3/cmd/goose@latest`.
-- If you're using asdf you might have to run `asdf reshim golang`.
+It needs the following additional resources:
 
-### Run the application
+- Postgres
 
-Configure the environment variables in both the [backend](.env.example) and [frontend](ui/.env.example). \
-Migrate the database by starting the database `make db` and running the migrations `make migrate`. \
-Start the backend & frontend (both supporting HMR) `make watch`.
-
-### Commits
-
-Commit messages should adhere to the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) standards.
-A [githook](.githooks/commit-msg) and [workflow](.github/workflows/commit-message.yml) is used to enforce it.
-
-## Commands
-
-All commands can be found in the [makefile](makefile).
-A short list:
-
-- `make build` - Build the application to a single docker container.
-- `make watch` - Start the database, backend & frontend with HMR
-- `make migrate` - Run all pending migrations.
-- `make test` - Run all tests
+> !NOTE
+> Make sure to set the environment to `production` and populate the `production.yml` file.
 
 ## Useful flows
 
-### Adding a new typed query (sqlc)
+### Add a new typed query (sqlc)
 
-1. Add your new query to `db/queries/{target}.sql`` file.
-2. Run `make sqlc`.
-3. Use the new query in your code.
+1) Add your new query to db/queries/{target}.sql
+2) Run `make query`
+3) Enjoy your statically typed query
 
 ### Adding a migration
 
-1. Run `make create-migration`.
-2. Edit the newly made migration that can be found in the `db/migrations` folder.
-3. Update the queries in the `db/queries` folder accordingly.
-4. Run `make sqlc`
+1) Run `make create-migration`
+
+> [!NOTE]
+> Nix users using devshell need to run `goose -dir ./db/migrations postgres create my_migration_name sql`
+
+2) Edit the newly made migration that can be found in the `db/migrations` folder
+3) Update the queries in the `db/queries` accordingly
+4) Run `make query` to generate the new table structs
