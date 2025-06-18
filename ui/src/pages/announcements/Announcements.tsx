@@ -1,16 +1,16 @@
-import { Navigate, Outlet, useParams } from "@tanstack/react-router";
-import { CalendarPlus2 } from "lucide-react";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
+import { useParams, Navigate, Outlet } from "@tanstack/react-router";
+import { CalendarPlus2 } from "lucide-react";
 import Error404 from "../404";
 
-function Events() {
-  const yearString = useParams({ from: "/events/$year", shouldThrow: false });
+export function Announcements() {
+  const yearString = useParams({ from: "/announcements/$year", shouldThrow: false });
 
   const { data: years, isLoading } = useYearGetAll();
 
-  useBreadcrumb({ title: "Events", link: { to: "/events" } });
+  useBreadcrumb({ title: "Announcements", link: { to: "/announcements" } });
 
   if (isLoading) {
     return <Indeterminate />;
@@ -24,7 +24,7 @@ function Events() {
     return (
       <div className="flex flex-col justify-center items-center h-full space-y-4">
         <CalendarPlus2 className="size-12 text-muted-foreground" />
-        <h3 className="text-lg font-semibold">No events found</h3>
+        <h3 className="text-lg font-semibold">No announcements found</h3>
         <h5 className="text-md text-muted-foreground">Get started by starting some tasks</h5>
       </div>
     );
@@ -37,10 +37,8 @@ function Events() {
 
   return (
     <>
-      {!yearString && <Navigate to="/events/$year" params={{ year: years[0]!.formatted }} />}
+      {!yearString && <Navigate to="/announcements/$year" params={{ year: years[0]!.formatted }} />}
       <Outlet />
     </>
   );
 }
-
-export default Events;

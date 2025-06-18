@@ -1,3 +1,7 @@
+-- name: EventGetById :one 
+SELECT * FROM event 
+WHERE id = $1;
+
 -- name: EventGetAllWithYear :many 
 SELECT * FROM event
 INNER JOIN year ON event.year_id = year.id;

@@ -16,7 +16,6 @@ export interface Check {
 }
 
 export function convertCheckToModel(check: API.Check): Check {
-  console.log(check)
   return {
     id: check.source as CheckSource === CheckSource.Manual ? check.id : randomNumber(),
     eventId: check.event_id,

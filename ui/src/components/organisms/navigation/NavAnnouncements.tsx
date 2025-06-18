@@ -1,12 +1,12 @@
 import { Link, useMatch } from "@tanstack/react-router";
-import { CalendarIcon, ChevronRight } from "lucide-react";
+import { ChevronRight, MegaphoneIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { SidebarGroupContent, SidebarMenu, SidebarMenuAction, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubItem } from "@/components/ui/sidebar";
 import { useYearGetAll } from "@/lib/api/year";
 
-function NavEvents() {
-  const isActive = useMatch({ from: "/events", shouldThrow: false });
+export function NavAnnouncements() {
+  const isActive = useMatch({ from: "/announcements", shouldThrow: false });
 
   const { data: years } = useYearGetAll();
 
@@ -15,10 +15,10 @@ function NavEvents() {
       <SidebarMenu>
         <Collapsible>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Events">
-              <Link to="/events">
-                <CalendarIcon className={isActive && "stroke-primary"} />
-                <span>Events</span>
+            <SidebarMenuButton asChild tooltip="Announcements">
+              <Link to="/announcements">
+                <MegaphoneIcon className={isActive && "stroke-primary"} />
+                <span>Announcements</span>
               </Link>
             </SidebarMenuButton>
             {years && (
@@ -34,7 +34,7 @@ function NavEvents() {
                       {years.map(year => (
                         <SidebarMenuSubItem key={year.id}>
                           <SidebarMenuButton asChild>
-                            <Link to="/events/$year" params={{ year: year.formatted }} className="rounded-none border-l-2" activeProps={{ className: "border-l-primary" }}>
+                            <Link to="/announcements/$year" params={{ year: year.formatted }} className="rounded-none border-l-2" activeProps={{ className: "border-l-primary" }}>
                               <span>{year.formatted}</span>
                             </Link>
                           </SidebarMenuButton>
@@ -51,5 +51,3 @@ function NavEvents() {
     </SidebarGroupContent>
   );
 }
-
-export default NavEvents;

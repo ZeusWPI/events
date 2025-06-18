@@ -16,6 +16,7 @@ export namespace API {
     year: Year;
     organizers: Organizer[];
     checks?: Check[];
+    announcement?: Announcement;
   }
 
   export interface Check extends Base {
@@ -24,6 +25,13 @@ export namespace API {
     done: boolean;
     error: string;
     source: string;
+  }
+
+  export interface Announcement extends Base {
+    event_id: number;
+    content: string;
+    send_time: string;
+    send: boolean;
   }
 
   export interface Year extends Base {

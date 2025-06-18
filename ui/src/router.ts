@@ -11,6 +11,9 @@ import { Tasks } from "./pages/tasks/Tasks";
 import { TasksDetail } from "./pages/tasks/TasksDetail";
 import { TasksHistory } from "./pages/tasks/TasksHistory";
 import { TasksOverview } from "./pages/tasks/TasksOverview";
+import { Announcements } from "./pages/announcements/Announcements";
+import { AnnouncementsYear } from "./pages/announcements/AnnouncementsYear";
+import { AnnouncementsCreate } from "./pages/announcements/AnnouncementsCreate";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -53,6 +56,28 @@ const eventsYearAssignRoute = createRoute({
 });
 
 //
+// Announcements
+//
+
+const announcementsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/announcements",
+  component: Announcements,
+})
+
+const announcementsYearRoute = createRoute({
+  getParentRoute: () => announcementsRoute,
+  path: "$year",
+  component: AnnouncementsYear
+})
+
+const announcementsCreateRoute = createRoute({
+  getParentRoute: () => announcementsYearRoute,
+  path: "/$event",
+  component: AnnouncementsCreate,
+})
+
+//
 // Tasks
 //
 
@@ -84,6 +109,9 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   eventsRoute.addChildren([
     eventsYearRoute.addChildren([eventsYearDetailRoute, eventsYearAssignRoute]),
+  ]),
+  announcementsRoute.addChildren([
+    announcementsYearRoute.addChildren([announcementsCreateRoute])
   ]),
   tasksRoute.addChildren([tasksOverviewRoute, tasksDetailRoute, tasksHistory]),
 ]);

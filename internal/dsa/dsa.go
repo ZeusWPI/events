@@ -43,7 +43,7 @@ func New(repo repository.Repository) (*DSA, error) {
 var _ check.Check = (*DSA)(nil)
 
 func (d *DSA) Description() string {
-	return "Event added to the DSA website"
+	return "Add event to the DSA website"
 }
 
 func (d *DSA) Status(ctx context.Context, events []model.Event) []check.StatusResult {

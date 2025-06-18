@@ -103,6 +103,27 @@ func (q *Queries) EventGetAllWithYear(ctx context.Context) ([]EventGetAllWithYea
 	return items, nil
 }
 
+const eventGetById = `-- name: EventGetById :one
+SELECT id, file_name, name, description, start_time, end_time, location, year_id FROM event 
+WHERE id = $1
+`
+
+func (q *Queries) EventGetById(ctx context.Context, id int32) (Event, error) {
+	row := q.db.QueryRow(ctx, eventGetById, id)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.FileName,
+		&i.Name,
+		&i.Description,
+		&i.StartTime,
+		&i.EndTime,
+		&i.Location,
+		&i.YearID,
+	)
+	return i, err
+}
+
 const eventGetByYearPopulated = `-- name: EventGetByYearPopulated :many
 SELECT jsonb_build_object(
   'id', e.id,

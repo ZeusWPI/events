@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Check } from "../types/check";
-import { apiDelete, apiPost } from "./query";
+import { apiDelete, apiPost, apiPut } from "./query";
 
 const ENDPOINT = "check";
 
@@ -8,7 +8,7 @@ export function useCheckCreate() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (check: Pick<Check, 'eventId' | 'description'>) => apiPost(`${ENDPOINT}`, { event_id: check.eventId, description: check.description }),
+    mutationFn: async (check: Pick<Check, 'eventId' | 'description'>) => apiPut(`${ENDPOINT}`, { event_id: check.eventId, description: check.description }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["event"] }),
   })
 }

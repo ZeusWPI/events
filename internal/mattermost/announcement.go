@@ -23,7 +23,7 @@ func newAnnouncement(repo repository.Repository) *Announcement {
 var _ check.Check = (*Announcement)(nil)
 
 func (a *Announcement) Description() string {
-	return "Mattermost announcement written"
+	return "Write a Mattermost announcement"
 }
 
 func (a *Announcement) Status(ctx context.Context, events []model.Event) []check.StatusResult {

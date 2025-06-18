@@ -26,6 +26,18 @@ func (r *Repository) NewEvent() *Event {
 	}
 }
 
+func (e *Event) GetByID(ctx context.Context, id int) (*model.Event, error) {
+	event, err := e.repo.queries(ctx).EventGetById(ctx, int32(id))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get event by id %d | %w", id, err)
+	}
+
+	return model.EventModel(event), nil
+}
+
 func (e *Event) GetAllWithYear(ctx context.Context) ([]*model.Event, error) {
 	events, err := e.repo.queries(ctx).EventGetAllWithYear(ctx)
 	if err != nil {

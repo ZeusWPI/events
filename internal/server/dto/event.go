@@ -22,7 +22,7 @@ type Event struct {
 	Year         Year         `json:"year"`
 	Organizers   []Organizer  `json:"organizers"`
 	Checks       []Check      `json:"checks"`
-	Announcement Announcement `json:"announcement"`
+	Announcement Announcement `json:"announcement,omitzero"`
 }
 
 func EventDTO(event *model.Event) Event {

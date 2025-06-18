@@ -24,8 +24,8 @@ func NewAnnouncement(router fiber.Router, service service.Service) *Announcement
 }
 
 func (r *Announcement) createRoutes() {
-	r.router.Post("/", r.Update)
 	r.router.Put("/", r.Create)
+	r.router.Post("/:id", r.Update)
 }
 
 func (r *Announcement) Create(c *fiber.Ctx) error {

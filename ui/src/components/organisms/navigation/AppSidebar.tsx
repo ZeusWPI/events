@@ -9,6 +9,7 @@ import { useBreadcrumbs } from "@/lib/hooks/useBreadcrumb";
 import NavEvents from "./NavEvents";
 import NavTasks from "./NavTasks";
 import { NavUser } from "./NavUser";
+import { NavAnnouncements } from "./NavAnnouncements";
 
 function AppSidebar({ children }: { children: ReactNode }) {
   const { state: breadcrumbs } = useBreadcrumbs();
@@ -40,6 +41,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
         <SidebarContent className="pt-[16px]">
           <SidebarGroup>
             <NavEvents />
+            <NavAnnouncements />
             <NavTasks />
           </SidebarGroup>
         </SidebarContent>
@@ -60,12 +62,12 @@ function AppSidebar({ children }: { children: ReactNode }) {
                     <BreadcrumbItem>
                       {crumb.link
                         ? (
-                            <BreadcrumbLink asChild>
-                              <Link to={crumb.link.to} params={crumb.link.params}>
-                                {crumb.title}
-                              </Link>
-                            </BreadcrumbLink>
-                          )
+                          <BreadcrumbLink asChild>
+                            <Link to={crumb.link.to} params={crumb.link.params}>
+                              {crumb.title}
+                            </Link>
+                          </BreadcrumbLink>
+                        )
                         : crumb.title}
                     </BreadcrumbItem>
                     {index !== breadcrumbs.length - 1 && <BreadcrumbSeparator />}
