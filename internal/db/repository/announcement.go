@@ -25,6 +25,9 @@ func (r *Repository) NewAnnouncement() *Announcement {
 func (a *Announcement) GetByEvents(ctx context.Context, events []model.Event) ([]*model.Announcement, error) {
 	announcements, err := a.repo.queries(ctx).AnnouncementGetByEvents(ctx, utils.SliceMap(events, func(e model.Event) int32 { return int32(e.ID) }))
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("get announcement by events %+v | %w", events, err)
 	}
 
@@ -49,6 +52,7 @@ func (a *Announcement) Create(ctx context.Context, announcement *model.Announcem
 		Content:  announcement.Content,
 		SendTime: pgtype.Timestamptz{Valid: true, Time: announcement.SendTime},
 		Send:     announcement.Send,
+		Error:    pgtype.Text{Valid: announcement.Error != "", String: announcement.Error},
 	})
 	if err != nil {
 		return fmt.Errorf("create announcement %+v | %w", *announcement, err)

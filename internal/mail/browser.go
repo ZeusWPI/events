@@ -17,7 +17,7 @@ func newBrowser() *browser {
 	return &browser{}
 }
 
-func (b *browser) send(_ context.Context, content Content) error {
+func (b *browser) mail(_ context.Context, content content) error {
 	m, err := newMail(content)
 	if err != nil {
 		return err

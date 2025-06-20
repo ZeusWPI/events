@@ -58,6 +58,7 @@ const announcementGetByEvents = `-- name: AnnouncementGetByEvents :many
 SELECT id, event_id, content, send_time, send, error 
 FROM announcement
 WHERE event_id = ANY($1::int[])
+ORDER BY send_time
 `
 
 func (q *Queries) AnnouncementGetByEvents(ctx context.Context, dollar_1 []int32) ([]Announcement, error) {

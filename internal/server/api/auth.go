@@ -22,7 +22,7 @@ type Auth struct {
 
 func NewAuth(service service.Service, router fiber.Router) *Auth {
 	goth.UseProviders(
-		zauth.New(
+		zauth.NewProvider(
 			config.GetString("auth.client"),
 			config.GetString("auth.secret"),
 			config.GetString("auth.callback_url"),

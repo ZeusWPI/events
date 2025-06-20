@@ -6,7 +6,7 @@ import (
 )
 
 func Mattermost(m *mattermost.Mattermost, c *check.Manager) error {
-	if err := c.Register(m.Announcement); err != nil {
+	if err := c.Register(m.NewCheckAnnouncement()); err != nil {
 		return err
 	}
 

@@ -48,6 +48,20 @@ type Event struct {
 	YearID      int32
 }
 
+type Mail struct {
+	ID       int32
+	Content  string
+	SendTime pgtype.Timestamptz
+	Send     bool
+	Error    pgtype.Text
+}
+
+type MailEvent struct {
+	ID      int32
+	MailID  int32
+	EventID int32
+}
+
 type Member struct {
 	ID       int32
 	Name     string

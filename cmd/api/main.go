@@ -6,6 +6,7 @@ import (
 	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/dsa"
+	"github.com/ZeusWPI/events/internal/mail"
 	"github.com/ZeusWPI/events/internal/mattermost"
 	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/ZeusWPI/events/internal/task"
@@ -75,8 +76,18 @@ func main() {
 		zap.S().Fatalf("Unable to start mattermost command %v", err)
 	}
 
+	// Start mail
+	mail, err := mail.New(*repo, taskManager)
+	if err != nil {
+		zap.S().Fatalf("Unable to create mail %v", err)
+	}
+
+	if err := cmd.Mail(mail, checkManager); err != nil {
+		zap.S().Fatalf("Unable to start mail command %v", err)
+	}
+
 	// Start API
-	service := service.New(*repo, checkManager, taskManager, *website, *mattermost)
+	service := service.New(*repo, checkManager, taskManager, *mail, *website, *mattermost)
 	if err := cmd.API(*service, db.Pool()); err != nil {
 		zap.S().Error(err)
 	}

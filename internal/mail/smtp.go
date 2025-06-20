@@ -28,7 +28,7 @@ func newSMTP() *smtp {
 	}
 }
 
-func (s *smtp) send(ctx context.Context, content Content) error {
+func (s *smtp) mail(ctx context.Context, content content) error {
 	m, err := newMail(content)
 	if err != nil {
 		return err

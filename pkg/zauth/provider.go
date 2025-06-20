@@ -1,4 +1,3 @@
-// Package zauth provides auth integration with the Zeus authentication system
 package zauth
 
 import (
@@ -38,8 +37,8 @@ type User struct {
 	FullName string `json:"full_name"`
 }
 
-// New creates a new Zauth provider
-func New(clientKey, secret, callbackURL string) *Provider {
+// NewProvider creates a new Zauth provider
+func NewProvider(clientKey, secret, callbackURL string) *Provider {
 	p := &Provider{
 		clientKey:    clientKey,
 		secret:       secret,
@@ -64,12 +63,10 @@ func New(clientKey, secret, callbackURL string) *Provider {
 
 // Interface methods
 
-// Name is the name used to retrieve this provider later.
 func (p *Provider) Name() string {
 	return p.providerName
 }
 
-// SetName is to update the name of the provider (needed in case of multiple providers of 1 type)
 func (p *Provider) SetName(name string) {
 	p.providerName = name
 }
@@ -162,8 +159,6 @@ func (p *Provider) RefreshToken(_ string) (*oauth2.Token, error) {
 func (p *Provider) RefreshTokenAvailable() bool {
 	return false
 }
-
-// Private methods
 
 func (p *Provider) client() *http.Client {
 	return goth.HTTPClientWithFallBack(p.httpClient)

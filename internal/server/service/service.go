@@ -6,6 +6,7 @@ import (
 
 	"github.com/ZeusWPI/events/internal/check"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/mail"
 	"github.com/ZeusWPI/events/internal/mattermost"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/internal/website"
@@ -18,16 +19,18 @@ type Service struct {
 	check *check.Manager
 	task  *task.Manager
 
+	mail       mail.Mail
 	mattermost mattermost.Mattermost
 	website    website.Website
 }
 
 // New creates a new Service
-func New(repo repository.Repository, check *check.Manager, task *task.Manager, website website.Website, mattermost mattermost.Mattermost) *Service {
+func New(repo repository.Repository, check *check.Manager, task *task.Manager, mail mail.Mail, website website.Website, mattermost mattermost.Mattermost) *Service {
 	return &Service{
 		repo:       repo,
 		check:      check,
 		task:       task,
+		mail:       mail,
 		website:    website,
 		mattermost: mattermost,
 	}

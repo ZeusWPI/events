@@ -14,8 +14,8 @@ type Mattermost struct {
 	url                 string
 	announcementChannel string
 
-	Announcement *announcement
-	task         *task.Manager
+	repoAnnouncement repository.Announcement
+	task             *task.Manager
 }
 
 func New(repo repository.Repository, task *task.Manager) (*Mattermost, error) {
@@ -38,7 +38,7 @@ func New(repo repository.Repository, task *task.Manager) (*Mattermost, error) {
 		token:               token,
 		url:                 url,
 		announcementChannel: announcementChannel,
-		Announcement:        newAnnouncement(repo),
+		repoAnnouncement:    *repo.NewAnnouncement(),
 		task:                task,
 	}
 
@@ -51,7 +51,7 @@ func New(repo repository.Repository, task *task.Manager) (*Mattermost, error) {
 
 func (m *Mattermost) startup(ctx context.Context) error {
 	// Reschedule all announcements
-	announcements, err := m.Announcement.repoAnnouncement.GetUnsend(ctx)
+	announcements, err := m.repoAnnouncement.GetUnsend(ctx)
 	if err != nil {
 		return err
 	}

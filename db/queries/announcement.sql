@@ -1,7 +1,8 @@
 -- name: AnnouncementGetByEvents :many
 SELECT * 
 FROM announcement
-WHERE event_id = ANY($1::int[]);
+WHERE event_id = ANY($1::int[])
+ORDER BY send_time;
 
 -- name: AnnouncementGetUnsend :many
 SELECT *
