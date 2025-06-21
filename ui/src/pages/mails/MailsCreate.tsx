@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useEventByYear } from "@/lib/api/event";
 import { useMailCreate, useMailGetAll, useMailUpdate } from "@/lib/api/mail";
 import { useYearGetAll } from "@/lib/api/year";
+import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { Event } from "@/lib/types/event";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { motion } from "framer-motion";
@@ -39,6 +40,7 @@ export function MailsCreate() {
   const [events, setEvents] = useState(mail?.events ?? [])
 
   const navigate = useNavigate()
+  useBreadcrumb({ title: mailId ? "Edit" : "Create", link: { to: mailId ? "/mails/edit/$mail" : "/mails/create", params: mailId ? { mail: mailId.toString() } : {} } });
 
   if (isLoadingMails || isLoadingYears) {
     return <Indeterminate />
@@ -126,7 +128,7 @@ export function MailsCreate() {
             <span>Send time</span>
             <DateTimePicker value={date} onChange={setDate} weekStartsOn={1} />
             <span>Title</span>
-            <Input placeholder="[Zeus WPI] Events update" onChange={event => setTitle(event.target.value)} />
+            <Input defaultValue={title} placeholder="[Zeus WPI] Events update" onChange={event => setTitle(event.target.value)} />
           </div>
           <MarkdownCombo value={content} onChange={setContent} textareaProps={{ placeholder: "Write mail here..." }} />
         </CardContent>

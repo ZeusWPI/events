@@ -18,7 +18,6 @@ import { useAnnouncementCreate, useAnnouncementUpdate } from "@/lib/api/announce
 import { Announcement } from "@/lib/types/announcement";
 import { MarkdownCombo } from "@/components/organisms/markdown/MarkdownCombo";
 
-// FIX: Allow multiple announcements per event
 export function AnnouncementsCreate() {
   const { year: yearString, event: eventId } = useParams({ from: "/announcements/$year/$event" })
 

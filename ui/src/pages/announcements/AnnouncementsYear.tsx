@@ -35,7 +35,6 @@ export function AnnouncementsYear() {
 
   const now = Date.now()
   const announcements = events?.filter(e => e.announcement !== undefined) ?? []
-  const noAnnouncements = events?.filter(e => e.announcement === undefined) ?? []
   const upcomingAnnouncements = announcements.filter(e => e.announcement!.sendTime.getTime() > now).sort((a, b) => a.announcement!.sendTime.getTime() - b.announcement!.sendTime.getTime())
   const passedAnnouncements = announcements.filter(e => e.announcement!.sendTime.getTime() <= now).sort((a, b) => b.announcement!.sendTime.getTime() - a.announcement!.sendTime.getTime())
 
@@ -57,7 +56,7 @@ export function AnnouncementsYear() {
               <DialogDescription asChild>
                 <ScrollArea className="h-[600px] px-2">
                   <div className="divide-y">
-                    {noAnnouncements.map(e => (
+                    {events?.map(e => (
                       <div key={e.id} className="flex items-center justify-between py-2">
                         <span>{e.name}</span>
                         <Button size="icon" variant="ghost" asChild>
