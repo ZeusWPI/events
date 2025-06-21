@@ -30,7 +30,7 @@ export interface TaskHistory extends Base {
   recurring: boolean;
 }
 
-export interface TaskHistoryFilter extends JSON {
+export interface TaskHistoryFilter {
   name?: string;
   onlyErrored?: boolean;
   recurring?: boolean;
