@@ -6,8 +6,9 @@ import { formatDate } from "@/lib/utils/utils";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { Check } from "@/lib/types/check";
+import { ComponentProps } from "react";
 
-interface Props {
+interface Props extends ComponentProps<'div'> {
   event: Event;
 }
 
@@ -28,7 +29,7 @@ function checksColor(finishedChecks: Check[], checks: Check[]) {
   return "text-secondary-foreground"
 }
 
-export function EventCard({ event }: Props) {
+export function EventCard({ event, ...props }: Props) {
   const navigate = useNavigate();
 
   const { user } = useAuth();
@@ -40,7 +41,7 @@ export function EventCard({ event }: Props) {
   const finishedChecks = event.checks.filter(check => check.done)
 
   return (
-    <Card onClick={handleOnClick} className={`transition-transform duration-300 hover:scale-102 hover:cursor-pointer ${isOrganizer && "border-primary"}`}>
+    <Card onClick={handleOnClick} className={`transition-transform duration-300 hover:scale-102 hover:cursor-pointer ${isOrganizer && "border-primary"}`} {...props}>
       <CardHeader className="grow">
         <CardTitle>{event.name}</CardTitle>
         <CardDescription>

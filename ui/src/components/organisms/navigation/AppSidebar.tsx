@@ -10,6 +10,7 @@ import NavEvents from "./NavEvents";
 import NavTasks from "./NavTasks";
 import { NavUser } from "./NavUser";
 import { NavAnnouncements } from "./NavAnnouncements";
+import { NavMails } from "./NavMails";
 
 function AppSidebar({ children }: { children: ReactNode }) {
   const { state: breadcrumbs } = useBreadcrumbs();
@@ -42,6 +43,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
           <SidebarGroup>
             <NavEvents />
             <NavAnnouncements />
+            <NavMails />
             <NavTasks />
           </SidebarGroup>
         </SidebarContent>

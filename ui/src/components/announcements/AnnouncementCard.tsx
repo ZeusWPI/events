@@ -25,8 +25,6 @@ export function AnnouncementCard({ event }: Props) {
     navigate({ to: "/announcements/$year/$event", params: { year: event.year.formatted, event: event.id.toString() } })
   }
 
-  console.log(event.announcement)
-
   return (
     <Card onClick={handleClick} className={`transition-transform duration-300 hover:scale-101 ${!event.announcement.send && "hover:cursor-pointer"}`}>
       <CardHeader>

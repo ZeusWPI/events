@@ -25,8 +25,8 @@ func (r *Repository) NewMail() *Mail {
 	}
 }
 
-func (m *Mail) GetAll(ctx context.Context) ([]*model.Mail, error) {
-	mails, err := m.repo.queries(ctx).MailGetAll(ctx)
+func (m *Mail) GetAllPopulated(ctx context.Context) ([]*model.Mail, error) {
+	mailsDB, err := m.repo.queries(ctx).MailGetAllPopulated(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -34,7 +34,30 @@ func (m *Mail) GetAll(ctx context.Context) ([]*model.Mail, error) {
 		return nil, fmt.Errorf("get all mails %w", err)
 	}
 
-	return utils.SliceMap(mails, model.MailModel), nil
+	mails := make(map[int]*model.Mail)
+
+	for _, mailDB := range mailsDB {
+		if _, ok := mails[int(mailDB.ID)]; !ok {
+			err := ""
+			if mailDB.Error.Valid {
+				err = mailDB.Error.String
+			}
+
+			mails[int(mailDB.ID)] = &model.Mail{
+				ID:       int(mailDB.ID),
+				Title:    mailDB.Title,
+				Content:  mailDB.Content,
+				SendTime: mailDB.SendTime.Time,
+				Send:     mailDB.Send,
+				Error:    err,
+				EventIDs: []int{},
+			}
+		}
+
+		mails[int(mailDB.ID)].EventIDs = append(mails[int(mailDB.ID)].EventIDs, int(mailDB.EventID.Int32))
+	}
+
+	return utils.MapValues(mails), nil
 }
 
 func (m *Mail) GetUnsend(ctx context.Context) ([]*model.Mail, error) {
@@ -52,6 +75,7 @@ func (m *Mail) GetUnsend(ctx context.Context) ([]*model.Mail, error) {
 func (m *Mail) Create(ctx context.Context, mail *model.Mail, eventIDs []int) error {
 	return m.repo.WithRollback(ctx, func(ctx context.Context) error {
 		id, err := m.repo.queries(ctx).MailCreate(ctx, sqlc.MailCreateParams{
+			Title:    mail.Title,
 			Content:  mail.Content,
 			SendTime: pgtype.Timestamptz{Valid: true, Time: mail.SendTime},
 			Send:     mail.Send,
@@ -83,6 +107,7 @@ func (m *Mail) Update(ctx context.Context, mail model.Mail, eventIDs []int) erro
 	return m.repo.WithRollback(ctx, func(ctx context.Context) error {
 		if err := m.repo.queries(ctx).MailUpdate(ctx, sqlc.MailUpdateParams{
 			ID:       int32(mail.ID),
+			Title:    mail.Title,
 			Content:  mail.Content,
 			SendTime: pgtype.Timestamptz{Valid: true, Time: mail.SendTime},
 		}); err != nil {

@@ -13,6 +13,7 @@ export function useEventByYear({ id }: Pick<Year, "id">) {
     queryFn: async () => (await apiGet(`${ENDPOINT}/year/${id}`, convertEventsToModel)).data,
     staleTime: MIN_5,
     throwOnError: true,
+    enabled: id > 0,
   });
 }
 

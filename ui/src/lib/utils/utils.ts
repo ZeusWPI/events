@@ -16,7 +16,13 @@ export function camelToSnake(obj: unknown): unknown {
     return obj.map(camelToSnake);
   }
 
+  if (obj instanceof Date) {
+    console.log("Date")
+    return obj.toISOString()
+  }
+
   if (typeof obj === "object") {
+    console.log(obj)
     return Object.fromEntries(
       Object.entries(obj).map(([key, value]) => [
         stringCamelToSnake(key),

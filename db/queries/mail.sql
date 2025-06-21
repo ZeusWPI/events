@@ -1,7 +1,8 @@
--- name: MailGetAll :many
+-- name: MailGetAllPopulated :many
 SELECT *
-FROM mail
-ORDER BY send_time;
+FROM mail m
+LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
+ORDER BY m.send_time;
 
 -- name: MailGetUnsend :many
 SELECT *
@@ -9,14 +10,14 @@ FROM mail
 WHERE NOT send AND error IS NULL;
 
 -- name: MailCreate :one
-INSERT INTO mail (content, send_time, send, error)
-VALUES ($1, $2, $3, $4)
+INSERT INTO mail (title, content, send_time, send, error)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
 -- name: MailUpdate :exec
 UPDATE mail
-SET content = $1, send_time = $2
-WHERE id = $3 AND NOT send;
+SET title = $1, content = $2, send_time = $3
+WHERE id = $4 AND NOT send;
 
 -- name: MailSend :exec
 UPDATE mail

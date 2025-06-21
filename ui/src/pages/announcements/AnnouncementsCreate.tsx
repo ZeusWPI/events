@@ -18,6 +18,7 @@ import { useAnnouncementCreate, useAnnouncementUpdate } from "@/lib/api/announce
 import { Announcement } from "@/lib/types/announcement";
 import { MarkdownCombo } from "@/components/organisms/markdown/MarkdownCombo";
 
+// FIX: Allow multiple announcements per event
 export function AnnouncementsCreate() {
   const { year: yearString, event: eventId } = useParams({ from: "/announcements/$year/$event" })
 
@@ -27,6 +28,8 @@ export function AnnouncementsCreate() {
   const { data: events, isLoading } = useEventByYear(year);
 
   const event = events?.find(e => e.id === Number(eventId))
+
+  const [submitting, setSubmitting] = useState(false)
   const [date, setDate] = useState(event?.announcement?.sendTime)
   const [content, setContent] = useState(event?.announcement?.content)
 
@@ -62,6 +65,8 @@ export function AnnouncementsCreate() {
       return
     }
 
+    setSubmitting(true)
+
     const announcement: Announcement = {
       id: event.announcement?.id ?? 0,
       eventId: event.id,
@@ -83,6 +88,7 @@ export function AnnouncementsCreate() {
         navigate({ to: "/announcements/$year", params: { year: yearString } })
       },
       onError: error => toast.error("Failed", { description: error.message }),
+      onSettled: () => setSubmitting(false)
     })
   }
 
@@ -96,7 +102,7 @@ export function AnnouncementsCreate() {
               Cancel
             </Link>
           </Button>
-          <Button onClick={handleSubmit} disabled={date?.getTime() === event.announcement?.sendTime.getTime() && content === event.announcement?.content}>
+          <Button onClick={handleSubmit} disabled={submitting || (date?.getTime() === event.announcement?.sendTime.getTime() && content === event.announcement?.content)}>
             Submit
           </Button>
         </div>

@@ -46,9 +46,11 @@ export namespace API {
   }
 
   export interface Mail extends Base {
+    title: string;
     content: string;
     send_time: string;
     send: boolean;
+    events: Event[];
     error?: string;
   }
 

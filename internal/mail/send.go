@@ -14,7 +14,7 @@ import (
 const mailTask = "Mail send"
 
 func (m *Mail) sendMailAll(ctx context.Context, mail model.Mail) error {
-	if err := zauth.MailAll(ctx, mail.Content); err != nil {
+	if err := zauth.MailAll(ctx, mail.Title, mail.Content); err != nil {
 		mail.Error = err.Error()
 		if dbErr := m.repoMail.Error(ctx, mail); dbErr != nil {
 			err = errors.Join(err, dbErr)

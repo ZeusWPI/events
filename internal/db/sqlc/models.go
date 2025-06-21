@@ -54,6 +54,7 @@ type Mail struct {
 	SendTime pgtype.Timestamptz
 	Send     bool
 	Error    pgtype.Text
+	Title    string
 }
 
 type MailEvent struct {
