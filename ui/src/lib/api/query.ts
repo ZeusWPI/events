@@ -115,8 +115,9 @@ function _buildFormData(data: JSONBody, files?: FileData[]): RequestInit {
     if (value !== undefined && value !== null) {
       if (typeof value === "string") {
         formData.append(key, value);
-      }
-      else {
+      } else if (value instanceof Date) {
+        formData.append(key, value.toISOString())
+      } else {
         formData.append(key, JSON.stringify(value));
       }
     }

@@ -81,3 +81,8 @@ func (event *Event) ToModel() *model.Event {
 		}),
 	}
 }
+
+type EventOrganizers struct {
+	EventID    int   `json:"event_id" validate:"required"`
+	Organizers []int `json:"organizers" validate:"required"`
+}

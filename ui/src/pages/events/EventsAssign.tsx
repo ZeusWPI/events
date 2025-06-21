@@ -26,7 +26,7 @@ export function EventsAssign() {
   const { data: events, isLoading: isLoadingEvents } = useEventByYear(year);
   const { data: organizers, isLoading: isLoadingOrganizers } = useOrganizerByYear(year);
 
-  const { mutate: updateOrganizers } = useEventSaveOrganizers();
+  const updateOrganizers = useEventSaveOrganizers();
 
   const [updatedEvents, setUpdatedEvents] = useState(events ?? []);
   const [isDirty, setIsDirty] = useState(false);
@@ -46,7 +46,7 @@ export function EventsAssign() {
 
   const handleSave = () => {
     setIsSaving(true);
-    updateOrganizers(updatedEvents, {
+    updateOrganizers.mutate(updatedEvents, {
       onSuccess: () => {
         setIsDirty(false);
         toast.success("Success");

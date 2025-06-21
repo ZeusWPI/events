@@ -1,13 +1,13 @@
 import type { API } from "./api";
 import type { Organizer } from "./organizer";
 import type { Year } from "./year";
-import { convertOrganizersToJSON, convertOrganizerToModel } from "./organizer";
-import { convertYearToJSON, convertYearToModel } from "./year";
+import { convertOrganizerToModel } from "./organizer";
+import { convertYearToModel } from "./year";
 import { Check, convertCheckToModel } from "./check";
 import { Announcement, convertAnnouncementToModel } from "./announcement";
+import { Base } from "./general";
 
-export interface Event {
-  id: number;
+export interface Event extends Base {
   url: string;
   name: string;
   description: string;
@@ -40,16 +40,3 @@ export function convertEventsToModel(events: API.Event[]): Event[] {
   return events.map(convertEventToModel).sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 }
 
-export function convertEventToJSON(event: Event): API.Event {
-  return {
-    id: event.id,
-    url: event.url,
-    name: event.name,
-    description: event.description,
-    start_time: event.startTime.toISOString(),
-    end_time: event.endTime?.toISOString() ?? "",
-    location: event.location,
-    year: convertYearToJSON(event.year),
-    organizers: convertOrganizersToJSON(event.organizers),
-  };
-}

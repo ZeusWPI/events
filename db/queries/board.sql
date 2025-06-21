@@ -1,20 +1,31 @@
--- name: BoardGetAll :many
-SELECT * FROM board;
+-- name: BoardGetAllPopulated :many
+SELECT * 
+FROM board b
+INNER JOIN member m ON b.member_id = m.id 
+INNER JOIN year y ON b.year_id = y.id;
+
+-- name: BoardGetByIds :many
+SELECT * 
+FROM board
+WHERE id = ANY($1::int[]);
 
 -- name: BoardGetByYearPopulated :many 
-SELECT * FROM board b 
+SELECT * 
+FROM board b 
 INNER JOIN member m ON b.member_id = m.id 
 INNER JOIN year y ON b.year_id = y.id
 WHERE b.year_id = $1;
 
 -- name: BoardGetByMemberYear :one 
-SELECT * FROM board b 
+SELECT * 
+FROM board b 
 INNER JOIN member m ON b.member_id = m.id 
 INNER JOIN year y ON b.year_id = y.id
 WHERE m.id = $1 AND y.id = $2;
 
 -- name: BoardGetByMemberID :many 
-SELECT * FROM board
+SELECT * 
+FROM board
 WHERE member_id = $1;
 
 -- name: BoardCreate :one

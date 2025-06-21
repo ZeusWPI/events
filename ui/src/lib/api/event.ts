@@ -1,7 +1,7 @@
 import type { Event } from "../types/event";
 import type { Year } from "../types/year";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { convertEventsToModel, convertEventToJSON } from "../types/event";
+import { convertEventsToModel } from "../types/event";
 import { apiGet, apiPost } from "./query";
 
 const ENDPOINT = "event";
@@ -20,7 +20,7 @@ export function useEventSaveOrganizers() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (events: Event[]) => apiPost(`${ENDPOINT}/organizers`, events.map(convertEventToJSON)),
+    mutationFn: async (eventOrganizers: Pick<Event, 'id' | 'organizers' | 'year'>[]) => apiPost(`${ENDPOINT}/organizers`, eventOrganizers.map(e => ({ eventId: e.id, organizers: e.organizers.map(o => o.id) }))),
     onSuccess: (_, events) => {
       const uniqueYears = Array.from(
         new Set(events.map(event => event.year.id)),

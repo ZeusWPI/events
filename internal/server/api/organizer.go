@@ -46,7 +46,7 @@ func (r *Organizer) getByYear(c *fiber.Ctx) error {
 func (r *Organizer) me(c *fiber.Ctx) error {
 	memberID := c.Locals("memberID").(int)
 
-	user, err := r.organizer.GetByID(c.Context(), memberID)
+	user, err := r.organizer.GetByMember(c.Context(), memberID)
 	if err != nil {
 		if errors.Is(err, fiber.ErrBadRequest) {
 			return fiber.ErrForbidden

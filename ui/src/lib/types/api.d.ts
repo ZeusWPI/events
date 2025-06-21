@@ -45,6 +45,13 @@ export namespace API {
     name: string;
   }
 
+  export interface Mail extends Base {
+    content: string;
+    send_time: string;
+    send: boolean;
+    error?: string;
+  }
+
   export interface Task extends Base {
     name: string;
     status: string;

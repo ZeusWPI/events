@@ -108,10 +108,13 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.39.0 // indirect
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
+	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/telemetry v0.0.0-20240521205824-bda55230c457 // indirect
 	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/tools v0.34.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
 	google.golang.org/grpc v1.71.1 // indirect
@@ -127,4 +130,5 @@ require (
 tool (
 	github.com/pressly/goose/v3/cmd/goose
 	github.com/sqlc-dev/sqlc/cmd/sqlc
+	golang.org/x/tools/cmd/deadcode
 )

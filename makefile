@@ -43,4 +43,7 @@ query:
 test:
 	go test ./..
 
-.PHONY: all setup build run watch seed goose migrate create-migration query test
+dead:
+	go tool deadcode ./...
+
+.PHONY: all setup build run watch seed goose migrate create-migration query test dead

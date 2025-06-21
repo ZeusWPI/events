@@ -10,7 +10,7 @@ type Organizer struct {
 
 func OrganizerDTO(b *model.Board) Organizer {
 	return Organizer{
-		ID:   b.Member.ID,
+		ID:   b.ID,
 		Name: b.Member.Name,
 		Role: b.Role,
 	}

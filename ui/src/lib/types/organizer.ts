@@ -1,7 +1,7 @@
 import type { API } from "./api";
+import { Base } from "./general";
 
-export interface Organizer {
-  id: number;
+export interface Organizer extends Base {
   role: string;
   name: string;
 }
@@ -16,16 +16,4 @@ export function convertOrganizerToModel(organizer: API.Organizer): Organizer {
 
 export function convertOrganizersToModel(organizers: API.Organizer[]): Organizer[] {
   return organizers.map(convertOrganizerToModel);
-}
-
-export function convertOrganizerToJSON(organizer: Organizer): API.Organizer {
-  return {
-    id: organizer.id,
-    role: organizer.role,
-    name: organizer.name,
-  };
-}
-
-export function convertOrganizersToJSON(organizers: Organizer[]): API.Organizer[] {
-  return organizers.map(organizer => convertOrganizerToJSON(organizer));
 }

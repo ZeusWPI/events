@@ -1,13 +1,13 @@
 import { randomNumber } from "../utils/utils";
 import { API } from "./api";
+import { Base } from "./general";
 
 export enum CheckSource {
   Automatic = "automatic",
   Manual = "manual",
 }
 
-export interface Check {
-  id: number;
+export interface Check extends Base {
   eventId: number;
   description: string;
   done: boolean;

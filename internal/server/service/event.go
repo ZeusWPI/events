@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"slices"
 
 	"github.com/ZeusWPI/events/internal/db/model"
@@ -73,61 +72,55 @@ func (e *Event) GetByYear(ctx context.Context, yearID int) ([]dto.Event, error) 
 	return events, nil
 }
 
-func (e *Event) UpdateOrganizers(ctx context.Context, events []dto.Event) error {
+func (e *Event) UpdateOrganizers(ctx context.Context, events []dto.EventOrganizers) error {
 	if len(events) == 0 {
 		return nil
 	}
 
-	eventsDB, err := e.event.GetByYearPopulated(ctx, events[0].Year.ID)
+	eventsDB, err := e.event.GetByIDs(ctx, utils.SliceMap(events, func(e dto.EventOrganizers) int { return e.EventID }))
 	if err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}
-	if eventsDB == nil {
-		eventsDB = []*model.Event{}
-	}
 
-	boardsDB, err := e.board.GetByYearPopulated(ctx, events[0].Year.ID)
+	boardsDB, err := e.board.GetByIDs(ctx, utils.SliceFlatten(utils.SliceMap(events, func(e dto.EventOrganizers) []int { return e.Organizers })))
 	if err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}
-	if boardsDB == nil {
-		boardsDB = []*model.Board{}
-	}
 
-	return e.service.withRollback(ctx, func(c context.Context) error {
+	return e.service.withRollback(ctx, func(ctx context.Context) error {
 		for _, event := range events {
-			eventDB, found := utils.SliceFind(eventsDB, func(e *model.Event) bool { return event.ID == e.ID })
-			if !found {
-				return fmt.Errorf("find event %+v", event)
+			if _, found := utils.SliceFind(eventsDB, func(e *model.Event) bool { return e.ID == event.EventID }); !found {
+				zap.S().Debugf("Cant find event %+v", event)
+				return fiber.ErrBadRequest
 			}
 
-			boards := make([]model.Board, 0, len(event.Organizers))
 			for _, organizer := range event.Organizers {
-				board, found := utils.SliceFind(boardsDB, func(b *model.Board) bool { return b.Member.ID == organizer.ID })
-				if !found {
-					return fmt.Errorf("find given organizer for event %+v | %+v", organizer, event)
-				}
-				boards = append(boards, *board)
-			}
-
-			for _, board := range boards {
-				if _, found := utils.SliceFind(eventDB.Organizers, func(b model.Board) bool { return board.ID == b.ID }); !found {
-					if err := e.organizer.Create(c, board.ID, event.ID); err != nil {
-						return err
-					}
+				if _, found := utils.SliceFind(boardsDB, func(b *model.Board) bool { return b.ID == organizer }); !found {
+					zap.S().Debugf("Cant find organizer %+v", event)
+					return fiber.ErrBadRequest
 				}
 			}
 
-			// Remove old organizers
-			for _, organizer := range eventDB.Organizers {
-				if _, found := utils.SliceFind(boards, func(b model.Board) bool { return organizer.ID == b.ID }); !found {
-					if err := e.organizer.DeleteByBoardEvent(c, organizer.ID, event.ID); err != nil {
-						return err
-					}
-				}
+			if err := e.organizer.DeleteByEvent(ctx, event.EventID); err != nil {
+				zap.S().Error(err)
+				return fiber.ErrInternalServerError
 			}
+
+			organizers := make([]model.Organizer, 0, len(event.Organizers))
+			for _, organizer := range event.Organizers {
+				organizers = append(organizers, model.Organizer{
+					EventID: event.EventID,
+					BoardID: organizer,
+				})
+			}
+
+			if err := e.organizer.CreateBatch(ctx, organizers); err != nil {
+				zap.S().Error(err)
+				return fiber.ErrInternalServerError
+			}
+
 		}
 
 		return nil

@@ -1,7 +1,7 @@
 import { API } from "./api";
+import { Base } from "./general";
 
-export interface Announcement {
-  id: number;
+export interface Announcement extends Base {
   eventId: number;
   content: string;
   sendTime: Date;
@@ -24,12 +24,3 @@ export function convertAnnouncementsToModel(announcements: API.Announcement[]): 
   return announcements.map(convertAnnouncementToModel)
 }
 
-export function convertAnnouncementToJSON(announcement: Announcement): API.Announcement {
-  return {
-    id: announcement.id,
-    event_id: announcement.eventId,
-    content: announcement.content,
-    send_time: announcement.sendTime.toISOString(),
-    send: announcement.send,
-  }
-}

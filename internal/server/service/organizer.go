@@ -28,8 +28,8 @@ func (s *Service) NewOrganizer() *Organizer {
 	}
 }
 
-func (o *Organizer) GetByID(ctx context.Context, id int) (dto.Organizer, error) {
-	member, err := o.member.GetByID(ctx, id)
+func (o *Organizer) GetByMember(ctx context.Context, memberID int) (dto.Organizer, error) {
+	member, err := o.member.GetByID(ctx, memberID)
 	if err != nil {
 		zap.S().Error(err)
 		return dto.Organizer{}, fiber.ErrInternalServerError

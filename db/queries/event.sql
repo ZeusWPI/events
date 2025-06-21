@@ -1,6 +1,12 @@
 -- name: EventGetById :one 
-SELECT * FROM event 
+SELECT * 
+FROM event 
 WHERE id = $1;
+
+-- name: EventGetByIds :many
+SELECT *
+FROM event
+WHERE id = ANY($1::int[]);
 
 -- name: EventGetAllWithYear :many 
 SELECT * FROM event

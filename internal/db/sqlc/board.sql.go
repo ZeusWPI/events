@@ -40,12 +40,67 @@ func (q *Queries) BoardDelete(ctx context.Context, id int32) error {
 	return err
 }
 
-const boardGetAll = `-- name: BoardGetAll :many
-SELECT id, member_id, year_id, role FROM board
+const boardGetAllPopulated = `-- name: BoardGetAllPopulated :many
+SELECT b.id, member_id, year_id, role, m.id, name, username, zauth_id, y.id, year_start, year_end 
+FROM board b
+INNER JOIN member m ON b.member_id = m.id 
+INNER JOIN year y ON b.year_id = y.id
 `
 
-func (q *Queries) BoardGetAll(ctx context.Context) ([]Board, error) {
-	rows, err := q.db.Query(ctx, boardGetAll)
+type BoardGetAllPopulatedRow struct {
+	ID        int32
+	MemberID  int32
+	YearID    int32
+	Role      string
+	ID_2      int32
+	Name      string
+	Username  pgtype.Text
+	ZauthID   pgtype.Int4
+	ID_3      int32
+	YearStart int32
+	YearEnd   int32
+}
+
+func (q *Queries) BoardGetAllPopulated(ctx context.Context) ([]BoardGetAllPopulatedRow, error) {
+	rows, err := q.db.Query(ctx, boardGetAllPopulated)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []BoardGetAllPopulatedRow
+	for rows.Next() {
+		var i BoardGetAllPopulatedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.MemberID,
+			&i.YearID,
+			&i.Role,
+			&i.ID_2,
+			&i.Name,
+			&i.Username,
+			&i.ZauthID,
+			&i.ID_3,
+			&i.YearStart,
+			&i.YearEnd,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const boardGetByIds = `-- name: BoardGetByIds :many
+SELECT id, member_id, year_id, role 
+FROM board
+WHERE id = ANY($1::int[])
+`
+
+func (q *Queries) BoardGetByIds(ctx context.Context, dollar_1 []int32) ([]Board, error) {
+	rows, err := q.db.Query(ctx, boardGetByIds, dollar_1)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +125,8 @@ func (q *Queries) BoardGetAll(ctx context.Context) ([]Board, error) {
 }
 
 const boardGetByMemberID = `-- name: BoardGetByMemberID :many
-SELECT id, member_id, year_id, role FROM board
+SELECT id, member_id, year_id, role 
+FROM board
 WHERE member_id = $1
 `
 
@@ -100,7 +156,8 @@ func (q *Queries) BoardGetByMemberID(ctx context.Context, memberID int32) ([]Boa
 }
 
 const boardGetByMemberYear = `-- name: BoardGetByMemberYear :one
-SELECT b.id, member_id, year_id, role, m.id, name, username, zauth_id, y.id, year_start, year_end FROM board b 
+SELECT b.id, member_id, year_id, role, m.id, name, username, zauth_id, y.id, year_start, year_end 
+FROM board b 
 INNER JOIN member m ON b.member_id = m.id 
 INNER JOIN year y ON b.year_id = y.id
 WHERE m.id = $1 AND y.id = $2
@@ -145,7 +202,8 @@ func (q *Queries) BoardGetByMemberYear(ctx context.Context, arg BoardGetByMember
 }
 
 const boardGetByYearPopulated = `-- name: BoardGetByYearPopulated :many
-SELECT b.id, member_id, year_id, role, m.id, name, username, zauth_id, y.id, year_start, year_end FROM board b 
+SELECT b.id, member_id, year_id, role, m.id, name, username, zauth_id, y.id, year_start, year_end 
+FROM board b 
 INNER JOIN member m ON b.member_id = m.id 
 INNER JOIN year y ON b.year_id = y.id
 WHERE b.year_id = $1

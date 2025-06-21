@@ -99,7 +99,7 @@ func (w *Website) UpdateBoard(ctx context.Context) error {
 		return nil
 	}
 
-	oldBoards, err := w.boardRepo.GetAll(ctx)
+	oldBoards, err := w.boardRepo.GetAllPopulated(ctx)
 	if err != nil {
 		return err
 	}

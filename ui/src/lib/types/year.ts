@@ -1,7 +1,7 @@
 import type { API } from "./api";
+import { Base } from "./general";
 
-export interface Year {
-  id: number;
+export interface Year extends Base {
   start: number;
   end: number;
   formatted: string;
@@ -21,12 +21,4 @@ export function convertYearToModel(year: API.Year): Year {
 
 export function convertYearsToModel(years: API.Year[]): Year[] {
   return years.map(convertYearToModel);
-}
-
-export function convertYearToJSON(year: Year): API.Year {
-  return {
-    id: year.id,
-    start: year.start,
-    end: year.end,
-  };
 }

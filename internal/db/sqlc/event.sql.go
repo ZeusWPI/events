@@ -104,7 +104,8 @@ func (q *Queries) EventGetAllWithYear(ctx context.Context) ([]EventGetAllWithYea
 }
 
 const eventGetById = `-- name: EventGetById :one
-SELECT id, file_name, name, description, start_time, end_time, location, year_id FROM event 
+SELECT id, file_name, name, description, start_time, end_time, location, year_id 
+FROM event 
 WHERE id = $1
 `
 
@@ -122,6 +123,41 @@ func (q *Queries) EventGetById(ctx context.Context, id int32) (Event, error) {
 		&i.YearID,
 	)
 	return i, err
+}
+
+const eventGetByIds = `-- name: EventGetByIds :many
+SELECT id, file_name, name, description, start_time, end_time, location, year_id
+FROM event
+WHERE id = ANY($1::int[])
+`
+
+func (q *Queries) EventGetByIds(ctx context.Context, dollar_1 []int32) ([]Event, error) {
+	rows, err := q.db.Query(ctx, eventGetByIds, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Event
+	for rows.Next() {
+		var i Event
+		if err := rows.Scan(
+			&i.ID,
+			&i.FileName,
+			&i.Name,
+			&i.Description,
+			&i.StartTime,
+			&i.EndTime,
+			&i.Location,
+			&i.YearID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const eventGetByYearPopulated = `-- name: EventGetByYearPopulated :many

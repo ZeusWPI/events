@@ -1,12 +1,12 @@
 import type { API } from "./api";
+import { Base } from "./general";
 
 export enum TaskStatus {
   running = "running",
   waiting = "waiting",
 }
 
-export interface Task {
-  id: number;
+export interface Task extends Base {
   name: string;
   status: TaskStatus;
   nextRun: Date;
@@ -22,8 +22,7 @@ export enum TaskHistoryStatus {
   failed = "failed",
 }
 
-export interface TaskHistory {
-  id: number;
+export interface TaskHistory extends Base {
   name: string;
   result: TaskHistoryStatus;
   runAt: Date;
@@ -31,7 +30,7 @@ export interface TaskHistory {
   recurring: boolean;
 }
 
-export interface TaskHistoryFilter {
+export interface TaskHistoryFilter extends JSON {
   name?: string;
   onlyErrored?: boolean;
   recurring?: boolean;

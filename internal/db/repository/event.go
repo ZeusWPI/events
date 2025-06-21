@@ -26,16 +26,28 @@ func (r *Repository) NewEvent() *Event {
 	}
 }
 
-func (e *Event) GetByID(ctx context.Context, id int) (*model.Event, error) {
-	event, err := e.repo.queries(ctx).EventGetById(ctx, int32(id))
+func (e *Event) GetByID(ctx context.Context, eventID int) (*model.Event, error) {
+	event, err := e.repo.queries(ctx).EventGetById(ctx, int32(eventID))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get event by id %d | %w", id, err)
+		return nil, fmt.Errorf("get event by id %d | %w", eventID, err)
 	}
 
 	return model.EventModel(event), nil
+}
+
+func (e *Event) GetByIDs(ctx context.Context, eventIDs []int) ([]*model.Event, error) {
+	events, err := e.repo.queries(ctx).EventGetByIds(ctx, utils.SliceMap(eventIDs, func(id int) int32 { return int32(id) }))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get event by ids %+v | %w", eventIDs, err)
+	}
+
+	return utils.SliceMap(events, model.EventModel), nil
 }
 
 func (e *Event) GetAllWithYear(ctx context.Context) ([]*model.Event, error) {

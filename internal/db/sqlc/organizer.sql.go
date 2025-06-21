@@ -27,6 +27,24 @@ func (q *Queries) OrganizerCreate(ctx context.Context, arg OrganizerCreateParams
 	return id, err
 }
 
+const organizerCreateBatch = `-- name: OrganizerCreateBatch :exec
+INSERT INTO organizer (event_id, board_id)
+VALUES (
+  UNNEST($1::int[]),
+  UNNEST($2::int[])
+)
+`
+
+type OrganizerCreateBatchParams struct {
+	Column1 []int32
+	Column2 []int32
+}
+
+func (q *Queries) OrganizerCreateBatch(ctx context.Context, arg OrganizerCreateBatchParams) error {
+	_, err := q.db.Exec(ctx, organizerCreateBatch, arg.Column1, arg.Column2)
+	return err
+}
+
 const organizerDeleteByBoardEvent = `-- name: OrganizerDeleteByBoardEvent :exec
 DELETE FROM organizer 
 WHERE board_id = $1 AND event_id = $2
@@ -39,5 +57,15 @@ type OrganizerDeleteByBoardEventParams struct {
 
 func (q *Queries) OrganizerDeleteByBoardEvent(ctx context.Context, arg OrganizerDeleteByBoardEventParams) error {
 	_, err := q.db.Exec(ctx, organizerDeleteByBoardEvent, arg.BoardID, arg.EventID)
+	return err
+}
+
+const organizerDeleteByEvent = `-- name: OrganizerDeleteByEvent :exec
+DELETE FROM organizer
+WHERE event_id = $1
+`
+
+func (q *Queries) OrganizerDeleteByEvent(ctx context.Context, eventID int32) error {
+	_, err := q.db.Exec(ctx, organizerDeleteByEvent, eventID)
 	return err
 }

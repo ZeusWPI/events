@@ -28,7 +28,6 @@ func NewEvent(router fiber.Router, service service.Service) *Event {
 func (r *Event) createRoutes() {
 	r.router.Get("/year/:id", r.getByYear)
 	r.router.Post("/organizers", r.updateOrganizers)
-	r.router.Post("/sync", r.sync)
 }
 
 func (r *Event) getByYear(c *fiber.Ctx) error {
@@ -46,7 +45,7 @@ func (r *Event) getByYear(c *fiber.Ctx) error {
 }
 
 func (r *Event) updateOrganizers(c *fiber.Ctx) error {
-	var events []dto.Event
+	var events []dto.EventOrganizers
 	if err := c.BodyParser(&events); err != nil {
 		return fiber.ErrBadRequest
 	}
@@ -62,12 +61,4 @@ func (r *Event) updateOrganizers(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
-}
-
-func (r *Event) sync(c *fiber.Ctx) error {
-	if err := r.website.Sync(); err != nil {
-		return err
-	}
-
-	return c.SendStatus(fiber.StatusAccepted)
 }
