@@ -14,6 +14,7 @@ import (
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/ZeusWPI/events/pkg/db"
 	"github.com/ZeusWPI/events/pkg/logger"
+	"github.com/ZeusWPI/events/pkg/storage"
 	"go.uber.org/zap"
 )
 
@@ -26,6 +27,7 @@ func main() {
 	zapLogger := logger.New()
 	zap.ReplaceGlobals(zapLogger)
 
+	// Databases
 	db, err := db.NewPSQL(db.PSQLOptions{
 		Host:     config.GetString("db.host"),
 		Port:     uint16(config.GetInt("db.port")),
@@ -35,6 +37,10 @@ func main() {
 	})
 	if err != nil {
 		zap.S().Fatalf("Unable to connect to database %v", err)
+	}
+
+	if err = storage.Init(db.Pool()); err != nil {
+		zap.S().Fatalf("Unable to init storage %v", err)
 	}
 
 	repo := repository.New(db)
