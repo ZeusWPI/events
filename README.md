@@ -137,9 +137,23 @@ docker compose up backend frontend db
 
 1) Run
 
-    ```bash
-    make create-migration
-    ```
+- Postgres
+- Minio (or any S3 equivalent e.g. Garage)
+
+> !NOTE
+> Make sure to set the environment to `production` and populate the `production.yml` file.
+
+## Useful flows
+
+### Add a new typed query (sqlc)
+
+1) Add your new query to db/queries/{target}.sql
+2) Run `make query`
+3) Enjoy your statically typed query
+
+### Adding a migration
+
+1) Run `make create-migration`
 
 > [!NOTE]
 > Nix users using devshell need to run `goose -dir ./db/migrations postgres create my_migration_name sql`
