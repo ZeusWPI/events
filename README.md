@@ -50,6 +50,7 @@ It is recommended to run the application in a docker container.
 It needs the following additional resources:
 
 - Postgres
+- Minio (or any S3 equivalent e.g. Garage)
 
 > !NOTE
 > Make sure to set the environment to `production` and populate the `production.yml` file.
