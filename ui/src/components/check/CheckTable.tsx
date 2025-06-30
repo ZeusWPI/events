@@ -131,7 +131,8 @@ export function CheckTable({ checks, eventId }: Props) {
       },
       meta: { small: true, horizontalAlign: "justify-end" },
     }
-  ], [toggleStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+  ], [checks, toggleStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="space-y-4">
       {addCheck && (

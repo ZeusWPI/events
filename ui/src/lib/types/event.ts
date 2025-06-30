@@ -6,6 +6,7 @@ import { convertYearToModel } from "./year";
 import { Check, convertCheckToModel } from "./check";
 import { Announcement, convertAnnouncementToModel } from "./announcement";
 import { Base } from "./general";
+import { convertPosterToModel, Poster } from "./poster";
 
 export interface Event extends Base {
   url: string;
@@ -18,6 +19,7 @@ export interface Event extends Base {
   organizers: Organizer[];
   checks: Check[];
   announcement?: Announcement;
+  posters: Poster[];
 }
 
 export function convertEventToModel(event: API.Event): Event {
@@ -32,7 +34,8 @@ export function convertEventToModel(event: API.Event): Event {
     year: convertYearToModel(event.year),
     organizers: event.organizers.map(convertOrganizerToModel),
     checks: event.checks ? event.checks.map(convertCheckToModel) : [],
-    announcement: event.announcement ? convertAnnouncementToModel(event.announcement) : undefined
+    announcement: event.announcement ? convertAnnouncementToModel(event.announcement) : undefined,
+    posters: event.posters.map(convertPosterToModel)
   };
 }
 

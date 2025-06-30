@@ -17,6 +17,7 @@ export namespace API {
     organizers: Organizer[];
     checks?: Check[];
     announcement?: Announcement;
+    posters: Poster[];
   }
 
   export interface Check extends Base {
@@ -43,6 +44,11 @@ export namespace API {
   export interface Organizer extends Base {
     role: string;
     name: string;
+  }
+
+  export interface Poster extends Base {
+    event_id: number;
+    scc: boolean;
   }
 
   export interface Mail extends Base {
