@@ -119,6 +119,7 @@ func (w *Website) UpdateBoard(ctx context.Context) error {
 				errs = append(errs, err)
 				continue
 			}
+			members = append(members, &board.Member)
 			board.MemberID = board.Member.ID
 		}
 
