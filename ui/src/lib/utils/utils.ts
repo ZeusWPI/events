@@ -2,6 +2,7 @@ import type { ClassValue } from "clsx";
 import { clsx } from "clsx";
 import { format } from "date-fns";
 import { twMerge } from "tailwind-merge";
+import { v4 as uuid } from 'uuid'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -17,12 +18,10 @@ export function camelToSnake(obj: unknown): unknown {
   }
 
   if (obj instanceof Date) {
-    console.log("Date")
     return obj.toISOString()
   }
 
   if (typeof obj === "object") {
-    console.log(obj)
     return Object.fromEntries(
       Object.entries(obj).map(([key, value]) => [
         stringCamelToSnake(key),
@@ -62,4 +61,22 @@ export function getBuildTime() {
 
 export function randomNumber() {
   return Math.floor(Math.random() * (100000 - 10000)) + 10000;
+}
+
+export function getUuid() {
+  return uuid()
+}
+
+export function arrayEqual<T extends ArrayLike<unknown>>(a: T, b: T): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }

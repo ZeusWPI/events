@@ -145,7 +145,7 @@ async function _fetch<T, U>(url: string, options: RequestInit = {}, convertData?
 
     if (contentType?.includes(CONTENT_TYPE.JSON))
       return { data: await response.json() as Promise<unknown>, response };
-    else if ([CONTENT_TYPE.PDF, CONTENT_TYPE.DOC, CONTENT_TYPE.DOCX, CONTENT_TYPE.ODT].some(t => contentType?.includes(t)))
+    else if ([CONTENT_TYPE.PDF, CONTENT_TYPE.PNG].some(t => contentType?.includes(t)))
       return { data: await response.blob(), response };
     else
       return { data: await response.text(), response };
