@@ -22,5 +22,13 @@ func DSA(d *dsa.DSA, t *task.Manager, c *check.Manager) error {
 		return err
 	}
 
+	if err := t.Add(task.NewTask(
+		dsa.CreateActivitesTask,
+		time.Duration(config.GetDefaultInt("dsa.create_activities_s", 7200))*time.Second,
+		d.CreateActivities,
+	)); err != nil {
+		return err
+	}
+
 	return nil
 }

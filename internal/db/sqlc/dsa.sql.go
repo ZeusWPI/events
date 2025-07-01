@@ -7,21 +7,23 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const dsaCreate = `-- name: DsaCreate :one
-INSERT INTO dsa (event_id, entry)
+INSERT INTO dsa (event_id, dsa_id)
 VALUES ($1, $2)
 RETURNING id
 `
 
 type DsaCreateParams struct {
 	EventID int32
-	Entry   bool
+	DsaID   pgtype.Int4
 }
 
 func (q *Queries) DsaCreate(ctx context.Context, arg DsaCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, dsaCreate, arg.EventID, arg.Entry)
+	row := q.db.QueryRow(ctx, dsaCreate, arg.EventID, arg.DsaID)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
@@ -38,7 +40,7 @@ func (q *Queries) DsaDelete(ctx context.Context, id int32) error {
 }
 
 const dsaGetByEvents = `-- name: DsaGetByEvents :many
-SELECT id, event_id, entry
+SELECT id, event_id, dsa_id
 FROM dsa 
 WHERE event_id = ANY($1::int[])
 `
@@ -52,7 +54,7 @@ func (q *Queries) DsaGetByEvents(ctx context.Context, dollar_1 []int32) ([]Dsa, 
 	var items []Dsa
 	for rows.Next() {
 		var i Dsa
-		if err := rows.Scan(&i.ID, &i.EventID, &i.Entry); err != nil {
+		if err := rows.Scan(&i.ID, &i.EventID, &i.DsaID); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -61,4 +63,21 @@ func (q *Queries) DsaGetByEvents(ctx context.Context, dollar_1 []int32) ([]Dsa, 
 		return nil, err
 	}
 	return items, nil
+}
+
+const dsaUpdate = `-- name: DsaUpdate :exec
+UPDATE dsa
+SET event_id = $1, dsa_id = $2
+WHERE id = $3
+`
+
+type DsaUpdateParams struct {
+	EventID int32
+	DsaID   pgtype.Int4
+	ID      int32
+}
+
+func (q *Queries) DsaUpdate(ctx context.Context, arg DsaUpdateParams) error {
+	_, err := q.db.Exec(ctx, dsaUpdate, arg.EventID, arg.DsaID, arg.ID)
+	return err
 }

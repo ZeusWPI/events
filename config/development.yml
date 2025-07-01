@@ -2,7 +2,7 @@ app:
   name: events
 
 db:
-  host: db
+  host: localhost
   port: 5432
   database: events
   user: postgres
@@ -33,8 +33,11 @@ website:
   boards_s: 86400
 
 dsa:
-  url: "https://dsa.ugent.be/api/activiteiten?page_size=100&association=zeus"
+  url: "http://localhost:3000/api"
+  assoc_abbrev: "weus" # local dsa instance
   activities_s: 3600
+  create_activities_s: 7200
+
 
 mattermost:
   url: https://mattermost.zeus.gent

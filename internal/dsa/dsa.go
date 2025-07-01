@@ -12,8 +12,9 @@ import (
 )
 
 type DSA struct {
-	dsaURL string
-	dsaKey string
+	dsaURL       string
+	dsaKey       string
+	abbreviation string
 
 	repoDSA   repository.DSA
 	repoEvent repository.Event
@@ -30,12 +31,18 @@ func New(repo repository.Repository) (*DSA, error) {
 		return nil, errors.New("no dsa api key set")
 	}
 
+	abbreviation := config.GetDefaultString("dsa.assoc_abbrev", "")
+	if abbreviation == "" {
+		return nil, errors.New("no association abbreviation set")
+	}
+
 	return &DSA{
-		dsaURL:    url,
-		dsaKey:    dsaKey,
-		repoDSA:   *repo.NewDSA(),
-		repoEvent: *repo.NewEvent(),
-		repoYear:  *repo.NewYear(),
+		dsaURL:       url,
+		dsaKey:       dsaKey,
+		abbreviation: abbreviation,
+		repoDSA:      *repo.NewDSA(),
+		repoEvent:    *repo.NewEvent(),
+		repoYear:     *repo.NewYear(),
 	}, nil
 }
 
@@ -68,7 +75,7 @@ func (d *DSA) Status(ctx context.Context, events []model.Event) []check.CheckRes
 
 	for _, dsa := range dsas {
 		if status, ok := statusses[dsa.EventID]; ok {
-			if dsa.Entry {
+			if dsa.DsaID != 0 {
 				status.Status = check.Finished
 			}
 			statusses[dsa.EventID] = status
