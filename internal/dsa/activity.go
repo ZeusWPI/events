@@ -26,7 +26,7 @@ type activityResponse struct {
 type activity struct {
 	Association string    `json:"association"`
 	StartTime   time.Time `json:"start_time"`
-	Id          int       `json:"id"`
+	ID          int       `json:"id"`
 }
 
 type activityCreate struct {
@@ -41,7 +41,7 @@ type activityCreate struct {
 	Terrain     string    `json:"terrain"`
 }
 
-func (d *DSA) BuildDsaUrl(endpoint string, queries map[string]string) (string, error) {
+func (d *DSA) BuildDsaURL(endpoint string, queries map[string]string) (string, error) {
 	u, err := url.Parse(d.dsaURL)
 
 	if err != nil {
@@ -65,7 +65,7 @@ func (d *DSA) BuildDsaUrl(endpoint string, queries map[string]string) (string, e
 }
 
 func (d *DSA) getActivities(ctx context.Context, target *activityResponse) error {
-	dsa_url, err := d.BuildDsaUrl("activiteiten", map[string]string{
+	dsaURL, err := d.BuildDsaURL("activiteiten", map[string]string{
 		"page_size":   "100",
 		"association": d.abbreviation,
 	})
@@ -73,7 +73,7 @@ func (d *DSA) getActivities(ctx context.Context, target *activityResponse) error
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", dsa_url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", dsaURL, nil)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)
 	}
@@ -101,7 +101,7 @@ func (d *DSA) getActivities(ctx context.Context, target *activityResponse) error
 }
 
 func (d *DSA) createActivity(ctx context.Context, body *activityCreate, target *activity) error {
-	dsa_url, err := d.BuildDsaUrl("activiteiten", map[string]string{})
+	dsaURL, err := d.BuildDsaURL("activiteiten", map[string]string{})
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (d *DSA) createActivity(ctx context.Context, body *activityCreate, target *
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", dsa_url, &buf)
+	req, err := http.NewRequestWithContext(ctx, "POST", dsaURL, &buf)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)
 	}
@@ -200,11 +200,11 @@ func (d *DSA) CreateActivities(ctx context.Context) error {
 				return err
 			}
 
-			dsa.DsaID = response.Id
+			dsa.DsaID = response.ID
 
 		} else {
 			// Event is already on the dsa website, added manually
-			dsa.DsaID = act.Id
+			dsa.DsaID = act.ID
 		}
 
 		if err := d.repoDSA.Update(ctx, dsa); err != nil {
@@ -253,7 +253,7 @@ func (d *DSA) UpdateActivities(ctx context.Context) error {
 		if activityOk {
 			// Event is on the dsa website
 			if !dsaOk {
-				toCreate = append(toCreate, &model.DSA{EventID: event.ID, DsaID: activity.Id})
+				toCreate = append(toCreate, &model.DSA{EventID: event.ID, DsaID: activity.ID})
 			}
 		} else if !dsaOk {
 			// Event is not on the dsa website yet (or has been removed)
