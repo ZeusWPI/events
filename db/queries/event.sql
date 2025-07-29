@@ -60,6 +60,16 @@ SELECT jsonb_build_object(
     FROM board b 
     INNER JOIN organizer o ON o.board_id = b.id
     WHERE o.event_id = e.id
+  ),
+  'posters', (
+    SELECT coalesce(json_agg(jsonb_build_object(
+      'id', p.id,
+      'event_id', p.event_id,
+      'file_id', p.file_id,
+      'scc', p.scc
+    )), '[]')
+    FROM poster p 
+    WHERE p.event_id = e.id
   )
 )
 FROM event e 

@@ -76,6 +76,13 @@ type Organizer struct {
 	BoardID int32
 }
 
+type Poster struct {
+	ID      int32
+	EventID int32
+	FileID  string
+	Scc     bool
+}
+
 type Task struct {
 	ID        int32
 	Name      string

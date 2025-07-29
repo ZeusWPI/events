@@ -16,8 +16,9 @@ type Event struct {
 	YearID      int       `json:"year_id"`
 	Location    string    `json:"location"`
 	// Non db fields
-	Year       Year    `json:"year"`
-	Organizers []Board `json:"organizers"`
+	Year       Year     `json:"year"`
+	Organizers []Board  `json:"organizers"`
+	Posters    []Poster `json:"posters"`
 }
 
 func EventModel(event sqlc.Event) *Event {

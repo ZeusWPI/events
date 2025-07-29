@@ -23,6 +23,7 @@ type Event struct {
 	Organizers   []Organizer  `json:"organizers"`
 	Checks       []Check      `json:"checks"`
 	Announcement Announcement `json:"announcement,omitzero"`
+	Posters      []Poster     `json:"posters"`
 }
 
 func EventDTO(event *model.Event) Event {
@@ -45,6 +46,7 @@ func EventDTO(event *model.Event) Event {
 			End:   event.Year.End,
 		},
 		Organizers: utils.SliceMap(utils.SliceReference(event.Organizers), OrganizerDTO),
+		Posters:    utils.SliceMap(utils.SliceReference(event.Posters), PosterDTO),
 	}
 }
 
