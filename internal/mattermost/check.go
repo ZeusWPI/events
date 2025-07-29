@@ -26,12 +26,12 @@ func (c *CheckAnnouncement) Description() string {
 	return "Write a Mattermost announcement"
 }
 
-func (c *CheckAnnouncement) Status(ctx context.Context, events []model.Event) []check.StatusResult {
-	statusses := make(map[int]check.StatusResult)
+func (c *CheckAnnouncement) Status(ctx context.Context, events []model.Event) []check.CheckResult {
+	statusses := make(map[int]check.CheckResult)
 	for _, event := range events {
-		statusses[event.ID] = check.StatusResult{
+		statusses[event.ID] = check.CheckResult{
 			EventID: event.ID,
-			Done:    false,
+			Status:  check.Unfinished,
 			Error:   nil,
 		}
 	}
@@ -48,7 +48,7 @@ func (c *CheckAnnouncement) Status(ctx context.Context, events []model.Event) []
 
 	for _, announcement := range announcements {
 		if status, ok := statusses[announcement.EventID]; ok {
-			status.Done = true
+			status.Status = check.Finished
 			statusses[announcement.EventID] = status
 		}
 	}

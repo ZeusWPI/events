@@ -25,12 +25,12 @@ func (c *CheckMail) Description() string {
 	return "Cover the event in an mail"
 }
 
-func (c *CheckMail) Status(ctx context.Context, events []model.Event) []check.StatusResult {
-	statusses := make(map[int]check.StatusResult)
+func (c *CheckMail) Status(ctx context.Context, events []model.Event) []check.CheckResult {
+	statusses := make(map[int]check.CheckResult)
 	for _, event := range events {
-		statusses[event.ID] = check.StatusResult{
+		statusses[event.ID] = check.CheckResult{
 			EventID: event.ID,
-			Done:    false,
+			Status:  check.Unfinished,
 			Error:   nil,
 		}
 	}
@@ -47,7 +47,7 @@ func (c *CheckMail) Status(ctx context.Context, events []model.Event) []check.St
 
 	for _, mail := range mails {
 		if status, ok := statusses[mail.EventID]; ok {
-			status.Done = true
+			status.Status = check.Finished
 			statusses[mail.EventID] = status
 		}
 	}

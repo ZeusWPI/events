@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Manager manages all the checks
 // Just like the task manager you need to reregister checks after an application reboot
 type Manager struct {
 	checks []Check
@@ -42,7 +43,7 @@ func (m *Manager) Register(check Check) error {
 	return nil
 }
 
-func (m *Manager) Status(ctx context.Context, yearID int) (map[int][]Status, error) {
+func (m *Manager) Status(ctx context.Context, yearID int) (map[int][]EventStatus, error) {
 	eventsDB, err := m.repoEvent.GetByYearPopulated(ctx, yearID)
 	if err != nil {
 		return nil, err
@@ -52,7 +53,7 @@ func (m *Manager) Status(ctx context.Context, yearID int) (map[int][]Status, err
 	}
 	events := utils.SliceDereference(eventsDB)
 
-	statusses := map[int][]Status{}
+	statusses := map[int][]EventStatus{}
 
 	// DB checks
 	checks, err := m.repoCheck.GetByEvents(ctx, events)
@@ -61,16 +62,21 @@ func (m *Manager) Status(ctx context.Context, yearID int) (map[int][]Status, err
 	}
 
 	for _, check := range checks {
-		status := Status{
+		status := Unfinished
+		if check.Done {
+			status = Finished
+		}
+
+		eventStatus := EventStatus{
 			ID:          check.ID,
 			EventID:     check.EventID,
 			Description: check.Description,
-			Done:        check.Done,
+			Status:      status,
 			Error:       nil,
 			Source:      Manual,
 		}
 
-		statusses[check.EventID] = append(statusses[check.EventID], status)
+		statusses[check.EventID] = append(statusses[check.EventID], eventStatus)
 	}
 	// Registered checks
 	for _, check := range m.checks {
@@ -78,11 +84,11 @@ func (m *Manager) Status(ctx context.Context, yearID int) (map[int][]Status, err
 		name := check.Description()
 
 		for _, result := range results {
-			status := Status{
+			status := EventStatus{
 				ID:          0,
 				EventID:     result.EventID,
 				Description: name,
-				Done:        result.Done,
+				Status:      result.Status,
 				Error:       result.Error,
 				Source:      Automatic,
 			}

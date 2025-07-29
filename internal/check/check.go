@@ -8,13 +8,21 @@ import (
 
 type Check interface {
 	Description() string
-	Status(ctx context.Context, events []model.Event) []StatusResult
+	Status(ctx context.Context, events []model.Event) []CheckResult
 }
 
-// The result of a status query
-type StatusResult struct {
+type Status string
+
+const (
+	Finished   Status = "finished"
+	Unfinished Status = "unfinished"
+	Warning    Status = "warning"
+)
+
+// CheckResult is the result of a status query
+type CheckResult struct {
 	EventID int
-	Done    bool
+	Status  Status
 	Error   error
 }
 
@@ -25,13 +33,13 @@ const (
 	Manual    Source = "manual"
 )
 
-// Status contains all the info of a check
+// EventStatus contains all the info of a check
 // Has some optional fields depending on the source
-type Status struct {
-	ID          int // Only for manual tasks
+type EventStatus struct {
+	ID          int // Only for tasks entered in the website
 	EventID     int
 	Description string
-	Done        bool
+	Status      Status
 	Error       error
 	Source      Source
 }

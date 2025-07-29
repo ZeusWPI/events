@@ -46,12 +46,12 @@ func (d *DSA) Description() string {
 	return "Add event to the DSA website"
 }
 
-func (d *DSA) Status(ctx context.Context, events []model.Event) []check.StatusResult {
-	statusses := make(map[int]check.StatusResult)
+func (d *DSA) Status(ctx context.Context, events []model.Event) []check.CheckResult {
+	statusses := make(map[int]check.CheckResult)
 	for _, event := range events {
-		statusses[event.ID] = check.StatusResult{
+		statusses[event.ID] = check.CheckResult{
 			EventID: event.ID,
-			Done:    false,
+			Status:  check.Unfinished,
 			Error:   nil,
 		}
 	}
@@ -68,7 +68,9 @@ func (d *DSA) Status(ctx context.Context, events []model.Event) []check.StatusRe
 
 	for _, dsa := range dsas {
 		if status, ok := statusses[dsa.EventID]; ok {
-			status.Done = dsa.Entry
+			if dsa.Entry {
+				status.Status = check.Finished
+			}
 			statusses[dsa.EventID] = status
 		}
 	}
