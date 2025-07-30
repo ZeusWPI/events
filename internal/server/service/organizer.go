@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/pkg/utils"
@@ -65,6 +66,8 @@ func (o *Organizer) GetByYear(ctx context.Context, yearID int) ([]dto.Organizer,
 		return []dto.Organizer{}, nil
 	}
 
+	organizers = utils.SliceFilter(organizers, func(b *model.Board) bool { return b.IsOrganizer })
+
 	return utils.SliceMap(organizers, dto.OrganizerDTO), nil
 }
 
@@ -75,7 +78,44 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 		return dto.Organizer{}, err
 	}
 	if member == nil {
-		return dto.Organizer{}, fiber.ErrBadRequest
+		// Member not in DB yet
+		// Probably means he's not a board member
+		// If he turns out to be a board member it will be corrected by a bestuur update task
+		// Let's add the user as a non organizer member
+		if err := o.service.withRollback(ctx, func(ctx context.Context) error {
+			member = &model.Member{
+				Name:     zauth.FullName,
+				Username: zauth.Username,
+				ZauthID:  zauth.ID,
+			}
+
+			if err = o.member.Create(ctx, member); err != nil {
+				zap.S().Error(err)
+				return fiber.ErrInternalServerError
+			}
+
+			year, err := o.year.GetLast(ctx)
+			if err != nil {
+				zap.S().Error(err)
+				return fiber.ErrInternalServerError
+			}
+
+			board := model.Board{
+				MemberID:    member.ID,
+				YearID:      year.ID,
+				Role:        "Niet bestuur",
+				IsOrganizer: false,
+			}
+
+			if err := o.board.Create(ctx, &board); err != nil {
+				zap.S().Error(err)
+				return fiber.ErrInternalServerError
+			}
+
+			return nil
+		}); err != nil {
+			return dto.Organizer{}, err
+		}
 	}
 
 	if member.ZauthID == 0 {

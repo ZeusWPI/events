@@ -121,7 +121,7 @@ export function CheckTable({ checks, eventId }: Props) {
         return (
           <div className="flex">
             <Button onClick={() => toggleDone(check)} size="icon" variant="ghost" disabled={toggleStatus}>
-              {check.done ? <ClipboardXIcon /> : <ClipboardCheckIcon />}
+              {check.status === CheckStatus.Finished ? <ClipboardXIcon /> : <ClipboardCheckIcon />}
             </Button>
             <Button onClick={() => deleteCheck(check)} size="icon" variant="ghost" disabled={deleteStatus}>
               <Trash2Icon className="text-red-500" />

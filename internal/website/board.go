@@ -47,6 +47,7 @@ func (w *Website) fetchAndParseBoard(ctx context.Context) ([]model.Board, error)
 					Start: startYear,
 					End:   endYear,
 				},
+				IsOrganizer: true,
 			})
 		}
 	}
@@ -106,12 +107,33 @@ func (w *Website) UpdateBoard(ctx context.Context) error {
 
 	var errs []error
 
-	// Create new boards
+	// Create or update
 	for _, board := range boards {
 		if exists := slices.ContainsFunc(oldBoards, func(b *model.Board) bool { return b.Equal(board) }); exists {
+			// Exact copy already exists
 			continue
 		}
 
+		// Is it an update?
+		oldBoard, ok := utils.SliceFind(oldBoards, func(b *model.Board) bool { return b.EqualEntry(board) })
+		if ok {
+			// The board entry already exists with a different role or is_organizer value
+			// This can either be because the website changed, the user logged in before the bestuur was updated or the user has 2 bestuurs roles
+			// In the latter it will always update itself until the last role is reached
+			// Update to preserve event assignments
+			oldBoard.Role = board.Role
+			oldBoard.IsOrganizer = board.IsOrganizer
+
+			if err := w.boardRepo.Update(ctx, *oldBoard); err != nil {
+				errs = append(errs, err)
+			}
+
+			continue
+		}
+
+		// Time to create
+
+		// Get or create the member
 		if member, ok := utils.SliceFind(members, func(m *model.Member) bool { return m.Equal(board.Member) }); ok {
 			board.MemberID = member.ID
 		} else {
@@ -119,9 +141,11 @@ func (w *Website) UpdateBoard(ctx context.Context) error {
 				errs = append(errs, err)
 				continue
 			}
+			members = append(members, &board.Member)
 			board.MemberID = board.Member.ID
 		}
 
+		// Get or create the year
 		if year, ok := utils.SliceFind(years, func(y *model.Year) bool { return y.Equal(board.Year) }); ok {
 			board.YearID = year.ID
 		} else {
@@ -140,6 +164,12 @@ func (w *Website) UpdateBoard(ctx context.Context) error {
 
 	// Delete old boards
 	for _, board := range oldBoards {
+		if !board.IsOrganizer {
+			// Don't delete manually created board members
+			// These entries will not be in boards
+			continue
+		}
+
 		if exists := slices.ContainsFunc(boards, func(b model.Board) bool { return b.Equal(*board) }); !exists {
 			if err := w.boardRepo.Delete(ctx, *board); err != nil {
 				errs = append(errs, err)

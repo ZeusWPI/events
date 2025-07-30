@@ -1,5 +1,7 @@
 package utils
 
+import "slices"
+
 // SliceMap maps a slice of type T to a slice of type U
 func SliceMap[T any, U any](input []T, mapFunc func(T) U) []U {
 	result := make([]U, len(input))
@@ -129,7 +131,7 @@ func SliceMerge[T any](slices ...[]T) []T {
 	return result
 }
 
-// SliceSantize removes all null values according to T{}
+// SliceSanitize removes all null values according to T{}
 func SliceSanitize[T comparable](slice []T) []T {
 	sanitized := []T{}
 	var zero T
@@ -141,4 +143,15 @@ func SliceSanitize[T comparable](slice []T) []T {
 	}
 
 	return sanitized
+}
+
+// SliceContainsAny checks if a slice contains any of the given items
+func SliceContainsAny[T comparable](slice []T, items []T) bool {
+	for _, item := range items {
+		if slices.Contains(slice, item) {
+			return true
+		}
+	}
+
+	return false
 }

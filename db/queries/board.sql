@@ -29,9 +29,14 @@ FROM board
 WHERE member_id = $1;
 
 -- name: BoardCreate :one
-INSERT INTO board (role, member_id, year_id)
-VALUES ($1, $2, $3)
+INSERT INTO board (role, member_id, year_id, is_organizer)
+VALUES ($1, $2, $3, $4)
 RETURNING id;
+
+-- name: BoardUpdate :exec
+UPDATE board
+SET role = $1, member_id = $2, year_id = $3, is_organizer = $4
+WHERE id = $5;
 
 -- name: BoardDelete :exec
 DELETE FROM board

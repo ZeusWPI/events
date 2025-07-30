@@ -18,6 +18,7 @@ type Auth struct {
 	organizer service.Organizer
 
 	redirectURL string
+	development bool
 }
 
 func NewAuth(service service.Service, router fiber.Router) *Auth {
@@ -33,6 +34,7 @@ func NewAuth(service service.Service, router fiber.Router) *Auth {
 		router:      router.Group("/auth"),
 		organizer:   *service.NewOrganizer(),
 		redirectURL: config.GetDefaultString("auth.redirect_url", "/"),
+		development: config.GetDefaultString("app.env", "development") == "development",
 	}
 	api.createRoutes()
 
@@ -52,29 +54,21 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	zauthAdmin, err1 := utils.MapGetKeyAsType[bool]("admin", user.RawData)
-	zauthID, err2 := utils.MapGetKeyAsType[int]("id", user.RawData)
-	zauthName, err3 := utils.MapGetKeyAsType[string]("fullName", user.RawData)
-	zauthUsername, err4 := utils.MapGetKeyAsType[string]("username", user.RawData)
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-		zap.S().Error(err1, err2, err3, err4)
+	zauth, err := utils.MapGetKeyAsType[zauth.User]("user", user.RawData)
+	if err != nil {
+		zap.S().Error(err)
 		return fiber.ErrBadGateway
 	}
 
-	if !zauthAdmin {
-		return fiber.ErrForbidden
-	}
-
-	zauth := zauth.User{
-		ID:       zauthID,
-		Admin:    zauthAdmin,
-		FullName: zauthName,
-		Username: zauthUsername,
+	if !r.development {
+		// Only restrict application access in non dev environment
+		if !utils.SliceContainsAny(zauth.Roles, []string{"bestuur", "events_admin"}) {
+			return fiber.ErrForbidden
+		}
 	}
 
 	dbUser, err := r.organizer.GetByZauth(c.Context(), zauth)
 	if err != nil {
-		// If err == fiber.ErrBadRequest then the user is admin but not a board member
 		return err
 	}
 
@@ -82,6 +76,9 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 		zap.S().Errorf("Failed to store member id in session %v", err)
 		return fiber.ErrInternalServerError
 	}
+
+	zap.S().Debug(dbUser)
+	zap.S().Debug("Auth done")
 
 	return c.Redirect(r.redirectURL)
 }
@@ -104,7 +101,7 @@ func (r *Auth) logoutHandler(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func storeInSession(ctx *fiber.Ctx, key string, value interface{}) error {
+func storeInSession(ctx *fiber.Ctx, key string, value any) error {
 	session, err := goth_fiber.SessionStore.Get(ctx)
 	if err != nil {
 		return fmt.Errorf("get session %w", err)

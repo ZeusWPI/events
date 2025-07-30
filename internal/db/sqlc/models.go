@@ -18,10 +18,11 @@ type Announcement struct {
 }
 
 type Board struct {
-	ID       int32
-	MemberID int32
-	YearID   int32
-	Role     string
+	ID          int32
+	MemberID    int32
+	YearID      int32
+	Role        string
+	IsOrganizer bool
 }
 
 type Check struct {

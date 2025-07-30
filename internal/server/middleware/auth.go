@@ -17,8 +17,9 @@ func ProtectedRoute(c *fiber.Ctx) error {
 		return c.Redirect("/", fiber.StatusUnauthorized)
 	}
 
-	var userID interface{}
+	var userID any
 	if userID = session.Get("memberID"); userID == nil {
+		zap.S().Debug("No member id found")
 		return c.Redirect("/", fiber.StatusForbidden)
 	}
 

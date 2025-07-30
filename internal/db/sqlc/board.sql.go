@@ -12,19 +12,25 @@ import (
 )
 
 const boardCreate = `-- name: BoardCreate :one
-INSERT INTO board (role, member_id, year_id)
-VALUES ($1, $2, $3)
+INSERT INTO board (role, member_id, year_id, is_organizer)
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
 type BoardCreateParams struct {
-	Role     string
-	MemberID int32
-	YearID   int32
+	Role        string
+	MemberID    int32
+	YearID      int32
+	IsOrganizer bool
 }
 
 func (q *Queries) BoardCreate(ctx context.Context, arg BoardCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, boardCreate, arg.Role, arg.MemberID, arg.YearID)
+	row := q.db.QueryRow(ctx, boardCreate,
+		arg.Role,
+		arg.MemberID,
+		arg.YearID,
+		arg.IsOrganizer,
+	)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
@@ -41,24 +47,25 @@ func (q *Queries) BoardDelete(ctx context.Context, id int32) error {
 }
 
 const boardGetAllPopulated = `-- name: BoardGetAllPopulated :many
-SELECT b.id, member_id, year_id, role, m.id, name, username, zauth_id, y.id, year_start, year_end 
+SELECT b.id, member_id, year_id, role, is_organizer, m.id, name, username, zauth_id, y.id, year_start, year_end 
 FROM board b
 INNER JOIN member m ON b.member_id = m.id 
 INNER JOIN year y ON b.year_id = y.id
 `
 
 type BoardGetAllPopulatedRow struct {
-	ID        int32
-	MemberID  int32
-	YearID    int32
-	Role      string
-	ID_2      int32
-	Name      string
-	Username  pgtype.Text
-	ZauthID   pgtype.Int4
-	ID_3      int32
-	YearStart int32
-	YearEnd   int32
+	ID          int32
+	MemberID    int32
+	YearID      int32
+	Role        string
+	IsOrganizer bool
+	ID_2        int32
+	Name        string
+	Username    pgtype.Text
+	ZauthID     pgtype.Int4
+	ID_3        int32
+	YearStart   int32
+	YearEnd     int32
 }
 
 func (q *Queries) BoardGetAllPopulated(ctx context.Context) ([]BoardGetAllPopulatedRow, error) {
@@ -75,6 +82,7 @@ func (q *Queries) BoardGetAllPopulated(ctx context.Context) ([]BoardGetAllPopula
 			&i.MemberID,
 			&i.YearID,
 			&i.Role,
+			&i.IsOrganizer,
 			&i.ID_2,
 			&i.Name,
 			&i.Username,
@@ -94,7 +102,7 @@ func (q *Queries) BoardGetAllPopulated(ctx context.Context) ([]BoardGetAllPopula
 }
 
 const boardGetByIds = `-- name: BoardGetByIds :many
-SELECT id, member_id, year_id, role 
+SELECT id, member_id, year_id, role, is_organizer 
 FROM board
 WHERE id = ANY($1::int[])
 `
@@ -113,6 +121,7 @@ func (q *Queries) BoardGetByIds(ctx context.Context, dollar_1 []int32) ([]Board,
 			&i.MemberID,
 			&i.YearID,
 			&i.Role,
+			&i.IsOrganizer,
 		); err != nil {
 			return nil, err
 		}
@@ -125,7 +134,7 @@ func (q *Queries) BoardGetByIds(ctx context.Context, dollar_1 []int32) ([]Board,
 }
 
 const boardGetByMemberID = `-- name: BoardGetByMemberID :many
-SELECT id, member_id, year_id, role 
+SELECT id, member_id, year_id, role, is_organizer 
 FROM board
 WHERE member_id = $1
 `
@@ -144,6 +153,7 @@ func (q *Queries) BoardGetByMemberID(ctx context.Context, memberID int32) ([]Boa
 			&i.MemberID,
 			&i.YearID,
 			&i.Role,
+			&i.IsOrganizer,
 		); err != nil {
 			return nil, err
 		}
@@ -156,7 +166,7 @@ func (q *Queries) BoardGetByMemberID(ctx context.Context, memberID int32) ([]Boa
 }
 
 const boardGetByMemberYear = `-- name: BoardGetByMemberYear :one
-SELECT b.id, member_id, year_id, role, m.id, name, username, zauth_id, y.id, year_start, year_end 
+SELECT b.id, member_id, year_id, role, is_organizer, m.id, name, username, zauth_id, y.id, year_start, year_end 
 FROM board b 
 INNER JOIN member m ON b.member_id = m.id 
 INNER JOIN year y ON b.year_id = y.id
@@ -169,17 +179,18 @@ type BoardGetByMemberYearParams struct {
 }
 
 type BoardGetByMemberYearRow struct {
-	ID        int32
-	MemberID  int32
-	YearID    int32
-	Role      string
-	ID_2      int32
-	Name      string
-	Username  pgtype.Text
-	ZauthID   pgtype.Int4
-	ID_3      int32
-	YearStart int32
-	YearEnd   int32
+	ID          int32
+	MemberID    int32
+	YearID      int32
+	Role        string
+	IsOrganizer bool
+	ID_2        int32
+	Name        string
+	Username    pgtype.Text
+	ZauthID     pgtype.Int4
+	ID_3        int32
+	YearStart   int32
+	YearEnd     int32
 }
 
 func (q *Queries) BoardGetByMemberYear(ctx context.Context, arg BoardGetByMemberYearParams) (BoardGetByMemberYearRow, error) {
@@ -190,6 +201,7 @@ func (q *Queries) BoardGetByMemberYear(ctx context.Context, arg BoardGetByMember
 		&i.MemberID,
 		&i.YearID,
 		&i.Role,
+		&i.IsOrganizer,
 		&i.ID_2,
 		&i.Name,
 		&i.Username,
@@ -202,7 +214,7 @@ func (q *Queries) BoardGetByMemberYear(ctx context.Context, arg BoardGetByMember
 }
 
 const boardGetByYearPopulated = `-- name: BoardGetByYearPopulated :many
-SELECT b.id, member_id, year_id, role, m.id, name, username, zauth_id, y.id, year_start, year_end 
+SELECT b.id, member_id, year_id, role, is_organizer, m.id, name, username, zauth_id, y.id, year_start, year_end 
 FROM board b 
 INNER JOIN member m ON b.member_id = m.id 
 INNER JOIN year y ON b.year_id = y.id
@@ -210,17 +222,18 @@ WHERE b.year_id = $1
 `
 
 type BoardGetByYearPopulatedRow struct {
-	ID        int32
-	MemberID  int32
-	YearID    int32
-	Role      string
-	ID_2      int32
-	Name      string
-	Username  pgtype.Text
-	ZauthID   pgtype.Int4
-	ID_3      int32
-	YearStart int32
-	YearEnd   int32
+	ID          int32
+	MemberID    int32
+	YearID      int32
+	Role        string
+	IsOrganizer bool
+	ID_2        int32
+	Name        string
+	Username    pgtype.Text
+	ZauthID     pgtype.Int4
+	ID_3        int32
+	YearStart   int32
+	YearEnd     int32
 }
 
 func (q *Queries) BoardGetByYearPopulated(ctx context.Context, yearID int32) ([]BoardGetByYearPopulatedRow, error) {
@@ -237,6 +250,7 @@ func (q *Queries) BoardGetByYearPopulated(ctx context.Context, yearID int32) ([]
 			&i.MemberID,
 			&i.YearID,
 			&i.Role,
+			&i.IsOrganizer,
 			&i.ID_2,
 			&i.Name,
 			&i.Username,
@@ -253,4 +267,29 @@ func (q *Queries) BoardGetByYearPopulated(ctx context.Context, yearID int32) ([]
 		return nil, err
 	}
 	return items, nil
+}
+
+const boardUpdate = `-- name: BoardUpdate :exec
+UPDATE board
+SET role = $1, member_id = $2, year_id = $3, is_organizer = $4
+WHERE id = $5
+`
+
+type BoardUpdateParams struct {
+	Role        string
+	MemberID    int32
+	YearID      int32
+	IsOrganizer bool
+	ID          int32
+}
+
+func (q *Queries) BoardUpdate(ctx context.Context, arg BoardUpdateParams) error {
+	_, err := q.db.Exec(ctx, boardUpdate,
+		arg.Role,
+		arg.MemberID,
+		arg.YearID,
+		arg.IsOrganizer,
+		arg.ID,
+	)
+	return err
 }

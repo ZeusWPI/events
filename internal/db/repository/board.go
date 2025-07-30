@@ -35,27 +35,7 @@ func (b *Board) GetAllPopulated(ctx context.Context) ([]*model.Board, error) {
 		return nil, fmt.Errorf("get all boards %w", err)
 	}
 
-	return utils.SliceMap(boards, func(b sqlc.BoardGetAllPopulatedRow) *model.Board {
-		username := ""
-		if b.Username.Valid {
-			username = b.Username.String
-		}
-
-		return &model.Board{
-			ID: int(b.ID),
-			Member: model.Member{
-				ID:       int(b.ID_2),
-				Name:     b.Name,
-				Username: username,
-			},
-			Year: model.Year{
-				ID:    int(b.ID_3),
-				Start: int(b.YearStart),
-				End:   int(b.YearEnd),
-			},
-			Role: b.Role,
-		}
-	}), nil
+	return utils.SliceMap(boards, model.BoardModelPopulated), nil
 }
 
 func (b *Board) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Board, error) {
@@ -68,25 +48,7 @@ func (b *Board) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Bo
 	}
 
 	return utils.SliceMap(boards, func(b sqlc.BoardGetByYearPopulatedRow) *model.Board {
-		username := ""
-		if b.Username.Valid {
-			username = b.Username.String
-		}
-
-		return &model.Board{
-			ID: int(b.ID),
-			Member: model.Member{
-				ID:       int(b.ID_2),
-				Name:     b.Name,
-				Username: username,
-			},
-			Year: model.Year{
-				ID:    int(b.ID_3),
-				Start: int(b.YearStart),
-				End:   int(b.YearEnd),
-			},
-			Role: b.Role,
-		}
+		return model.BoardModelPopulated(sqlc.BoardGetAllPopulatedRow(b))
 	}), nil
 }
 
@@ -102,25 +64,7 @@ func (b *Board) GetByMemberYear(ctx context.Context, member model.Member, year m
 		return nil, fmt.Errorf("get board by member and year %+v | %+v | %w", member, year, err)
 	}
 
-	username := ""
-	if board.Username.Valid {
-		username = board.Username.String
-	}
-
-	return &model.Board{
-		ID: int(board.ID),
-		Member: model.Member{
-			ID:       int(board.ID_2),
-			Name:     board.Name,
-			Username: username,
-		},
-		Year: model.Year{
-			ID:    int(board.ID_3),
-			Start: int(board.YearStart),
-			End:   int(board.YearEnd),
-		},
-		Role: board.Role,
-	}, nil
+	return model.BoardModelPopulated(sqlc.BoardGetAllPopulatedRow(board)), nil
 }
 
 func (b *Board) GetByIDs(ctx context.Context, boardIDs []int) ([]*model.Board, error) {
@@ -137,15 +81,30 @@ func (b *Board) GetByIDs(ctx context.Context, boardIDs []int) ([]*model.Board, e
 
 func (b *Board) Create(ctx context.Context, board *model.Board) error {
 	id, err := b.repo.queries(ctx).BoardCreate(ctx, sqlc.BoardCreateParams{
-		MemberID: int32(board.MemberID),
-		YearID:   int32(board.YearID),
-		Role:     board.Role,
+		MemberID:    int32(board.MemberID),
+		YearID:      int32(board.YearID),
+		Role:        board.Role,
+		IsOrganizer: board.IsOrganizer,
 	})
 	if err != nil {
 		return fmt.Errorf("create board %+v | %w", *board, err)
 	}
 
 	board.ID = int(id)
+
+	return nil
+}
+
+func (b *Board) Update(ctx context.Context, board model.Board) error {
+	if err := b.repo.queries(ctx).BoardUpdate(ctx, sqlc.BoardUpdateParams{
+		ID:          int32(board.ID),
+		MemberID:    int32(board.MemberID),
+		YearID:      int32(board.Year.ID),
+		Role:        board.Role,
+		IsOrganizer: board.IsOrganizer,
+	}); err != nil {
+		return fmt.Errorf("update board %+v | %w", board, err)
+	}
 
 	return nil
 }

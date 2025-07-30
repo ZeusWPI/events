@@ -31,10 +31,11 @@ var _ goth.Provider = (*Provider)(nil)
 
 // User contains the user data received from Zauth
 type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-	Admin    bool   `json:"admin"`
-	FullName string `json:"full_name"`
+	ID       int      `json:"id"`
+	Username string   `json:"username"`
+	Admin    bool     `json:"admin"`
+	FullName string   `json:"full_name"`
+	Roles    []string `json:"roles"`
 }
 
 // NewProvider creates a new Zauth provider
@@ -55,6 +56,7 @@ func NewProvider(clientKey, secret, callbackURL string) *Provider {
 			TokenURL:  endpoint + "/oauth/token",
 			AuthStyle: oauth2.AuthStyleInHeader,
 		},
+		Scopes: []string{"roles"},
 	}
 	p.config = c
 
@@ -134,11 +136,13 @@ func (p *Provider) FetchUser(gothSession goth.Session) (goth.User, error) {
 		RefreshToken: s.RefreshToken,
 		ExpiresAt:    s.ExpiresAt,
 
-		RawData: map[string]interface{}{
+		RawData: map[string]any{
+			"user":     u,
 			"id":       u.ID,
 			"username": u.Username,
 			"fullName": u.FullName,
 			"admin":    u.Admin,
+			"roles":    u.Roles,
 		},
 	}
 
