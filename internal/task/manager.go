@@ -70,7 +70,7 @@ func NewManager(repo repository.Repository) (*Manager, error) {
 // History logs (in the DB) for recurrent tasks are accessed by name.
 // If you change a recurring task's name then all it's history will be lost (but still in the DB)
 func (m *Manager) Add(task Task) error {
-	zap.S().Debugf("Adding recurring task %s", task.Name())
+	zap.S().Infof("Adding recurring task %s", task.Name())
 
 	for _, v := range m.jobsRecurring {
 		if v.name == task.Name() {
@@ -113,7 +113,7 @@ func (m *Manager) Add(task Task) error {
 // It runs the tasks after the given interval and deletes it afterwards.
 // An unique name is not required however when a task is deleted by name, every once scheduled task with that name will be deleted
 func (m *Manager) AddOnce(task Task) error {
-	zap.S().Debugf("Adding one time task %s", task.Name())
+	zap.S().Infof("Adding one time task %s", task.Name())
 
 	startTime := time.Now()
 	startAtOption := gocron.OneTimeJobStartImmediately()
@@ -151,7 +151,7 @@ func (m *Manager) AddOnce(task Task) error {
 
 // RemoveOnceByName removes, given a name, a scheduled task that only runs once
 func (m *Manager) RemoveOnceByName(name string) error {
-	zap.S().Debugf("Removing one time task %s", name)
+	zap.S().Infof("Removing one time task %s", name)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()

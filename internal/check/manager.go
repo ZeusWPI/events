@@ -28,6 +28,8 @@ func NewManager(repo repository.Repository) *Manager {
 // Register a new check
 // The name has to be unique
 func (m *Manager) Register(check Check) error {
+	zap.S().Infof("Adding check %s", check.Description())
+
 	name := check.Description()
 
 	for _, c := range m.checks {
@@ -35,8 +37,6 @@ func (m *Manager) Register(check Check) error {
 			return fmt.Errorf("registered a duplicate check %s", name)
 		}
 	}
-
-	zap.S().Debugf("Adding check: %s", name)
 
 	m.checks = append(m.checks, check)
 

@@ -77,9 +77,6 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 		return fiber.ErrInternalServerError
 	}
 
-	zap.S().Debug(dbUser)
-	zap.S().Debug("Auth done")
-
 	return c.Redirect(r.redirectURL)
 }
 

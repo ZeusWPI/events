@@ -92,13 +92,11 @@ func (e *Event) UpdateOrganizers(ctx context.Context, events []dto.EventOrganize
 	return e.service.withRollback(ctx, func(ctx context.Context) error {
 		for _, event := range events {
 			if _, found := utils.SliceFind(eventsDB, func(e *model.Event) bool { return e.ID == event.EventID }); !found {
-				zap.S().Debugf("Cant find event %+v", event)
 				return fiber.ErrBadRequest
 			}
 
 			for _, organizer := range event.Organizers {
 				if _, found := utils.SliceFind(boardsDB, func(b *model.Board) bool { return b.ID == organizer }); !found {
-					zap.S().Debugf("Cant find organizer %+v", event)
 					return fiber.ErrBadRequest
 				}
 			}
