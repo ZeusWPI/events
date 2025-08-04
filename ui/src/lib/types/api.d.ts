@@ -71,5 +71,6 @@ export namespace API {
     run_at: string;
     error?: string;
     recurring: boolean;
+    duration: number;
   }
 }

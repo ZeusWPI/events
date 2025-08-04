@@ -28,6 +28,7 @@ export interface TaskHistory extends Base {
   runAt: Date;
   error?: string;
   recurring: boolean;
+  duration: number;
 }
 
 export interface TaskHistoryFilter {
@@ -80,5 +81,6 @@ export function convertTaskHistoryToModel(history: API.TaskHistory[]): TaskHisto
     runAt: new Date(history.run_at),
     error: history.error,
     recurring: history.recurring,
+    duration: history.duration,
   }));
 }

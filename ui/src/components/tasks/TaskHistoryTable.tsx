@@ -14,6 +14,16 @@ interface Props {
 
 const defaultHistory: TaskHistory[] = [];
 
+function FormatDuration(nanos: number) {
+  const ms = Math.floor(nanos / 1_000_000) % 1000
+  const s = Math.floor(nanos / 1_000_000_000)
+
+  const msString = `(${ms.toString().padStart(3, '0')}ms)`
+  const sString = `${s.toString().padStart(2, '0')}s `
+
+  return <span>{sString}<span className="text-muted-foreground">{msString}</span></span>
+}
+
 export function TaskHistoryTable({ history = defaultHistory, emptyText = "No history data yet" }: Props) {
   const columns: ColumnDef<TaskHistory>[] = useMemo(() => [
     {
@@ -34,6 +44,11 @@ export function TaskHistoryTable({ history = defaultHistory, emptyText = "No his
       accessorKey: "runAt",
       header: () => <span>Run at</span>,
       cell: row => <span>{formatDate(row.getValue<Date>())}</span>,
+    },
+    {
+      accessorKey: "duration",
+      header: () => <span>Duration</span>,
+      cell: row => <span>{FormatDuration(row.getValue<number>())}</span>,
     },
     {
       id: "actions",
