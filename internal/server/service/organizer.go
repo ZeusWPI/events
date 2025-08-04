@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"slices"
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
+	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/ZeusWPI/events/pkg/zauth"
 	"github.com/gofiber/fiber/v2"
@@ -13,7 +15,8 @@ import (
 )
 
 type Organizer struct {
-	service Service
+	service     Service
+	development bool
 
 	board  repository.Board
 	member repository.Member
@@ -22,10 +25,11 @@ type Organizer struct {
 
 func (s *Service) NewOrganizer() *Organizer {
 	return &Organizer{
-		service: *s,
-		board:   *s.repo.NewBoard(),
-		member:  *s.repo.NewMember(),
-		year:    *s.repo.NewYear(),
+		service:     *s,
+		development: config.GetDefaultString("app.env", "development") == "development",
+		board:       *s.repo.NewBoard(),
+		member:      *s.repo.NewMember(),
+		year:        *s.repo.NewYear(),
 	}
 }
 
@@ -51,6 +55,10 @@ func (o *Organizer) GetByMember(ctx context.Context, memberID int) (dto.Organize
 		return dto.Organizer{}, fiber.ErrInternalServerError
 	}
 	if board == nil {
+		if o.development {
+			return dto.Organizer{Name: member.Name, Role: "Development"}, nil
+		}
+
 		return dto.Organizer{}, fiber.ErrBadRequest
 	}
 
@@ -77,48 +85,50 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 		zap.S().Error(err)
 		return dto.Organizer{}, err
 	}
+
 	if member == nil {
 		// Member not in DB yet
-		// Probably means he's not a board member
+		// Probably means the user was never a board member
 		// If he turns out to be a board member it will be corrected by a bestuur update task
-		// Let's add the user as a non organizer member
-		if err := o.service.withRollback(ctx, func(ctx context.Context) error {
-			member = &model.Member{
-				Name:     zauth.FullName,
-				Username: zauth.Username,
-				ZauthID:  zauth.ID,
-			}
+		// Let's add the user
+		member = &model.Member{
+			Name:     zauth.FullName,
+			Username: zauth.Username,
+			ZauthID:  zauth.ID,
+		}
 
-			if err = o.member.Create(ctx, member); err != nil {
-				zap.S().Error(err)
-				return fiber.ErrInternalServerError
-			}
+		if err = o.member.Create(ctx, member); err != nil {
+			zap.S().Error(err)
+			return dto.Organizer{}, fiber.ErrInternalServerError
+		}
+	}
 
-			year, err := o.year.GetLast(ctx)
-			if err != nil {
-				zap.S().Error(err)
-				return fiber.ErrInternalServerError
-			}
+	if slices.Contains(zauth.Roles, "events_admin") {
+		// User is an events admin
+		// Add the user to the board
+		year, err := o.year.GetLast(ctx)
+		if err != nil {
+			zap.S().Error(err)
+			return dto.Organizer{}, fiber.ErrInternalServerError
+		}
 
-			board := model.Board{
-				MemberID:    member.ID,
-				YearID:      year.ID,
-				Role:        "Niet bestuur",
-				IsOrganizer: false,
-			}
+		board := model.Board{
+			MemberID:    member.ID,
+			YearID:      year.ID,
+			Role:        "Niet bestuur",
+			IsOrganizer: false,
+		}
 
-			if err := o.board.Create(ctx, &board); err != nil {
-				zap.S().Error(err)
-				return fiber.ErrInternalServerError
-			}
-
-			return nil
-		}); err != nil {
-			return dto.Organizer{}, err
+		if err := o.board.Create(ctx, &board); err != nil {
+			zap.S().Error(err)
+			return dto.Organizer{}, fiber.ErrInternalServerError
 		}
 	}
 
 	if member.ZauthID == 0 {
+		// Member already exists but it's the first time the user logs in
+		// Probably means the user is / was a board member and was added by the bestuur update task
+		// Let's link zauth id with their name
 		member.ZauthID = zauth.ID
 		member.Username = zauth.Username
 
