@@ -19,6 +19,7 @@ func Init() error {
 	if err := godotenv.Load(); err != nil {
 		return err
 	}
+
 	viper.AutomaticEnv()
 	env := GetDefaultString("app.env", "development")
 	env = strings.ToLower(env)

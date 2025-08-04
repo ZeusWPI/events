@@ -54,6 +54,12 @@ export function formatDateDiff(first: Date, second: Date) {
   return `${sign} ${days} days ${hours} hours`
 }
 
+export function getBuildTime() {
+  const buildTime = import.meta.env.VITE_BUILD_TIME as string | "";
+
+  return new Date(buildTime)
+}
+
 export function randomNumber() {
   return Math.floor(Math.random() * (100000 - 10000)) + 10000;
 }

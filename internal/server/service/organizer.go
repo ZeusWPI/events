@@ -115,7 +115,7 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 		board := model.Board{
 			MemberID:    member.ID,
 			YearID:      year.ID,
-			Role:        "Niet bestuur",
+			Role:        "Events Admin",
 			IsOrganizer: false,
 		}
 

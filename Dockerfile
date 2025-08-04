@@ -1,5 +1,5 @@
 # Build backend
-FROM golang:1.24.4-alpine3.22 as build_backend
+FROM golang:1.24.4-alpine3.22 AS build_backend
 
 RUN apk add upx alpine-sdk
 
@@ -20,7 +20,7 @@ RUN upx --best --lzma migrate
 
 
 # Build frontend
-FROM node:22.16.0 as build_frontend
+FROM node:22.16.0 AS build_frontend
 
 WORKDIR /frontend
 
@@ -31,8 +31,6 @@ COPY ui/ .
 
 ARG BUILD_TIME
 ENV VITE_BUILD_TIME=$BUILD_TIME
-
-ENV VITE_BACKEND_URL="https://events.zeus.gent/api"
 
 RUN pnpm run build
 

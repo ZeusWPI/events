@@ -1,1 +1,27 @@
+app:
+  name: events
 
+db:
+  host: 127.0.0.1
+  port: 5432
+  database: events
+  user: postgres
+  password: postgres
+
+auth:
+  client: events
+  secret: z7nHq8pRZiYaAetTN19t1IZ7MDPoaLc54LkmljJdLwsHoQIGo537lnkOoLIwK4s8
+  callback_url: http://localhost:4000/api/auth/callback/zauth
+  redirect_url: http://localhost:4000
+
+website:
+  events_s: 86400
+  boards_s: 86400
+
+dsa:
+  url: "https://dsa.ugent.be/api/activiteiten?page_size=100&association=zeus"
+  activities_s: 3600
+
+mattermost:
+  url: https://mattermost.zeus.gent
+  announcement_channel: c48qqzyfp7dhjciniwbk7k8fgy
