@@ -3,7 +3,7 @@ module github.com/ZeusWPI/events
 go 1.24.4
 
 require (
-	github.com/go-co-op/gocron/v2 v2.16.2
+	github.com/go-co-op/gocron/v2 v2.16.3
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gofiber/contrib/fiberzap v1.0.2
 	github.com/gofiber/fiber/v2 v2.52.9
