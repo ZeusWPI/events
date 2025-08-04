@@ -1,6 +1,7 @@
 import { AnnouncementCard } from "@/components/announcements/AnnouncementCard";
 import { DividerText } from "@/components/atoms/DividerText";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
+import { NoItems } from "@/components/atoms/NoItems";
 import { Title } from "@/components/atoms/Title";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -90,12 +91,7 @@ export function AnnouncementsYear() {
           </div>
         </>
       )}
-      {announcements.length === 0 && (
-        <div className="flex flex-col items-center space-y-4 pt-48">
-          <h3 className="text-lg font-semibold">No announcements found</h3>
-          <h5 className="text-md text-muted-foreground">Get started by adding some</h5>
-        </div>
-      )}
+      {announcements.length === 0 && <NoItems title="No announcements found" description="Get started by clicking the create button" />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { DividerText } from "@/components/atoms/DividerText";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
+import { NoItems } from "@/components/atoms/NoItems";
 import { Title } from "@/components/atoms/Title";
 import { MailCard } from "@/components/mails/MailCard";
 import { PageHeader } from "@/components/molecules/PageHeader";
@@ -59,12 +60,7 @@ export function Mails() {
           </div>
         </>
       )}
-      {mails.length === 0 && (
-        <div className="flex flex-col items-center space-y-4 pt-48">
-          <h3 className="text-lg font-semibold">No mails found</h3>
-          <h5 className="text-md text-muted-foreground">Get started by adding some</h5>
-        </div>
-      )}
+      {mails.length === 0 && <NoItems title="No mails found" description="Get started by clicking the create button" />}
     </div>
   )
 }

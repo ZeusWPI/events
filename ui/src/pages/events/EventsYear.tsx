@@ -13,6 +13,7 @@ import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useYearGetAll } from "@/lib/api/year";
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
+import { NoItems } from "@/components/atoms/NoItems";
 
 export function EventsYear() {
   const isDetail = useMatch({ from: "/events/$year/$id", shouldThrow: false });
@@ -82,6 +83,7 @@ export function EventsYear() {
           </div>
         </>
       )}
+      {events?.length === 0 && <NoItems title="No events found" description="Add started by adding events to the Zeus WPI website" />}
     </div>
   );
 }
