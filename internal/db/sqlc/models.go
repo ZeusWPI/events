@@ -84,6 +84,7 @@ type Task struct {
 	RunAt     pgtype.Timestamptz
 	Error     pgtype.Text
 	Recurring bool
+	Duration  pgtype.Interval
 }
 
 type Year struct {

@@ -21,6 +21,7 @@ type TaskHistory struct {
 	RunAt     time.Time         `json:"run_at"`
 	Error     string            `json:"error,omitempty"`
 	Recurring bool              `json:"recurring"`
+	Duration  time.Duration     `json:"duration"`
 }
 
 func TaskHistoryDTO(task *model.Task) TaskHistory {
@@ -36,6 +37,7 @@ func TaskHistoryDTO(task *model.Task) TaskHistory {
 		RunAt:     task.RunAt,
 		Error:     taskError,
 		Recurring: task.Recurring,
+		Duration:  task.Duration,
 	}
 }
 

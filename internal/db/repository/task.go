@@ -56,10 +56,7 @@ func (t *Task) GetFiltered(ctx context.Context, filters model.TaskFilter) ([]*mo
 	if start < 0 {
 		start = 0
 	}
-	end := start + filters.Limit
-	if end > len(filtered) {
-		end = len(filtered)
-	}
+	end := min(start+filters.Limit, len(filtered))
 
 	return utils.SliceMap(filtered[start:end], model.TaskModel), nil
 }
@@ -77,6 +74,7 @@ func (t *Task) Create(ctx context.Context, task *model.Task) error {
 		RunAt:     pgtype.Timestamptz{Time: task.RunAt, Valid: true},
 		Error:     errTask,
 		Recurring: task.Recurring,
+		Duration:  pgtype.Interval{Microseconds: task.Duration.Microseconds(), Valid: true},
 	})
 	if err != nil {
 		return fmt.Errorf("create task %+v | %w", *t, err)

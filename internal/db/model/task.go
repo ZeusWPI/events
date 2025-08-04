@@ -21,6 +21,7 @@ type Task struct {
 	RunAt     time.Time
 	Error     error
 	Recurring bool
+	Duration  time.Duration
 }
 
 type TaskFilter struct {
@@ -44,5 +45,6 @@ func TaskModel(task sqlc.Task) *Task {
 		RunAt:     task.RunAt.Time,
 		Error:     errTask,
 		Recurring: task.Recurring,
+		Duration:  time.Duration(task.Duration.Microseconds * int64(time.Microsecond)),
 	}
 }

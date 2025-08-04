@@ -279,7 +279,9 @@ func (m *Manager) wrapRecurring(id int, task Task) func(context.Context) {
 		m.mu.Unlock()
 
 		// Run task
+		start := time.Now()
 		err := task.Func()(ctx)
+		end := time.Now()
 
 		// Save result
 		result := model.Success
@@ -293,6 +295,7 @@ func (m *Manager) wrapRecurring(id int, task Task) func(context.Context) {
 			RunAt:     time.Now(),
 			Error:     err,
 			Recurring: true,
+			Duration:  end.Sub(start),
 		}
 		if errDB := m.repo.Create(ctx, task); errDB != nil {
 			zap.S().Errorf("failed to save recurring task result in database %+v | %v", *task, err)
@@ -324,7 +327,9 @@ func (m *Manager) wrapOnce(id int, task Task) func(context.Context) {
 		m.mu.Unlock()
 
 		// Run task
+		start := time.Now()
 		err := task.Func()(ctx)
+		end := time.Now()
 
 		// Save result
 		result := model.Success
@@ -337,6 +342,7 @@ func (m *Manager) wrapOnce(id int, task Task) func(context.Context) {
 			RunAt:     time.Now(),
 			Error:     err,
 			Recurring: false,
+			Duration:  end.Sub(start),
 		}
 		if err := m.repo.Create(ctx, task); err != nil {
 			zap.S().Errorf("failed to save one time task result in database %+v | %v", *task, err)

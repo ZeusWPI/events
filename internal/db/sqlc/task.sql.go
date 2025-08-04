@@ -12,8 +12,8 @@ import (
 )
 
 const taskCreate = `-- name: TaskCreate :one
-INSERT INTO task (name, result, run_at, error, recurring)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO task (name, result, run_at, error, recurring, duration)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id
 `
 
@@ -23,6 +23,7 @@ type TaskCreateParams struct {
 	RunAt     pgtype.Timestamptz
 	Error     pgtype.Text
 	Recurring bool
+	Duration  pgtype.Interval
 }
 
 func (q *Queries) TaskCreate(ctx context.Context, arg TaskCreateParams) (int32, error) {
@@ -32,6 +33,7 @@ func (q *Queries) TaskCreate(ctx context.Context, arg TaskCreateParams) (int32, 
 		arg.RunAt,
 		arg.Error,
 		arg.Recurring,
+		arg.Duration,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -39,7 +41,7 @@ func (q *Queries) TaskCreate(ctx context.Context, arg TaskCreateParams) (int32, 
 }
 
 const taskGet = `-- name: TaskGet :many
-SELECT id, name, result, run_at, error, recurring FROM task 
+SELECT id, name, result, run_at, error, recurring, duration FROM task 
 WHERE name ILIKE $1
 ORDER BY run_at DESC
 `
@@ -60,6 +62,7 @@ func (q *Queries) TaskGet(ctx context.Context, name string) ([]Task, error) {
 			&i.RunAt,
 			&i.Error,
 			&i.Recurring,
+			&i.Duration,
 		); err != nil {
 			return nil, err
 		}
@@ -72,7 +75,7 @@ func (q *Queries) TaskGet(ctx context.Context, name string) ([]Task, error) {
 }
 
 const taskGetAll = `-- name: TaskGetAll :many
-SELECT id, name, result, run_at, error, recurring FROM task
+SELECT id, name, result, run_at, error, recurring, duration FROM task
 ORDER BY run_at DESC
 `
 
@@ -92,6 +95,7 @@ func (q *Queries) TaskGetAll(ctx context.Context) ([]Task, error) {
 			&i.RunAt,
 			&i.Error,
 			&i.Recurring,
+			&i.Duration,
 		); err != nil {
 			return nil, err
 		}
