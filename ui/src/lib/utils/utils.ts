@@ -37,7 +37,11 @@ function stringCamelToSnake(str: string) {
   return str.replace(/[A-Z]+/g, l => `_${l.toLowerCase()}`);
 }
 
-export function formatDate(date: Date) {
+export function formatDate(date?: Date) {
+  if (date === undefined) {
+    return ""
+  }
+
   return format(date, "eee dd MMM, HH:mm");
 }
 
@@ -56,7 +60,7 @@ export function formatDateDiff(first: Date, second: Date) {
 export function getBuildTime() {
   const buildTime = import.meta.env.VITE_BUILD_TIME as string | "";
 
-  return new Date(buildTime)
+  return buildTime ? new Date(buildTime) : undefined
 }
 
 export function randomNumber() {

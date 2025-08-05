@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	mimePDF = "application/pdf"
 	mimePNG = "image/png"
 )
 

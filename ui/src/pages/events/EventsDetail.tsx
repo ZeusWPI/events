@@ -1,5 +1,5 @@
 import { useParams } from "@tanstack/react-router";
-import { Link, PencilIcon, UserRound } from "lucide-react";
+import { Link, UserRound } from "lucide-react";
 import { Title } from "@/components/atoms/Title";
 import { Datalist, DatalistItem, DatalistItemContent, DatalistItemTitle } from "@/components/molecules/Datalist";
 import { HeadlessCard } from "@/components/molecules/HeadlessCard";
@@ -14,10 +14,7 @@ import { formatDate } from "@/lib/utils/utils";
 import Error404 from "../404";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { CheckTable } from "@/components/check/CheckTable";
-import { EventPosterDialog } from "@/components/events/EventPosterDialog";
-import { useState } from "react";
-import { usePosterGetFile } from "@/lib/api/poster";
-import { FileImg } from "@/components/atoms/FileImg";
+import { EventPoster } from "@/components/events/EventPoster";
 
 export function EventsDetail() {
   const { year: yearString, id: eventID } = useParams({ from: "/events/$year/$id" });
@@ -28,12 +25,10 @@ export function EventsDetail() {
   const { data: events, isLoading } = useEventByYear(year);
   const event = events?.find(event => event.id.toString() === eventID);
 
-  const { data: big, isLoading: isLoadingBig } = usePosterGetFile(event?.posters.find(p => !p.scc)?.id ?? 0, event?.id ?? 0)
-  const { data: scc, isLoading: isLoadingScc } = usePosterGetFile(event?.posters.find(p => p.scc)?.id ?? 0, event?.id ?? 0)
+  const big = event?.posters.find(p => !p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: false }
+  const scc = event?.posters.find(p => p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: true }
 
   useBreadcrumb({ title: event?.name ?? "", link: { to: "/events/$year/$id", params: { year: yearString, id: eventID } } });
-
-  const [posterOpen, setPosterOpen] = useState(false)
 
   if (isLoading) {
     return <Indeterminate />
@@ -108,31 +103,22 @@ export function EventsDetail() {
       <div className="col-span-full">
         <CheckTable checks={event.checks} eventId={Number(eventID)} />
       </div>
-      <HeadlessCard className="col-span-full">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="flex gap-2 items-center">
-            <span>Posters</span>
-            <Button size="icon" variant="outline" onClick={() => setPosterOpen(true)}>
-              <PencilIcon />
-            </Button>
-            <EventPosterDialog event={event} open={posterOpen} setOpen={setPosterOpen} />
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {big && (
-            <div className="space-y-3">
-              <span>Big poster</span>
-              <FileImg file={big} isLoading={isLoadingBig} alt="Big poster" />
-            </div>
-          )}
-          {scc && (
-            <div className="space-y-3">
-              <span>SCC poster</span>
-              <FileImg file={scc} isLoading={isLoadingScc} alt="SCC poster" />
-            </div>
-          )}
-        </CardContent>
-      </HeadlessCard>
+      <div className="col-span-full py-4">
+        <div className="flex flex-wrap gap-16 justify-center lg:justify-start">
+          <EventPoster
+            title="Big Poster"
+            description="Poster to distribute"
+            poster={big}
+            year={year}
+          />
+          <EventPoster
+            title="SCC Poster"
+            description="Cammiechat screen poster"
+            poster={scc}
+            year={year}
+          />
+        </div>
+      </div>
     </div>
   );
 }

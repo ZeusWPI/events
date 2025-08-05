@@ -1,147 +1,95 @@
-import { Event } from "@/lib/types/event";
-import { XIcon } from "lucide-react";
 import { Input } from "../ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { ChangeEvent, useEffect, useState } from "react";
-import { usePosterCreate, usePosterDelete, usePosterGetFile, usePosterUpdate } from "@/lib/api/poster";
+import { usePosterCreate, usePosterGetFile, usePosterUpdate } from "@/lib/api/poster";
 import { Indeterminate } from "../atoms/Indeterminate";
+import { Poster } from "@/lib/types/poster";
+import { FileImg } from "../atoms/FileImg";
 import { toast } from "sonner";
-import { arrayEqual } from "@/lib/utils/utils";
 
 interface Props {
-  event: Event;
+  poster: Poster;
   open: boolean;
   setOpen: (open: boolean) => void;
 }
 
-export function EventPosterDialog({ event, open, setOpen }: Props) {
+export function EventPosterDialog({ poster, open, setOpen }: Props) {
   const [submitting, setSubmitting] = useState(false)
 
-  const { data: oldBig, isLoading: isLoadingBig } = usePosterGetFile(event.posters.find(p => !p.scc)?.id ?? 0, event.id)
-  const { data: oldScc, isLoading: isLoadingScc } = usePosterGetFile(event.posters.find(p => p.scc)?.id ?? 0, event.id)
+  const { data: initialFile, isLoading } = usePosterGetFile(poster)
+  const [file, setFile] = useState<File | undefined>(initialFile)
 
-  const [big, setBig] = useState<File | null>(null)
-  const [scc, setScc] = useState<File | null>(null)
-
-  const bigURL = big ? URL.createObjectURL(big) : ""
-  const sccURL = scc ? URL.createObjectURL(scc) : ""
+  useEffect(() => {
+    if (open) {
+      setFile(initialFile)
+    } else {
+      setFile(undefined)
+    }
+  }, [open, initialFile])
 
   const posterCreate = usePosterCreate()
   const posterUpdate = usePosterUpdate()
-  const posterDelete = usePosterDelete()
 
-  useEffect(() => {
-    if (oldBig) {
-      setBig(oldBig)
+  const handleSubmit = () => {
+    if (!file) {
+      return
     }
 
-    if (oldScc) {
-      setScc(oldScc)
-    }
-  }, [oldBig, oldScc])
+    setSubmitting(true)
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>, scc: boolean) => {
-    const file = e.target.files?.[0] ?? null;
-    if (scc) {
-      setScc(file);
+    let action
+    let message
+    if (poster.id) {
+      action = posterUpdate
+      message = "updated"
     } else {
-      setBig(file);
+      action = posterCreate
+      message = "created"
     }
+
+    action.mutate({ poster, file }, {
+      onSuccess: () => {
+        toast.success(`Poster ${message}`)
+        setOpen(false)
+      },
+      onError: (error: Error) => toast.error("Failed", { description: error.message }),
+      onSettled: () => setSubmitting(false)
+    })
   }
 
-  const handleSubmit = async () => {
-    setSubmitting(true);
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? undefined
 
-    const posterTypes = [
-      { key: "Big", file: big, oldFile: oldBig, scc: false },
-      { key: "Scc", file: scc, oldFile: oldScc, scc: true },
-    ];
-
-    let requestSend = false
-
-    for (let i = 0; i < posterTypes.length; i++) {
-      const { key, file, oldFile, scc } = posterTypes[i]!;
-
-      const data = (await file?.bytes()) ?? new Uint8Array();
-      const oldData = (await oldFile?.bytes()) ?? new Uint8Array();
-
-      if (arrayEqual(data, oldData)) {
-        continue
-      }
-
-      requestSend = true
-
-      const poster = {
-        id: event.posters.find((p) => p.scc === scc)?.id ?? 0,
-        eventId: event.id,
-        scc,
-      };
-
-      const commonMutationOptions = {
-        onSuccess: () => toast.success(`${key} ${file ? (oldFile ? "updated" : "created") : "deleted"}`),
-        onError: (error: Error) => toast.error("Failed", { description: error.message }),
-        onSettled: () => setSubmitting(false),
-      };
-
-      if (file) {
-        const mutation = oldFile ? posterUpdate : posterCreate;
-        mutation.mutate({ poster, file }, commonMutationOptions);
-      } else {
-        posterDelete.mutate(poster, commonMutationOptions);
-      }
-    }
-
-    if (!requestSend) {
-      setSubmitting(false)
-    }
-  };
+    setFile(file)
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="lg:min-w-4xl">
+      <DialogContent className="">
         <DialogTitle>
-          Edit event posters
+          Edit event poster
         </DialogTitle>
         <DialogDescription asChild>
           <div className="flex flex-col gap-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <Label htmlFor="picture-big">Big</Label>
-                {!isLoadingBig ? (
-                  <>
-                    <div className="flex items-center gap-1">
-                      <Input id="picture-big" type="file" accept=".png" onChange={e => handleChange(e, false)} />
-                      <Button size="icon" onClick={() => setBig(null)} variant="ghost">
-                        <XIcon />
-                      </Button>
-                    </div>
-                    {big && <img src={bigURL} alt="Big preview" />}
-                  </>
-                ) : (
-                  <Indeterminate />
-                )}
-              </div>
-              <div className="space-y-3">
-                <Label htmlFor="picture-scc">Scc</Label>
-                {!isLoadingScc ? (
-                  <>
-                    <div className="flex items-center gap-1">
-                      <Input id="picture-scc" type="file" accept=".png" onChange={e => handleChange(e, true)} />
-                      <Button size="icon" onClick={() => setScc(null)} variant="ghost">
-                        <XIcon />
-                      </Button>
-                    </div>
-                    {scc && <img src={sccURL} alt="Scc preview" />}
-                  </>
-                ) : (
-                  <Indeterminate />
-                )}
-              </div>
+            <div className="space-y-3">
+              <Label htmlFor="picture-scc">Poster</Label>
+              {!isLoading ? (
+                <>
+                  <div className="flex items-center gap-1">
+                    <Input id="picture-scc" type="file" accept=".png" onChange={handleChange} />
+                  </div>
+                  <div className="aspect-poster rounded-xl overflow-hidden">
+                    {file && <FileImg file={file} isLoading={isLoading} alt="Poster preview" />}
+                  </div>
+                </>
+              ) : (
+                <Indeterminate />
+              )}
             </div>
             <div className="flex justify-end">
-              <Button onClick={handleSubmit} disabled={submitting}>
+              <Button onClick={handleSubmit} disabled={!file || submitting}>
                 Submit
               </Button>
             </div>

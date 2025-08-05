@@ -3,19 +3,20 @@ import { apiDelete, apiGet, apiPost, apiPut, NO_CONVERTER } from "./query"
 import { CONTENT_TYPE } from "../types/contentType"
 import { getUuid } from "../utils/utils"
 import { Poster } from "../types/poster"
+import { Year } from "../types/year"
 
 const ENDPOINT = "poster"
 const STALE_30_MIN = 30 * 60 * 1000
 
-export function usePosterGetFile(posterId: number, eventId: number) {
+export function usePosterGetFile(poster: Pick<Poster, 'id' | 'eventId'>) {
   return useQuery({
-    queryKey: ["event", eventId, "poster", posterId],
+    queryKey: ["event", poster.eventId, "poster", poster.id],
     queryFn: async () => {
-      const { data } = await apiGet<Blob>(`${ENDPOINT}/${posterId}/file`)
+      const { data } = await apiGet<Blob>(`${ENDPOINT}/${poster.id}/file`)
       return new File([data], `${getUuid()}.png`, { type: CONTENT_TYPE.PNG })
     },
     staleTime: STALE_30_MIN,
-    enabled: posterId > 0,
+    enabled: poster.id > 0,
     throwOnError: true,
   })
 }
@@ -25,7 +26,7 @@ export function usePosterCreate() {
 
   return useMutation({
     mutationFn: (args: { poster: Poster, file: File }) => apiPut(ENDPOINT, args.poster, NO_CONVERTER, [{ file: args.file, field: "file" }]),
-    onSuccess: (_, args) => queryClient.invalidateQueries({ queryKey: ["event", args.poster.eventId] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["event"] })
   })
 }
 
@@ -34,7 +35,7 @@ export function usePosterUpdate() {
 
   return useMutation({
     mutationFn: (args: { poster: Poster, file: File }) => apiPost(`${ENDPOINT}/${args.poster.id}`, args.poster, NO_CONVERTER, [{ file: args.file, field: "file" }]),
-    onSuccess: (_, args) => queryClient.invalidateQueries({ queryKey: ["event", args.poster.eventId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["event"] }),
   })
 }
 
@@ -42,8 +43,8 @@ export function usePosterDelete() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (poster: Poster) => apiDelete(`${ENDPOINT}/${poster.id}`),
-    onSuccess: (_, poster) => queryClient.invalidateQueries({ queryKey: ["event", poster.eventId] })
+    mutationFn: (args: { poster: Poster, year: Pick<Year, 'id'> }) => apiDelete(`${ENDPOINT}/${args.poster.id}`),
+    onSuccess: (_, args) => queryClient.invalidateQueries({ queryKey: ["event", args.year.id] })
   })
 }
 
