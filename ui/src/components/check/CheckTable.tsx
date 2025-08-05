@@ -1,7 +1,7 @@
-import { Check, CheckSource, CheckStatus } from "@/lib/types/check"
+import { Check, CheckSource, CheckStatus, statusToIcon } from "@/lib/types/check"
 import { ColumnDef } from "@tanstack/react-table";
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, CircleAlertIcon, ClipboardCheckIcon, ClipboardXIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
-import { ReactNode, useMemo, useState } from "react";
+import { ChevronDownIcon, ChevronUpIcon, ClipboardCheckIcon, ClipboardXIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Button } from "../ui/button";
 import { useCheckCreate, useCheckDelete, useCheckToggle } from "@/lib/api/check";
 import { toast } from "sonner";
@@ -11,12 +11,6 @@ import { Table } from "../organisms/Table";
 interface Props {
   checks: Check[];
   eventId: number;
-}
-
-const statusToIcon: Record<CheckStatus, ReactNode> = {
-  [CheckStatus.Finished]: <CheckIcon className="text-green-500" />,
-  [CheckStatus.Unfinished]: <XIcon className="text-red-500" />,
-  [CheckStatus.Warning]: <CircleAlertIcon className="text-orange-500" />,
 }
 
 export function CheckTable({ checks, eventId }: Props) {
@@ -76,7 +70,7 @@ export function CheckTable({ checks, eventId }: Props) {
   const columns: ColumnDef<Check>[] = useMemo(() => [
     {
       accessorKey: "status",
-      header: () => <span>{`${checks.filter(c => c.done).length}/${checks.length}`}</span>,
+      header: () => <span>{`${checks.filter(c => c.status === CheckStatus.Finished).length}/${checks.length}`}</span>,
       cell: ({ cell }) => {
         const status = cell.getValue<CheckStatus>()
         return statusToIcon[status]
