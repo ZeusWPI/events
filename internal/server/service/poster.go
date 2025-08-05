@@ -5,7 +5,9 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/poster"
 	"github.com/ZeusWPI/events/internal/server/dto"
+	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/pkg/storage"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -104,6 +106,18 @@ func (p *Poster) Delete(ctx context.Context, posterID int) error {
 
 	if err := storage.S.Delete(poster.FileID); err != nil {
 		zap.S().Error(err) // Only log error, it's fine
+	}
+
+	return nil
+}
+
+func (p *Poster) Sync() error {
+	// The task manager runs everything in the background
+	// The returned error is the status for adding it to the task manager
+	// The result of the task itself if logged by the task manager
+	if err := p.service.task.AddOnce(task.NewTask(poster.SyncTask, task.Now, p.service.poster.Sync)); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
 	}
 
 	return nil

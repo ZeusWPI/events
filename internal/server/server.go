@@ -75,6 +75,7 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 
 	webhookRouter := app.Group("/webhook")
 	webhook.NewGithub(webhookRouter, service)
+	webhook.NewGitmate(webhookRouter, service)
 
 	if env != "development" {
 		app.Static("/", "./public")
