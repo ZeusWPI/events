@@ -8,6 +8,7 @@ import (
 	"github.com/ZeusWPI/events/internal/dsa"
 	"github.com/ZeusWPI/events/internal/mail"
 	"github.com/ZeusWPI/events/internal/mattermost"
+	"github.com/ZeusWPI/events/internal/poster"
 	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/internal/website"
@@ -57,7 +58,6 @@ func main() {
 	if err != nil {
 		zap.S().Fatalf("Unable to create website %v", err)
 	}
-
 	if err := cmd.Website(*website, taskManager); err != nil {
 		zap.S().Fatalf("Unable to start website command %v", err)
 	}
@@ -67,7 +67,6 @@ func main() {
 	if err != nil {
 		zap.S().Fatalf("Unable to create dsa %v", err)
 	}
-
 	if err := cmd.DSA(dsa, taskManager, checkManager); err != nil {
 		zap.S().Fatalf("Unable to start dsa command %v", err)
 	}
@@ -77,7 +76,6 @@ func main() {
 	if err != nil {
 		zap.S().Fatalf("Unable to create mattermost %v", err)
 	}
-
 	if err := cmd.Mattermost(mattermost, checkManager); err != nil {
 		zap.S().Fatalf("Unable to start mattermost command %v", err)
 	}
@@ -87,13 +85,21 @@ func main() {
 	if err != nil {
 		zap.S().Fatalf("Unable to create mail %v", err)
 	}
-
 	if err := cmd.Mail(mail, checkManager); err != nil {
 		zap.S().Fatalf("Unable to start mail command %v", err)
 	}
 
+	// Start poster
+	poster, err := poster.New(*repo)
+	if err != nil {
+		zap.S().Fatalf("Unable to create poster %v", err)
+	}
+	if err := cmd.Poster(*poster, taskManager); err != nil {
+		zap.S().Fatalf("Unable to start poster command %v", err)
+	}
+
 	// Start API
-	service := service.New(*repo, checkManager, taskManager, *mail, *website, *mattermost)
+	service := service.New(*repo, checkManager, taskManager, *mail, *website, *mattermost, *poster)
 	if err := cmd.API(*service, db.Pool()); err != nil {
 		zap.S().Error(err)
 	}
