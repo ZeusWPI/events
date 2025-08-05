@@ -38,6 +38,20 @@ You can write announcements for each event and schedule them to be send at a lat
 Similar to announcements, you can write and schedule emails.  
 For each mail you can select with events are covered.
 
+### Posters
+
+Each event can have 2 posters
+
+- `Big` -> Poster meant to print out and hang up to advertise for the event
+- `Scc` -> Poster displayed on cammie chat screen
+
+The posters are automatically synced with the [visueel repository in Gitmate](https://git.zeus.gent/ZeusWPI/visueel).
+
+If a poster is not yet in the `visueel` repository then a pull request will be created to add it after the event is finished.
+If the `visueel` repository has a poster and events has none or a different one then the events poster will be deleted and replaced by the one in the `visueel` repository.
+
+More information can be found in the [visueel repository](https://git.zeus.gent/ZeusWPI/visueel)
+
 ---
 
 ## Development

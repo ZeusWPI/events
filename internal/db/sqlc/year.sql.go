@@ -28,7 +28,8 @@ func (q *Queries) YearCreate(ctx context.Context, arg YearCreateParams) (int32, 
 }
 
 const yearGetAll = `-- name: YearGetAll :many
-SELECT id, year_start, year_end FROM year
+SELECT id, year_start, year_end 
+FROM year
 ORDER BY year_start DESC
 `
 
@@ -53,7 +54,8 @@ func (q *Queries) YearGetAll(ctx context.Context) ([]Year, error) {
 }
 
 const yearGetLast = `-- name: YearGetLast :one
-SELECT id, year_start, year_end FROM year 
+SELECT id, year_start, year_end 
+FROM year 
 ORDER BY year_start DESC
 LIMIT 1
 `

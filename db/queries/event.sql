@@ -3,6 +3,69 @@ SELECT *
 FROM event 
 WHERE id = $1;
 
+-- name: EventGetByIdPopulated :one
+SELECT jsonb_build_object(
+  'id', e.id,
+  'file_name', e.file_name,
+  'name', e.name,
+  'description', e.description,
+  'start_time', e.start_time,
+  'end_time', e.end_time,
+  'year_id', e.year_id,
+  'location', e.location,
+  'year', (
+    SELECT jsonb_build_object(
+      'id', y.id,
+      'year_start', y.year_start,
+      'year_end', y.year_end
+    )
+    FROM year y
+    WHERE y.id = e.year_id
+  ),
+  'organizers', (
+    SELECT coalesce(json_agg(jsonb_build_object(
+      'id', b.id,
+      'member_id', b.member_id,
+      'year_id', b.year_id,
+      'role', b.role,
+      'member', (
+        SELECT jsonb_build_object(
+          'id', m.id,
+          'name', m.name,
+          'username', m.username,
+          'zauth_id', m.zauth_id
+        )
+        FROM member m 
+        WHERE m.id = b.member_id
+      ),
+      'year', (
+        SELECT jsonb_build_object(
+          'id', y.id,
+          'year_start', y.year_start,
+          'year_end', y.year_end
+        )
+        FROM year y
+        WHERE y.id = b.year_id
+      )
+    )), '[]')
+    FROM board b 
+    INNER JOIN organizer o ON o.board_id = b.id
+    WHERE o.event_id = e.id
+  ),
+  'posters', (
+    SELECT coalesce(json_agg(jsonb_build_object(
+      'id', p.id,
+      'event_id', p.event_id,
+      'file_id', p.file_id,
+      'scc', p.scc
+    )), '[]')
+    FROM poster p 
+    WHERE p.event_id = e.id
+  )
+)
+FROM event e 
+WHERE e.id = $1;
+
 -- name: EventGetByIds :many
 SELECT *
 FROM event

@@ -1,9 +1,11 @@
 -- name: YearGetAll :many 
-SELECT * FROM year
+SELECT * 
+FROM year
 ORDER BY year_start DESC;  
 
 -- name: YearGetLast :one 
-SELECT * FROM year 
+SELECT * 
+FROM year 
 ORDER BY year_start DESC
 LIMIT 1;
 

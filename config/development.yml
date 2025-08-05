@@ -39,3 +39,9 @@ dsa:
 mattermost:
   url: https://mattermost.zeus.gent
   announcement_channel: c48qqzyfp7dhjciniwbk7k8fgy # Test kanaal
+
+gitmate:
+  url: "https://git.zeus.gent/api/v1/repos/ZeusWPI/visueel"
+
+poster:
+  sync_s: 86400

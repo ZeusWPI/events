@@ -63,8 +63,7 @@ func (p *Poster) Save(ctx context.Context, posterSave dto.PosterSave) (dto.Poste
 		}
 
 		if err = storage.S.Delete(oldPoster.FileID); err != nil {
-			zap.S().Error(err)
-			return dto.Poster{}, fiber.ErrInternalServerError
+			zap.S().Error(err) // Only log error, it's fine
 		}
 	}
 
@@ -101,6 +100,10 @@ func (p *Poster) Delete(ctx context.Context, posterID int) error {
 	if err := p.poster.Delete(ctx, posterID); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
+	}
+
+	if err := storage.S.Delete(poster.FileID); err != nil {
+		zap.S().Error(err) // Only log error, it's fine
 	}
 
 	return nil
