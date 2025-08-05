@@ -56,6 +56,36 @@ func (q *Queries) PosterGet(ctx context.Context, id int32) (Poster, error) {
 	return i, err
 }
 
+const posterGetAll = `-- name: PosterGetAll :many
+SELECT id, event_id, file_id, scc
+FROM poster
+`
+
+func (q *Queries) PosterGetAll(ctx context.Context) ([]Poster, error) {
+	rows, err := q.db.Query(ctx, posterGetAll)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Poster
+	for rows.Next() {
+		var i Poster
+		if err := rows.Scan(
+			&i.ID,
+			&i.EventID,
+			&i.FileID,
+			&i.Scc,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const posterUpdate = `-- name: PosterUpdate :exec
 UPDATE poster
 SET event_id = $1, file_id = $2, scc = $3

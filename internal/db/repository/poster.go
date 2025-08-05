@@ -8,6 +8,7 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/sqlc"
+	"github.com/ZeusWPI/events/pkg/utils"
 )
 
 type Poster struct {
@@ -18,6 +19,18 @@ func (r *Repository) NewPoster() *Poster {
 	return &Poster{
 		repo: *r,
 	}
+}
+
+func (p *Poster) GetAll(ctx context.Context) ([]*model.Poster, error) {
+	posters, err := p.repo.queries(ctx).PosterGetAll(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all posters %w", err)
+	}
+
+	return utils.SliceMap(posters, model.PosterModel), nil
 }
 
 func (p *Poster) Get(ctx context.Context, posterID int) (*model.Poster, error) {

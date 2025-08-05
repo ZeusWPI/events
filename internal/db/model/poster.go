@@ -1,6 +1,8 @@
 package model
 
-import "github.com/ZeusWPI/events/internal/db/sqlc"
+import (
+	"github.com/ZeusWPI/events/internal/db/sqlc"
+)
 
 type Poster struct {
 	ID      int    `json:"id"`
@@ -16,4 +18,13 @@ func PosterModel(poster sqlc.Poster) *Poster {
 		FileID:  poster.FileID,
 		SCC:     poster.Scc,
 	}
+}
+
+func (p *Poster) Equal(p2 Poster) bool {
+	return p.EventID == p2.EventID && p.FileID == p2.FileID && p.SCC == p2.SCC
+}
+
+// EqualEntry returns true if both poster are for the same event and of the same type (scc)
+func (p *Poster) EqualEntry(p2 Poster) bool {
+	return p.EventID == p2.EventID && p.SCC == p2.SCC
 }

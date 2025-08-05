@@ -38,6 +38,23 @@ func (e *Event) GetByID(ctx context.Context, eventID int) (*model.Event, error) 
 	return model.EventModel(event), nil
 }
 
+func (e *Event) GetByIDPopulated(ctx context.Context, eventID int) (*model.Event, error) {
+	eventDB, err := e.repo.queries(ctx).EventGetByIdPopulated(ctx, int32(eventID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get event by id populated %d | %w", eventID, err)
+	}
+
+	var event model.Event
+	if err := json.Unmarshal(eventDB, &event); err != nil {
+		return nil, fmt.Errorf("unmarshal event json %w", err)
+	}
+
+	return &event, nil
+}
+
 func (e *Event) GetByIDs(ctx context.Context, eventIDs []int) ([]*model.Event, error) {
 	events, err := e.repo.queries(ctx).EventGetByIds(ctx, utils.SliceMap(eventIDs, func(id int) int32 { return int32(id) }))
 	if err != nil {

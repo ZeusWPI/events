@@ -1,3 +1,7 @@
+-- name: PosterGetAll :many
+SELECT *
+FROM poster;
+
 -- name: PosterGet :one
 SELECT *
 FROM poster
