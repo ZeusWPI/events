@@ -12,7 +12,7 @@ import (
 
 const announcementTask = "Announcement send"
 
-func (m *Mattermost) sendAnnouncement(ctx context.Context, announcement model.Announcement) error {
+func (m *Client) sendAnnouncement(ctx context.Context, announcement model.Announcement) error {
 	if err := m.SendMessage(ctx, Message{
 		ChannelID: m.announcementChannel,
 		Message:   announcement.Content,
@@ -33,7 +33,7 @@ func (m *Mattermost) sendAnnouncement(ctx context.Context, announcement model.An
 }
 
 // If an announcement is already scheduled then update needs to be set to true so that it cancels it first
-func (m *Mattermost) ScheduleAnnouncement(ctx context.Context, announcement model.Announcement, update bool) error {
+func (m *Client) ScheduleAnnouncement(ctx context.Context, announcement model.Announcement, update bool) error {
 	name := fmt.Sprintf("%s %d", announcementTask, announcement.ID)
 
 	if update {

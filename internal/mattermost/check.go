@@ -13,7 +13,7 @@ type CheckAnnouncement struct {
 	repoAnnouncement repository.Announcement
 }
 
-func (m *Mattermost) NewCheckAnnouncement() *CheckAnnouncement {
+func (m *Client) NewCheckAnnouncement() *CheckAnnouncement {
 	return &CheckAnnouncement{
 		repoAnnouncement: m.repoAnnouncement,
 	}

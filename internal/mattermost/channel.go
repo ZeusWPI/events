@@ -16,7 +16,7 @@ type messageResponse struct {
 	// Don't care about the response at this time
 }
 
-func (m *Mattermost) SendMessage(ctx context.Context, message Message) error {
+func (m *Client) SendMessage(ctx context.Context, message Message) error {
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(message)
 	if err != nil {

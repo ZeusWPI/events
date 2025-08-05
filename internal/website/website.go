@@ -6,7 +6,7 @@ import (
 	"github.com/ZeusWPI/events/pkg/github"
 )
 
-type Website struct {
+type Client struct {
 	github     github.Client
 	eventRepo  repository.Event
 	yearRepo   repository.Year
@@ -14,13 +14,13 @@ type Website struct {
 	memberRepo repository.Member
 }
 
-func New(repo repository.Repository) (*Website, error) {
+func New(repo repository.Repository) (*Client, error) {
 	github, err := github.New()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Website{
+	return &Client{
 		github:     *github,
 		eventRepo:  *repo.NewEvent(),
 		yearRepo:   *repo.NewYear(),
