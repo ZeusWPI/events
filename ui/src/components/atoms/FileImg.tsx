@@ -1,13 +1,14 @@
 
 import { ComponentProps, useEffect, useState } from "react";
 import { Indeterminate } from "./Indeterminate";
+import clsx from "clsx";
 
 interface Props extends ComponentProps<'img'> {
   file?: File;
   isLoading: boolean;
 }
 
-export function FileImg({ file, isLoading, ...props }: Props) {
+export function FileImg({ file, isLoading, className, ...props }: Props) {
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,6 +35,6 @@ export function FileImg({ file, isLoading, ...props }: Props) {
     return null;
   }
 
-  return <img src={url} {...props} />;
+  return <img src={url} className={clsx("w-full h-full object-fill", className)} {...props} />;
 }
 

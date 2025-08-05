@@ -89,6 +89,15 @@ func (p *Poster) Save(ctx context.Context, posterSave dto.PosterSave) (dto.Poste
 }
 
 func (p *Poster) Delete(ctx context.Context, posterID int) error {
+	poster, err := p.poster.Get(ctx, posterID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if poster == nil {
+		return fiber.ErrBadRequest
+	}
+
 	if err := p.poster.Delete(ctx, posterID); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
