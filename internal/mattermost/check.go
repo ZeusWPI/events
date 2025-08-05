@@ -13,9 +13,9 @@ type CheckAnnouncement struct {
 	repoAnnouncement repository.Announcement
 }
 
-func (m *Client) NewCheckAnnouncement() *CheckAnnouncement {
+func (c *Client) NewCheckAnnouncement() *CheckAnnouncement {
 	return &CheckAnnouncement{
-		repoAnnouncement: m.repoAnnouncement,
+		repoAnnouncement: c.repoAnnouncement,
 	}
 }
 

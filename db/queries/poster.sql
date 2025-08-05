@@ -2,6 +2,11 @@
 SELECT *
 FROM poster;
 
+-- name: PosterGetByEvents :many
+SELECT *
+FROM poster
+WHERE event_id = ANY($1::int[]);
+
 -- name: PosterGet :one
 SELECT *
 FROM poster

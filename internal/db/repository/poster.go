@@ -33,6 +33,18 @@ func (p *Poster) GetAll(ctx context.Context) ([]*model.Poster, error) {
 	return utils.SliceMap(posters, model.PosterModel), nil
 }
 
+func (p *Poster) GetByEvents(ctx context.Context, events []model.Event) ([]*model.Poster, error) {
+	posters, err := p.repo.queries(ctx).PosterGetByEvents(ctx, utils.SliceMap(events, func(e model.Event) int32 { return int32(e.ID) }))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get posters by events %+v | %w", events, err)
+	}
+
+	return utils.SliceMap(posters, model.PosterModel), nil
+}
+
 func (p *Poster) Get(ctx context.Context, posterID int) (*model.Poster, error) {
 	poster, err := p.repo.queries(ctx).PosterGet(ctx, int32(posterID))
 	if err != nil {

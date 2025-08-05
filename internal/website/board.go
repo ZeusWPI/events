@@ -24,9 +24,9 @@ type bestuurYAML struct {
 	} `yaml:"data"`
 }
 
-func (w *Client) fetchAndParseBoard(ctx context.Context) ([]model.Board, error) {
+func (c *Client) fetchAndParseBoard(ctx context.Context) ([]model.Board, error) {
 	var raw bestuurYAML
-	if err := w.github.FetchYaml(ctx, boardURL, &raw); err != nil {
+	if err := c.github.FetchYaml(ctx, boardURL, &raw); err != nil {
 		return nil, err
 	}
 
@@ -84,23 +84,23 @@ func parseYearRange(s string) (int, int, error) {
 	return startYear, endYear, nil
 }
 
-func (w *Client) UpdateBoard(ctx context.Context) error {
-	boards, err := w.fetchAndParseBoard(ctx)
+func (c *Client) UpdateBoard(ctx context.Context) error {
+	boards, err := c.fetchAndParseBoard(ctx)
 	if err != nil {
 		return err
 	}
 
-	years, err := w.yearRepo.GetAll(ctx)
+	years, err := c.yearRepo.GetAll(ctx)
 	if err != nil {
 		return nil
 	}
 
-	members, err := w.memberRepo.GetAll(ctx)
+	members, err := c.memberRepo.GetAll(ctx)
 	if err != nil {
 		return nil
 	}
 
-	oldBoards, err := w.boardRepo.GetAllPopulated(ctx)
+	oldBoards, err := c.boardRepo.GetAllPopulated(ctx)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (w *Client) UpdateBoard(ctx context.Context) error {
 			oldBoard.Role = board.Role
 			oldBoard.IsOrganizer = board.IsOrganizer
 
-			if err := w.boardRepo.Update(ctx, *oldBoard); err != nil {
+			if err := c.boardRepo.Update(ctx, *oldBoard); err != nil {
 				errs = append(errs, err)
 			}
 
@@ -137,7 +137,7 @@ func (w *Client) UpdateBoard(ctx context.Context) error {
 		if member, ok := utils.SliceFind(members, func(m *model.Member) bool { return m.Equal(board.Member) }); ok {
 			board.MemberID = member.ID
 		} else {
-			if err := w.memberRepo.Create(ctx, &board.Member); err != nil {
+			if err := c.memberRepo.Create(ctx, &board.Member); err != nil {
 				errs = append(errs, err)
 				continue
 			}
@@ -149,7 +149,7 @@ func (w *Client) UpdateBoard(ctx context.Context) error {
 		if year, ok := utils.SliceFind(years, func(y *model.Year) bool { return y.Equal(board.Year) }); ok {
 			board.YearID = year.ID
 		} else {
-			if err := w.yearRepo.Create(ctx, &board.Year); err != nil {
+			if err := c.yearRepo.Create(ctx, &board.Year); err != nil {
 				errs = append(errs, err)
 				continue
 			}
@@ -157,7 +157,7 @@ func (w *Client) UpdateBoard(ctx context.Context) error {
 			board.YearID = board.Year.ID
 		}
 
-		if err := w.boardRepo.Create(ctx, &board); err != nil {
+		if err := c.boardRepo.Create(ctx, &board); err != nil {
 			errs = append(errs, err)
 		}
 	}
@@ -171,7 +171,7 @@ func (w *Client) UpdateBoard(ctx context.Context) error {
 		}
 
 		if exists := slices.ContainsFunc(boards, func(b model.Board) bool { return b.Equal(*board) }); !exists {
-			if err := w.boardRepo.Delete(ctx, *board); err != nil {
+			if err := c.boardRepo.Delete(ctx, *board); err != nil {
 				errs = append(errs, err)
 			}
 		}

@@ -16,7 +16,7 @@ type messageResponse struct {
 	// Don't care about the response at this time
 }
 
-func (m *Client) SendMessage(ctx context.Context, message Message) error {
+func (c *Client) SendMessage(ctx context.Context, message Message) error {
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(message)
 	if err != nil {
@@ -30,7 +30,7 @@ func (m *Client) SendMessage(ctx context.Context, message Message) error {
 		target: new(messageResponse),
 	}
 
-	if err := m.query(ctx, query); err != nil {
+	if err := c.query(ctx, query); err != nil {
 		return err
 	}
 

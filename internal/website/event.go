@@ -105,12 +105,12 @@ func parseTime(s string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("parse time %s  |%w", s, err)
 }
 
-func (w *Client) parseEventFile(ctx context.Context, dirName string, f fileMeta) (model.Event, error) {
+func (c *Client) parseEventFile(ctx context.Context, dirName string, f fileMeta) (model.Event, error) {
 	if !strings.HasSuffix(f.Name, ".md") {
 		return model.Event{}, fmt.Errorf("invalid file %+v", f)
 	}
 
-	mdContent, err := w.github.FetchMarkdown(ctx, f.DownloadURL)
+	mdContent, err := c.github.FetchMarkdown(ctx, f.DownloadURL)
 	if err != nil {
 		return model.Event{}, err
 	}
@@ -157,9 +157,9 @@ func (w *Client) parseEventFile(ctx context.Context, dirName string, f fileMeta)
 	}, nil
 }
 
-func (w *Client) getEvents(ctx context.Context) ([]model.Event, error) {
+func (c *Client) getEvents(ctx context.Context) ([]model.Event, error) {
 	var yearDirs []fileMeta
-	if err := w.github.FetchJSON(ctx, eventURL, &yearDirs); err != nil {
+	if err := c.github.FetchJSON(ctx, eventURL, &yearDirs); err != nil {
 		return nil, fmt.Errorf("fetch year dirs: %w", err)
 	}
 
@@ -171,7 +171,7 @@ func (w *Client) getEvents(ctx context.Context) ([]model.Event, error) {
 		}
 
 		var files []fileMeta
-		if err := w.github.FetchJSON(ctx, fmt.Sprintf("%s/%s", eventURL, dir.Name), &files); err != nil {
+		if err := c.github.FetchJSON(ctx, fmt.Sprintf("%s/%s", eventURL, dir.Name), &files); err != nil {
 			return nil, fmt.Errorf("failed to fetch files for %s: %w", dir.Name, err)
 		}
 
@@ -180,7 +180,7 @@ func (w *Client) getEvents(ctx context.Context) ([]model.Event, error) {
 				continue
 			}
 
-			event, err := w.parseEventFile(ctx, dir.Name, file)
+			event, err := c.parseEventFile(ctx, dir.Name, file)
 			if err != nil {
 				return nil, err
 			}
@@ -192,18 +192,18 @@ func (w *Client) getEvents(ctx context.Context) ([]model.Event, error) {
 	return all, nil
 }
 
-func (w *Client) UpdateEvent(ctx context.Context) error {
-	events, err := w.getEvents(ctx)
+func (c *Client) UpdateEvent(ctx context.Context) error {
+	events, err := c.getEvents(ctx)
 	if err != nil {
 		return err
 	}
 
-	years, err := w.yearRepo.GetAll(ctx)
+	years, err := c.yearRepo.GetAll(ctx)
 	if err != nil {
 		return err
 	}
 
-	oldEvents, err := w.eventRepo.GetAllWithYear(ctx)
+	oldEvents, err := c.eventRepo.GetAllWithYear(ctx)
 	if err != nil {
 		return err
 	}
@@ -219,7 +219,7 @@ func (w *Client) UpdateEvent(ctx context.Context) error {
 		if year, ok := utils.SliceFind(years, func(y *model.Year) bool { return y.Equal(event.Year) }); ok {
 			event.YearID = year.ID
 		} else {
-			if err := w.yearRepo.Create(ctx, &event.Year); err != nil {
+			if err := c.yearRepo.Create(ctx, &event.Year); err != nil {
 				errs = append(errs, err)
 				continue
 			}
@@ -229,10 +229,10 @@ func (w *Client) UpdateEvent(ctx context.Context) error {
 		var err error
 		if exists := slices.ContainsFunc(oldEvents, func(e *model.Event) bool { return e.FileName == event.FileName }); exists {
 			// Update
-			err = w.eventRepo.Update(ctx, event)
+			err = c.eventRepo.Update(ctx, event)
 		} else {
 			// Create
-			err = w.eventRepo.Create(ctx, &event)
+			err = c.eventRepo.Create(ctx, &event)
 		}
 
 		if err != nil {
@@ -243,7 +243,7 @@ func (w *Client) UpdateEvent(ctx context.Context) error {
 	// Delete old events
 	for _, event := range oldEvents {
 		if exists := slices.ContainsFunc(events, func(e model.Event) bool { return e.Equal(*event) }); !exists {
-			if err := w.eventRepo.Delete(ctx, event.ID); err != nil {
+			if err := c.eventRepo.Delete(ctx, event.ID); err != nil {
 				errs = append(errs, err)
 			}
 		}

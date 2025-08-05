@@ -94,7 +94,7 @@ func main() {
 	if err != nil {
 		zap.S().Fatalf("Unable to create poster %v", err)
 	}
-	if err := cmd.Poster(*poster, taskManager); err != nil {
+	if err := cmd.Poster(*poster, taskManager, checkManager); err != nil {
 		zap.S().Fatalf("Unable to start poster command %v", err)
 	}
 

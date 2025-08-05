@@ -17,14 +17,14 @@ type query struct {
 	target any
 }
 
-func (m *Client) query(ctx context.Context, q query) error {
-	req, err := http.NewRequestWithContext(ctx, q.method, fmt.Sprintf("%s/%s/%s", m.url, apiURL, q.url), q.body)
+func (c *Client) query(ctx context.Context, q query) error {
+	req, err := http.NewRequestWithContext(ctx, q.method, fmt.Sprintf("%s/%s/%s", c.url, apiURL, q.url), q.body)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)
 	}
 
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "Bearer "+m.token)
+	req.Header.Set("Authorization", "Bearer "+c.token)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)

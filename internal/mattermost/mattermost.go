@@ -49,15 +49,15 @@ func New(repo repository.Repository, task *task.Manager) (*Client, error) {
 	return mattermost, nil
 }
 
-func (m *Client) startup(ctx context.Context) error {
+func (c *Client) startup(ctx context.Context) error {
 	// Reschedule all announcements
-	announcements, err := m.repoAnnouncement.GetUnsend(ctx)
+	announcements, err := c.repoAnnouncement.GetUnsend(ctx)
 	if err != nil {
 		return err
 	}
 
 	for _, announcement := range announcements {
-		if err := m.ScheduleAnnouncement(ctx, *announcement, false); err != nil {
+		if err := c.ScheduleAnnouncement(ctx, *announcement, false); err != nil {
 			return err
 		}
 	}
