@@ -105,7 +105,7 @@ func parseTime(s string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("parse time %s  |%w", s, err)
 }
 
-func (w *Website) parseEventFile(ctx context.Context, dirName string, f fileMeta) (model.Event, error) {
+func (w *Client) parseEventFile(ctx context.Context, dirName string, f fileMeta) (model.Event, error) {
 	if !strings.HasSuffix(f.Name, ".md") {
 		return model.Event{}, fmt.Errorf("invalid file %+v", f)
 	}
@@ -157,7 +157,7 @@ func (w *Website) parseEventFile(ctx context.Context, dirName string, f fileMeta
 	}, nil
 }
 
-func (w *Website) getEvents(ctx context.Context) ([]model.Event, error) {
+func (w *Client) getEvents(ctx context.Context) ([]model.Event, error) {
 	var yearDirs []fileMeta
 	if err := w.github.FetchJSON(ctx, eventURL, &yearDirs); err != nil {
 		return nil, fmt.Errorf("fetch year dirs: %w", err)
@@ -192,7 +192,7 @@ func (w *Website) getEvents(ctx context.Context) ([]model.Event, error) {
 	return all, nil
 }
 
-func (w *Website) UpdateEvent(ctx context.Context) error {
+func (w *Client) UpdateEvent(ctx context.Context) error {
 	events, err := w.getEvents(ctx)
 	if err != nil {
 		return err

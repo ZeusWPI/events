@@ -5,7 +5,7 @@ import (
 	"github.com/ZeusWPI/events/internal/mattermost"
 )
 
-func Mattermost(m *mattermost.Mattermost, c *check.Manager) error {
+func Mattermost(m *mattermost.Client, c *check.Manager) error {
 	if err := c.Register(m.NewCheckAnnouncement()); err != nil {
 		return err
 	}

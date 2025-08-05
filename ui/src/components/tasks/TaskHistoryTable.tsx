@@ -18,7 +18,7 @@ function FormatDuration(nanos: number) {
   const ms = Math.floor(nanos / 1_000_000) % 1000
   const s = Math.floor(nanos / 1_000_000_000)
 
-  const msString = `(${ms.toString().padStart(3, '0')}ms)`
+  const msString = `${ms.toString().padStart(3, '0')}ms`
   const sString = `${s.toString().padStart(2, '0')}s `
 
   return <span>{sString}<span className="text-muted-foreground">{msString}</span></span>

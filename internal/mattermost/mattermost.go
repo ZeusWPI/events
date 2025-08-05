@@ -9,7 +9,7 @@ import (
 	"github.com/ZeusWPI/events/pkg/config"
 )
 
-type Mattermost struct {
+type Client struct {
 	token               string
 	url                 string
 	announcementChannel string
@@ -18,7 +18,7 @@ type Mattermost struct {
 	task             *task.Manager
 }
 
-func New(repo repository.Repository, task *task.Manager) (*Mattermost, error) {
+func New(repo repository.Repository, task *task.Manager) (*Client, error) {
 	token := config.GetDefaultString("mattermost.token", "")
 	if token == "" {
 		return nil, errors.New("no mattermost token set")
@@ -34,7 +34,7 @@ func New(repo repository.Repository, task *task.Manager) (*Mattermost, error) {
 		return nil, errors.New("no mattermost announcement channel id set")
 	}
 
-	mattermost := &Mattermost{
+	mattermost := &Client{
 		token:               token,
 		url:                 url,
 		announcementChannel: announcementChannel,
@@ -49,7 +49,7 @@ func New(repo repository.Repository, task *task.Manager) (*Mattermost, error) {
 	return mattermost, nil
 }
 
-func (m *Mattermost) startup(ctx context.Context) error {
+func (m *Client) startup(ctx context.Context) error {
 	// Reschedule all announcements
 	announcements, err := m.repoAnnouncement.GetUnsend(ctx)
 	if err != nil {
