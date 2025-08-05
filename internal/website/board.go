@@ -26,7 +26,7 @@ type bestuurYAML struct {
 
 func (w *Website) fetchAndParseBoard(ctx context.Context) ([]model.Board, error) {
 	var raw bestuurYAML
-	if err := w.fetchYaml(ctx, boardURL, &raw); err != nil {
+	if err := w.github.FetchYaml(ctx, boardURL, &raw); err != nil {
 		return nil, err
 	}
 

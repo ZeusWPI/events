@@ -2,15 +2,12 @@
 package website
 
 import (
-	"errors"
-
 	"github.com/ZeusWPI/events/internal/db/repository"
-	"github.com/ZeusWPI/events/pkg/config"
+	"github.com/ZeusWPI/events/pkg/github"
 )
 
 type Website struct {
-	githubToken string
-
+	github     github.Client
 	eventRepo  repository.Event
 	yearRepo   repository.Year
 	boardRepo  repository.Board
@@ -18,16 +15,16 @@ type Website struct {
 }
 
 func New(repo repository.Repository) (*Website, error) {
-	github := config.GetDefaultString("website.github_token", "")
-	if github == "" {
-		return nil, errors.New("no github token set")
+	github, err := github.New()
+	if err != nil {
+		return nil, err
 	}
 
 	return &Website{
-		githubToken: github,
-		eventRepo:   *repo.NewEvent(),
-		yearRepo:    *repo.NewYear(),
-		boardRepo:   *repo.NewBoard(),
-		memberRepo:  *repo.NewMember(),
+		github:     *github,
+		eventRepo:  *repo.NewEvent(),
+		yearRepo:   *repo.NewYear(),
+		boardRepo:  *repo.NewBoard(),
+		memberRepo: *repo.NewMember(),
 	}, nil
 }

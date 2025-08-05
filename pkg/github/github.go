@@ -1,22 +1,40 @@
-package website
+// Package github fetches data from github
+package github
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
+	"github.com/ZeusWPI/events/pkg/config"
 	"gopkg.in/yaml.v3"
 )
 
-func (w *Website) fetchJSON(ctx context.Context, url string, target any) error {
+type Client struct {
+	token string
+}
+
+func New() (*Client, error) {
+	token := config.GetDefaultString("github.token", "")
+	if token == "" {
+		return nil, errors.New("no github token set")
+	}
+
+	return &Client{
+		token: token,
+	}, nil
+}
+
+func (c *Client) FetchJSON(ctx context.Context, url string, target any) error {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+w.githubToken)
+	req.Header.Set("Authorization", "Bearer "+c.token)
 	req.Header.Set("Accept", "application/vnd.github+json")
 
 	resp, err := http.DefaultClient.Do(req)
@@ -38,13 +56,13 @@ func (w *Website) fetchJSON(ctx context.Context, url string, target any) error {
 	return nil
 }
 
-func (w *Website) fetchMarkdown(ctx context.Context, url string) (string, error) {
+func (c *Client) FetchMarkdown(ctx context.Context, url string) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("new http request %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+w.githubToken)
+	req.Header.Set("Authorization", "Bearer "+c.token)
 	req.Header.Set("Accept", "application/vnd.github.raw")
 
 	resp, err := http.DefaultClient.Do(req)
@@ -67,13 +85,13 @@ func (w *Website) fetchMarkdown(ctx context.Context, url string) (string, error)
 	return string(body), nil
 }
 
-func (w *Website) fetchYaml(ctx context.Context, url string, target any) error {
+func (c *Client) FetchYaml(ctx context.Context, url string, target any) error {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+w.githubToken)
+	req.Header.Set("Authorization", "Bearer "+c.token)
 	req.Header.Set("Accept", "application/vnd.github.raw")
 
 	resp, err := http.DefaultClient.Do(req)

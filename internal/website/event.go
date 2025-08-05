@@ -110,7 +110,7 @@ func (w *Website) parseEventFile(ctx context.Context, dirName string, f fileMeta
 		return model.Event{}, fmt.Errorf("invalid file %+v", f)
 	}
 
-	mdContent, err := w.fetchMarkdown(ctx, f.DownloadURL)
+	mdContent, err := w.github.FetchMarkdown(ctx, f.DownloadURL)
 	if err != nil {
 		return model.Event{}, err
 	}
@@ -159,7 +159,7 @@ func (w *Website) parseEventFile(ctx context.Context, dirName string, f fileMeta
 
 func (w *Website) getEvents(ctx context.Context) ([]model.Event, error) {
 	var yearDirs []fileMeta
-	if err := w.fetchJSON(ctx, eventURL, &yearDirs); err != nil {
+	if err := w.github.FetchJSON(ctx, eventURL, &yearDirs); err != nil {
 		return nil, fmt.Errorf("fetch year dirs: %w", err)
 	}
 
@@ -171,7 +171,7 @@ func (w *Website) getEvents(ctx context.Context) ([]model.Event, error) {
 		}
 
 		var files []fileMeta
-		if err := w.fetchJSON(ctx, fmt.Sprintf("%s/%s", eventURL, dir.Name), &files); err != nil {
+		if err := w.github.FetchJSON(ctx, fmt.Sprintf("%s/%s", eventURL, dir.Name), &files); err != nil {
 			return nil, fmt.Errorf("failed to fetch files for %s: %w", dir.Name, err)
 		}
 
