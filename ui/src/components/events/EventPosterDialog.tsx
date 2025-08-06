@@ -8,6 +8,7 @@ import { Indeterminate } from "../atoms/Indeterminate";
 import { Poster } from "@/lib/types/poster";
 import { FileImg } from "../atoms/FileImg";
 import { toast } from "sonner";
+import { isA4AspectRatio } from "@/lib/utils/utils";
 
 interface Props {
   poster: Poster;
@@ -17,6 +18,7 @@ interface Props {
 
 export function EventPosterDialog({ poster, open, setOpen }: Props) {
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState("")
 
   const { data: initialFile, isLoading } = usePosterGetFile(poster)
   const [file, setFile] = useState<File | undefined>(initialFile)
@@ -62,7 +64,21 @@ export function EventPosterDialog({ poster, open, setOpen }: Props) {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? undefined
 
-    setFile(file)
+    if (!file) {
+      setFile(undefined)
+      return
+    }
+
+    isA4AspectRatio(file)
+      .then((isA4) => {
+        if (!isA4) {
+          setFile(undefined)
+          setError("Poster needs to have the same aspect ratio as A4")
+          return
+        }
+
+        setFile(file)
+      })
   }
 
   return (
@@ -80,6 +96,11 @@ export function EventPosterDialog({ poster, open, setOpen }: Props) {
                   <div className="flex items-center gap-1">
                     <Input id="picture-scc" type="file" accept=".png" onChange={handleChange} />
                   </div>
+                  {error && (
+                    <div>
+                      <span className="text-red-500">{error}</span>
+                    </div>
+                  )}
                   <div className="aspect-poster rounded-xl overflow-hidden">
                     {file && <FileImg file={file} isLoading={isLoading} alt="Poster preview" />}
                   </div>

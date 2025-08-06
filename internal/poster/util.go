@@ -1,7 +1,10 @@
 package poster
 
 import (
+	"bytes"
 	"fmt"
+	"image/png"
+	"math"
 	"regexp"
 	"strings"
 
@@ -17,6 +20,11 @@ const (
 )
 
 const branchMain = "master"
+
+const (
+	a4AspectRatio          = 1.4142
+	a4AspectRatioTolerance = 0.01
+)
 
 func toPull(poster model.Poster, event model.Event) gitmate.Pull {
 	fileType := posterBig
@@ -85,4 +93,16 @@ func sanitizeBranchName(name string) string {
 	}
 
 	return s
+}
+
+func isA4(data []byte) (bool, error) {
+	img, err := png.Decode(bytes.NewReader(data))
+	if err != nil {
+		return false, fmt.Errorf("decode png image %w", err)
+	}
+
+	bounds := img.Bounds()
+	aspectRatio := float64(bounds.Dy()) / float64(bounds.Dx())
+
+	return math.Abs(aspectRatio-a4AspectRatio) <= a4AspectRatioTolerance, nil
 }

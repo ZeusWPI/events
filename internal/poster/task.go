@@ -182,6 +182,14 @@ func (c *Client) toDB(ctx context.Context, poster model.Poster, event model.Even
 		return err
 	}
 
+	a4, err := isA4(bytes)
+	if err != nil {
+		return err
+	}
+	if a4 {
+		return fmt.Errorf("poster %+v for event %+v is not the right aspect ratio", poster, event)
+	}
+
 	poster.FileID = uuid.NewString()
 	if err := storage.S.Set(poster.FileID, bytes, 0); err != nil {
 		return fmt.Errorf("unable to store new poster %+v | %w", poster, err)

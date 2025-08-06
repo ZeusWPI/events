@@ -7,3 +7,4 @@ export type JSONBody = JSON | JSON[];
 export interface Base extends JSON {
   id: number;
 }
+

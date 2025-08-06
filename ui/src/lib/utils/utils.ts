@@ -92,3 +92,34 @@ export function capitalize(text: string): string {
 
   return text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
 }
+
+
+const A4_ASPECT_RATIO = 1.4142;
+const A4_ASPECT_RATIO_TOLERANCE = 0.01;
+export function isA4AspectRatio(file: File): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith("image/")) {
+      resolve(false);
+      return;
+    }
+
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      const { width, height } = img;
+      const aspectRatio = height / width;
+      URL.revokeObjectURL(url);
+
+      const isA4 = Math.abs(aspectRatio - A4_ASPECT_RATIO) <= A4_ASPECT_RATIO_TOLERANCE;
+      resolve(isA4);
+    };
+
+    img.onerror = (err) => {
+      URL.revokeObjectURL(url);
+      reject(err);
+    };
+
+    img.src = url;
+  });
+}

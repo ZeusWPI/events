@@ -1,7 +1,11 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"image/png"
+	"math"
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
@@ -12,6 +16,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+)
+
+const (
+	a4AspectRatio          = 1.4142
+	a4AspectRatioTolerance = 0.01
 )
 
 type Poster struct {
@@ -53,6 +62,15 @@ func (p *Poster) Save(ctx context.Context, posterSave dto.PosterSave) (dto.Poste
 		SCC:     posterSave.SCC,
 	}
 
+	a4, err := isA4(posterSave.File)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Poster{}, fiber.ErrInternalServerError
+	}
+	if !a4 {
+		return dto.Poster{}, fiber.ErrBadRequest
+	}
+
 	if poster.ID != 0 {
 		// Update, delete old poster
 		oldPoster, err := p.poster.Get(ctx, poster.ID)
@@ -75,7 +93,6 @@ func (p *Poster) Save(ctx context.Context, posterSave dto.PosterSave) (dto.Poste
 		return dto.Poster{}, fiber.ErrInternalServerError
 	}
 
-	var err error
 	if poster.ID == 0 {
 		err = p.poster.Create(ctx, &poster)
 	} else {
@@ -121,4 +138,16 @@ func (p *Poster) Sync() error {
 	}
 
 	return nil
+}
+
+func isA4(data []byte) (bool, error) {
+	img, err := png.Decode(bytes.NewReader(data))
+	if err != nil {
+		return false, fmt.Errorf("decode png image %w", err)
+	}
+
+	bounds := img.Bounds()
+	aspectRatio := float64(bounds.Dy()) / float64(bounds.Dx())
+
+	return math.Abs(aspectRatio-a4AspectRatio) <= a4AspectRatioTolerance, nil
 }
