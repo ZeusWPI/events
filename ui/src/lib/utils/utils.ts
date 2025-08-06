@@ -84,3 +84,11 @@ export function arrayEqual<T extends ArrayLike<unknown>>(a: T, b: T): boolean {
 
   return true;
 }
+
+export function capitalize(text: string): string {
+  if (!text) {
+    return text
+  }
+
+  return text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+}

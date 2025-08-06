@@ -33,7 +33,7 @@ export function convertEventToModel(event: API.Event): Event {
     location: event.location,
     year: convertYearToModel(event.year),
     organizers: event.organizers.map(convertOrganizerToModel),
-    checks: event.checks ? event.checks.map(convertCheckToModel) : [],
+    checks: event.checks ? event.checks.map(convertCheckToModel).sort((a, b) => a.description.localeCompare(b.description)) : [],
     announcement: event.announcement ? convertAnnouncementToModel(event.announcement) : undefined,
     posters: event.posters.map(convertPosterToModel)
   };

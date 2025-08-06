@@ -83,7 +83,7 @@ export function EventsYear() {
           </div>
         </>
       )}
-      {events?.length === 0 && <NoItems title="No events found" description="Add started by adding events to the Zeus WPI website" />}
+      {events?.length === 0 && <NoItems title="No events found" description="Get started by adding events to the Zeus WPI website" />}
     </div>
   );
 }

@@ -14,7 +14,7 @@ Organizers are grouped by academic year and an organizer corresponds to a board 
 
 ### Checks
 
-Each event includes checks to track the progress of its organization.  
+Each event includes checks to track the progress of its organization.
 There are two types of checks: **manual** and **automatic**.
 
 #### Manual Checks
@@ -35,7 +35,7 @@ You can write announcements for each event and schedule them to be send at a lat
 
 ### Mails
 
-Similar to announcements, you can write and schedule emails.  
+Similar to announcements, you can write and schedule emails.
 For each mail you can select with events are covered.
 
 ### Posters
@@ -51,6 +51,11 @@ If a poster is not yet in the `visueel` repository then a pull request will be c
 If the `visueel` repository has a poster and events has none or a different one then the events poster will be deleted and replaced by the one in the `visueel` repository.
 
 More information can be found in the [visueel repository](https://git.zeus.gent/ZeusWPI/visueel)
+
+### Powerpoints
+
+You can generate a PowerPoint covering one or more events.
+If available it includes event posters and generates QR codes to the event's webpage.
 
 ---
 

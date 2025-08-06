@@ -174,18 +174,26 @@ export function MailsCreate() {
           {isLoadingEvents ? (
             <Indeterminate />
           ) : (
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-              {yearEvents
-                ?.filter(e => !events.map(e => e.id).includes(e.id))
-                .map(e => (
-                  <motion.div
-                    key={e.id}
-                    layout
-                  >
-                    <EventCard event={e} onClick={() => handleAddEvent(e)} />
-                  </motion.div>
-                ))}
-            </div>
+            <>
+              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+                {yearEvents
+                  ?.filter(e => !events.map(e => e.id).includes(e.id))
+                  .map(e => (
+                    <motion.div
+                      key={e.id}
+                      layout
+                    >
+                      <EventCard event={e} onClick={() => handleAddEvent(e)} />
+                    </motion.div>
+                  ))}
+              </div>
+              {yearEvents?.filter(e => !events.map(e => e.id).includes(e.id)).length === 0 && (
+                <div className="flex flex-col">
+                  <span>No event this year</span>
+                  <span>Please select a different year</span>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </HeadlessCard>
