@@ -53,7 +53,7 @@ services:
       context: ui
       dockerfile: Dockerfile.dev
     ports:
-      - 5173:5173
+      - 3000:3000
     volumes:
       - ./ui:/frontend
       - frontend_packages:/frontend/node_modules

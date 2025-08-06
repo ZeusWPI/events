@@ -99,7 +99,7 @@ However, only board members will be visible as organizers.
    ```
 
 - **Backend**: <http://localhost:4000>
-- **Frontend**: <http://localhost:5173>
+- **Frontend**: <http://localhost:3000>
 
 ### Full Explanation
 

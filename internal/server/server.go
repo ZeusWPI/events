@@ -41,7 +41,7 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 
 	if env == "development" {
 		app.Use(cors.New(cors.Config{
-			AllowOrigins:     "http://localhost:5173",
+			AllowOrigins:     "http://localhost:3000",
 			AllowHeaders:     "Origin, Content-Type, Accept, Access-Control-Allow-Origin",
 			AllowCredentials: true,
 		}))

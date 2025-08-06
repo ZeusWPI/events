@@ -20,7 +20,7 @@ auth:
   client: tomtest
   secret: blargh
   callback_url: http://localhost:4000/api/auth/callback/zauth
-  redirect_url: http://localhost:5173
+  redirect_url: http://localhost:3000
 
 mail:
   from: Events
