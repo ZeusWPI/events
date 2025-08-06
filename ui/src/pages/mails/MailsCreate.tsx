@@ -47,7 +47,21 @@ export function MailsCreate() {
   }
 
   const handleSelectChange = (value: string) => {
-    setYear(years?.find(y => y.id === Number(value)))
+    const newYear = years?.find(y => y.id === Number(value))
+    if (newYear?.id === year?.id) {
+      return
+    }
+
+    setEvents([])
+    setYear(newYear)
+  }
+
+  const handleToggleEvent = (event: Event) => {
+    if (events.some(e => e.id === event.id)) {
+      handleRemoveEvent(event)
+    } else {
+      handleAddEvent(event)
+    }
   }
 
   const handleAddEvent = (event: Event) => {
@@ -135,28 +149,7 @@ export function MailsCreate() {
       </HeadlessCard>
       <HeadlessCard>
         <CardHeader className="px-4 sm:px-0 pt-0">
-          <CardTitle>Covered events</CardTitle>
-        </CardHeader>
-        <CardContent className="px-0 space-y-4">
-          {events.length > 0 ? (
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-              {events.map(e => (
-                <motion.div
-                  key={e.id}
-                  layout
-                >
-                  <EventCard event={e} onClick={() => handleRemoveEvent(e)} />
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <span>Select the events that this mail covers</span>
-          )}
-        </CardContent>
-      </HeadlessCard>
-      <HeadlessCard>
-        <CardHeader className="px-4 sm:px-0 pt-0">
-          <CardTitle>Add events</CardTitle>
+          <CardTitle>Select events</CardTitle>
         </CardHeader>
         <CardContent className="px-0 space-y-4">
           <Select onValueChange={handleSelectChange} defaultValue={year?.id.toString()}>
@@ -175,17 +168,23 @@ export function MailsCreate() {
             <Indeterminate />
           ) : (
             <>
-              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-                {yearEvents
-                  ?.filter(e => !events.map(e => e.id).includes(e.id))
-                  .map(e => (
+              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4 perspective-distant">
+                {yearEvents?.map(e => {
+                  const selected = events.some(ev => ev.id === e.id)
+
+                  return (
                     <motion.div
                       key={e.id}
                       layout
+                      onClick={() => handleToggleEvent(e)}
+                      animate={{ rotateX: selected ? 360 : 0 }}
+                      transition={{ duration: 1 }}
+                      className="cursor-pointer transform-3d"
                     >
-                      <EventCard event={e} onClick={() => handleAddEvent(e)} />
+                      <EventCard event={e} onClick={() => handleToggleEvent(e)} className={selected ? "border-primary" : ""} />
                     </motion.div>
-                  ))}
+                  )
+                })}
               </div>
               {yearEvents?.filter(e => !events.map(e => e.id).includes(e.id)).length === 0 && (
                 <div className="flex flex-col">
