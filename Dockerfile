@@ -1,5 +1,5 @@
 # Build backend
-FROM golang:1.24.4-alpine3.22 AS build_backend
+FROM golang:1.24.6-alpine3.22 AS build_backend
 
 RUN apk add upx alpine-sdk
 
@@ -25,7 +25,7 @@ FROM node:22.16.0 AS build_frontend
 WORKDIR /frontend
 
 COPY ui/package.json ui/pnpm-lock.yaml ./
-RUN npm install -g pnpm@9.15.5 && pnpm install 
+RUN npm install -g pnpm@10.14.0 && pnpm install 
 
 COPY ui/ .
 

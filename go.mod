@@ -1,6 +1,6 @@
 module github.com/ZeusWPI/events
 
-go 1.24.4
+go 1.24.6
 
 require (
 	github.com/go-co-op/gocron/v2 v2.16.3
@@ -13,11 +13,9 @@ require (
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1
 	github.com/markbates/goth v1.81.0
-	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/shareed2k/goth_fiber v0.3.2
 	github.com/spf13/viper v1.20.1
-	github.com/wneessen/go-mail v0.6.2
 	go.uber.org/zap v1.27.0
 	golang.org/x/oauth2 v0.30.0
 	gopkg.in/yaml.v3 v3.0.1
