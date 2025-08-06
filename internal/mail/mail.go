@@ -8,7 +8,6 @@ import (
 )
 
 type Mail struct {
-	client        client
 	repoMail      repository.Mail
 	repoMailEvent repository.MailEvent
 	task          *task.Manager
@@ -16,7 +15,6 @@ type Mail struct {
 
 func New(repo repository.Repository, task *task.Manager) (*Mail, error) {
 	mail := &Mail{
-		client:        *newClient(),
 		repoMail:      *repo.NewMail(),
 		repoMailEvent: *repo.NewMailEvent(),
 		task:          task,
