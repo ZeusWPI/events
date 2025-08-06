@@ -129,6 +129,11 @@ func (c *Client) checkContent(ctx context.Context, poster model.Poster) error {
 
 // toGitmate will create a pull request to add the poster to the visueel repository
 func (c *Client) toGitmate(ctx context.Context, poster model.Poster, event model.Event) error {
+	if c.development {
+		// Do nothing in development
+		return nil
+	}
+
 	branchName := toBranch(poster, event)
 
 	content, err := storage.S.Get(poster.FileID)
