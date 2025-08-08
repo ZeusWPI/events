@@ -20,8 +20,13 @@ export function TaskCard({ task }: Props) {
 
   const [updating, setUpdating] = useState(false);
 
-  const handleCard = () =>
+  const handleCard = () => {
+    if (!task.recurring) {
+      return
+    }
+
     void navigate({ to: "/tasks/$id", params: { id: task.id.toString() } });
+  }
 
   const handleRun = (e: React.MouseEvent) => {
     e.stopPropagation(); // Avoid triggering the card press

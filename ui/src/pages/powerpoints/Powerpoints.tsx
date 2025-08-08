@@ -121,7 +121,7 @@ export function PowerPoints() {
                   )
                 })}
               </div>
-              {yearEvents?.filter(e => !events.map(e => e.id).includes(e.id)).length === 0 && (
+              {yearEvents?.length === 0 && (
                 <div className="flex flex-col">
                   <span>No event this year</span>
                   <span>Please select a different year</span>

@@ -9,7 +9,7 @@ function Events() {
 
   const { data: years, isLoading } = useYearGetAll();
 
-  useBreadcrumb({ title: "Events", link: { to: "/events" } });
+  useBreadcrumb({ title: "Events" });
 
   if (isLoading) {
     return <Indeterminate />;

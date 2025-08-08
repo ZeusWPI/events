@@ -9,7 +9,7 @@ export function Announcements() {
 
   const { data: years, isLoading } = useYearGetAll();
 
-  useBreadcrumb({ title: "Announcements", link: { to: "/announcements" } });
+  useBreadcrumb({ title: "Announcements" });
 
   if (isLoading) {
     return <Indeterminate />;
