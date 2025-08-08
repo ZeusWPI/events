@@ -3,13 +3,14 @@ import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import Error404 from "../404";
+import { weightCategory } from "@/lib/types/general";
 
 function Events() {
   const yearString = useParams({ from: "/events/$year", shouldThrow: false });
 
   const { data: years, isLoading } = useYearGetAll();
 
-  useBreadcrumb({ title: "Events" });
+  useBreadcrumb({ title: "Events", weight: weightCategory });
 
   if (isLoading) {
     return <Indeterminate />;

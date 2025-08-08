@@ -16,6 +16,7 @@ import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { TaskStatus } from "@/lib/types/task";
 import { formatDate } from "@/lib/utils/utils";
 import Error404 from "../404";
+import { weightSubcategory } from "@/lib/types/general";
 
 interface Interval {
   day: number;
@@ -41,7 +42,7 @@ export function TasksDetail() {
 
   const startTask = useTaskStart();
 
-  useBreadcrumb({ title: task?.name ?? "", link: { to: "/tasks/$id", params: { id: task?.id.toString() ?? "" } } });
+  useBreadcrumb({ title: task?.name ?? "", weight: weightSubcategory, link: { to: "/tasks/$id", params: { id: task?.id.toString() ?? "" } } });
 
   const [updating, setUpdating] = useState(false);
 

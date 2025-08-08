@@ -11,12 +11,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTaskGetHistory } from "@/lib/api/task";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
+import { weightSubcategory } from "@/lib/types/general";
 
 export function TasksHistory() {
   const [filters, setFilters] = useState<TaskHistoryFilter>({ onlyErrored: false, recurring: undefined });
   const { history, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useTaskGetHistory(filters);
 
-  useBreadcrumb({ title: "History", link: { to: "/tasks/history" } });
+  useBreadcrumb({ title: "History", weight: weightSubcategory, link: { to: "/tasks/history" } });
 
   const [sentryRef] = useInfiniteScroll({
     loading: isFetchingNextPage,

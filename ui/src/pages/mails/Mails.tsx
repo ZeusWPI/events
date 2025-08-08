@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/molecules/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useMailGetAll } from "@/lib/api/mail";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
+import { weightCategory } from "@/lib/types/general";
 import { Link, Outlet, useMatch } from "@tanstack/react-router";
 
 export function Mails() {
@@ -15,7 +16,7 @@ export function Mails() {
 
   const { data: mails, isLoading } = useMailGetAll()
 
-  useBreadcrumb({ title: "Mails", link: { to: "/mails" } })
+  useBreadcrumb({ title: "Mails", weight: weightCategory, link: { to: "/mails" } })
 
   if (isLoading) {
     return <Indeterminate />

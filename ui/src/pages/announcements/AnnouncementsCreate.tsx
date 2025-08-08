@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { useAnnouncementCreate, useAnnouncementUpdate } from "@/lib/api/announcement";
 import { Announcement } from "@/lib/types/announcement";
 import { MarkdownCombo } from "@/components/organisms/markdown/MarkdownCombo";
+import { weightItem } from "@/lib/types/general";
 
 export function AnnouncementsCreate() {
   const { year: yearString, event: eventId } = useParams({ from: "/announcements/$year/$event" })
@@ -37,7 +38,7 @@ export function AnnouncementsCreate() {
 
   const navigate = useNavigate()
 
-  useBreadcrumb({ title: "Create", link: { to: "/announcements/$year/$event", params: { year: yearString, event: eventId } } });
+  useBreadcrumb({ title: "Create", weight: weightItem, link: { to: "/announcements/$year/$event", params: { year: yearString, event: eventId } } });
 
   if (isLoading) {
     return <Indeterminate />

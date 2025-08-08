@@ -14,6 +14,7 @@ import { useYearGetAll } from "@/lib/api/year";
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { NoItems } from "@/components/atoms/NoItems";
+import { weightSubcategory } from "@/lib/types/general";
 
 export function EventsYear() {
   const isDetail = useMatch({ from: "/events/$year/$id", shouldThrow: false });
@@ -29,7 +30,7 @@ export function EventsYear() {
   const [selectedOrganizers, setSelectedOrganizers] = useState<string[]>([]);
   useEffect(() => setSelectedOrganizers([]), [yearString]);
 
-  useBreadcrumb({ title: yearString, link: { to: "/events/$year", params: { year: yearString } } });
+  useBreadcrumb({ title: yearString, weight: weightSubcategory, link: { to: "/events/$year", params: { year: yearString } } });
   const isMobile = useIsMobile();
 
   if (isLoadingEvents || isLoadingOrganizers) {

@@ -11,6 +11,7 @@ import { useEventByYear } from "@/lib/api/event";
 import { useYearGetAll } from "@/lib/api/year";
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
+import { weightSubcategory } from "@/lib/types/general";
 import { Link, Outlet, useMatch, useParams } from "@tanstack/react-router";
 import { ChevronRightIcon } from "lucide-react";
 
@@ -23,7 +24,7 @@ export function AnnouncementsYear() {
   const year = years!.find(({ formatted }) => formatted === yearString)!;
   const { data: events, isLoading: isLoadingEvents } = useEventByYear(year);
 
-  useBreadcrumb({ title: yearString, link: { to: "/announcements/$year", params: { year: yearString } } });
+  useBreadcrumb({ title: yearString, weight: weightSubcategory, link: { to: "/announcements/$year", params: { year: yearString } } });
   const isMobile = useIsMobile();
 
   if (isLoadingEvents) {

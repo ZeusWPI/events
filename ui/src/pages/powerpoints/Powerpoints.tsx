@@ -11,6 +11,7 @@ import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { generatePptx } from "@/lib/pptx/pptx";
 import { Event } from "@/lib/types/event";
+import { weightCategory } from "@/lib/types/general";
 import { motion } from "framer-motion";
 import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
@@ -24,7 +25,7 @@ export function PowerPoints() {
   const [events, setEvents] = useState<Event[]>([])
   const [generating, setGenerating] = useState(false)
 
-  useBreadcrumb({ title: "Powerpoints", link: { to: "/powerpoints" } })
+  useBreadcrumb({ title: "Powerpoints", weight: weightCategory, link: { to: "/powerpoints" } })
 
   if (isLoadingYears) {
     return <Indeterminate />

@@ -16,6 +16,7 @@ import { useYearGetAll } from "@/lib/api/year";
 
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
+import { weightItem } from "@/lib/types/general";
 
 export function EventsAssign() {
   const { year: yearString } = useParams({ from: "/events/$year" });
@@ -32,7 +33,7 @@ export function EventsAssign() {
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  useBreadcrumb({ title: "Assign", link: { to: "/events/$year/assign", params: { year: yearString } } });
+  useBreadcrumb({ title: "Assign", weight: weightItem, link: { to: "/events/$year/assign", params: { year: yearString } } });
   const isMobile = useIsMobile();
 
   const organizersEventCount = organizers?.map(organizer => ({

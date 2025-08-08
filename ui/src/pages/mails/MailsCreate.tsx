@@ -14,6 +14,7 @@ import { useMailCreate, useMailGetAll, useMailUpdate } from "@/lib/api/mail";
 import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { Event } from "@/lib/types/event";
+import { weightSubcategory } from "@/lib/types/general";
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -40,7 +41,7 @@ export function MailsCreate() {
   const [events, setEvents] = useState(mail?.events ?? [])
 
   const navigate = useNavigate()
-  useBreadcrumb({ title: mailId ? "Edit" : "Create", link: { to: mailId ? "/mails/edit/$mail" : "/mails/create", params: mailId ? { mail: mailId.toString() } : {} } });
+  useBreadcrumb({ title: mailId ? "Edit" : "Create", weight: weightSubcategory, link: { to: mailId ? "/mails/edit/$mail" : "/mails/create", params: mailId ? { mail: mailId.toString() } : {} } });
 
   if (isLoadingMails || isLoadingYears) {
     return <Indeterminate />

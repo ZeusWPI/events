@@ -10,7 +10,7 @@ function breadcrumbReducer(state: BreadcrumbState, action: BreadcrumbAction): Br
         return state;
       }
 
-      return [...state, action.payload];
+      return [...state, action.payload].sort((a, b) => a.weight - b.weight);
 
     case "REMOVE":
       return state.filter(crumb => crumb.title !== action.payload.title);

@@ -15,6 +15,7 @@ import Error404 from "../404";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { CheckTable } from "@/components/check/CheckTable";
 import { EventPoster } from "@/components/events/EventPoster";
+import { weightItem } from "@/lib/types/general";
 
 export function EventsDetail() {
   const { year: yearString, id: eventID } = useParams({ from: "/events/$year/$id" });
@@ -28,7 +29,7 @@ export function EventsDetail() {
   const big = event?.posters.find(p => !p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: false }
   const scc = event?.posters.find(p => p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: true }
 
-  useBreadcrumb({ title: event?.name ?? "", link: { to: "/events/$year/$id", params: { year: yearString, id: eventID } } });
+  useBreadcrumb({ title: event?.name ?? "", weight: weightItem, link: { to: "/events/$year/$id", params: { year: yearString, id: eventID } } });
 
   if (isLoading) {
     return <Indeterminate />
