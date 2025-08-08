@@ -11,6 +11,7 @@ import (
 	"github.com/ZeusWPI/events/internal/db/sqlc"
 	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/jackc/pgx/v5/pgtype"
+	"go.uber.org/zap"
 )
 
 type Event struct {
@@ -140,12 +141,13 @@ func (e *Event) Update(ctx context.Context, event model.Event) error {
 	if err := e.repo.queries(ctx).EventUpdate(ctx, sqlc.EventUpdateParams{
 		ID:          int32(event.ID),
 		Name:        event.Name,
-		Description: pgtype.Text{String: event.Description, Valid: true},
+		Description: pgtype.Text{String: event.Description, Valid: event.Description != ""},
 		StartTime:   pgtype.Timestamptz{Time: event.StartTime, Valid: true},
-		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: true},
+		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: !event.EndTime.IsZero()},
 		YearID:      int32(event.YearID),
-		Location:    pgtype.Text{String: event.Location, Valid: true},
+		Location:    pgtype.Text{String: event.Location, Valid: event.Location != ""},
 	}); err != nil {
+		zap.S().Debug(err)
 		return fmt.Errorf("update event %+v | %w", e, err)
 	}
 

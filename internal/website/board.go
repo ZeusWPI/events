@@ -170,7 +170,7 @@ func (c *Client) UpdateBoard(ctx context.Context) error {
 			continue
 		}
 
-		if exists := slices.ContainsFunc(boards, func(b model.Board) bool { return b.Equal(*board) }); !exists {
+		if ok := slices.ContainsFunc(boards, func(b model.Board) bool { return b.EqualEntry(*board) }); !ok {
 			if err := c.boardRepo.Delete(ctx, *board); err != nil {
 				errs = append(errs, err)
 			}

@@ -56,3 +56,8 @@ func (e *Event) Equal(e2 Event) bool {
 		e.Location == e2.Location &&
 		e.Year.Equal(e2.Year)
 }
+
+// EqualEntry returns true if both event instances refer to the same event on the website
+func (e *Event) EqualEntry(e2 Event) bool {
+	return e.FileName == e2.FileName && e.Year.Equal(e2.Year)
+}

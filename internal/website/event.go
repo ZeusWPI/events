@@ -63,6 +63,11 @@ func parseYearSuffix(s string) (int, error) {
 }
 
 func parseTime(s string) (time.Time, error) {
+	location, err := time.LoadLocation("Europe/Brussels")
+	if err != nil {
+		return time.Time{}, fmt.Errorf("load brussels time zone %w", err)
+	}
+
 	// Zeus can't be consistent in the date formatting...
 	layouts := []string{
 		"02-01-2006 15:04",
@@ -96,7 +101,7 @@ func parseTime(s string) (time.Time, error) {
 	}
 
 	for _, layout := range layouts {
-		parsed, err := time.Parse(layout, s)
+		parsed, err := time.ParseInLocation(layout, s, location)
 		if err == nil {
 			return parsed, nil
 		}
@@ -255,8 +260,9 @@ func (c *Client) UpdateEvent(ctx context.Context) error {
 		}
 
 		var err error
-		if exists := slices.ContainsFunc(oldEvents, func(e *model.Event) bool { return e.FileName == event.FileName }); exists {
+		if oldEvent, ok := utils.SliceFind(oldEvents, func(e *model.Event) bool { return e.EqualEntry(event) }); ok {
 			// Update
+			event.ID = oldEvent.ID
 			err = c.eventRepo.Update(ctx, event)
 		} else {
 			// Create
@@ -269,15 +275,14 @@ func (c *Client) UpdateEvent(ctx context.Context) error {
 	}
 
 	// Refresh events
-	newEventsP, err := c.eventRepo.GetAllWithYear(ctx)
+	newEvents, err := c.eventRepo.GetAllWithYear(ctx)
 	if err != nil {
 		return err
 	}
-	newEvents := utils.SliceDereference(newEventsP)
 
 	// Delete old events
 	for _, event := range oldEvents {
-		if exists := slices.ContainsFunc(newEvents, func(e model.Event) bool { return e.Equal(*event) }); !exists {
+		if ok := slices.ContainsFunc(newEvents, func(e *model.Event) bool { return e.EqualEntry(*event) }); !ok {
 			if err := c.eventRepo.Delete(ctx, event.ID); err != nil {
 				errs = append(errs, err)
 			}

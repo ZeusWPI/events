@@ -40,17 +40,6 @@ func SliceFind[T any](input []T, equal func(T) bool) (T, bool) {
 	return null, false
 }
 
-// SliceContains checks if a slice contains an item according to an supplied equal function
-func SliceContains[T any](input []T, equal func(T) bool) bool {
-	for _, item := range input {
-		if equal(item) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // SliceUnique filters out all duplicate elements
 func SliceUnique[T comparable](input []T) []T {
 	result := make([]T, 0, len(input))
