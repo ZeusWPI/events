@@ -115,9 +115,9 @@ export function PowerPoints() {
                       onClick={() => handleToggleEvent(e)}
                       animate={{ rotateX: selected ? 360 : 0 }}
                       transition={{ duration: 1 }}
-                      className="cursor-pointer transform-3d"
+                      className="cursor-pointer"
                     >
-                      <EventCard event={e} onClick={() => handleToggleEvent(e)} className={selected ? "border-primary" : ""} />
+                      <EventCard event={e} onClick={() => handleToggleEvent(e)} className={selected ? "h-full border-primary" : "h-full"} />
                     </motion.div>
                   )
                 })}

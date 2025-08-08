@@ -182,7 +182,7 @@ export function MailsCreate() {
                       transition={{ duration: 1 }}
                       className="cursor-pointer transform-3d"
                     >
-                      <EventCard event={e} onClick={() => handleToggleEvent(e)} className={selected ? "border-primary" : ""} />
+                      <EventCard event={e} onClick={() => handleToggleEvent(e)} className={selected ? "h-full border-primary" : "h-full"} />
                     </motion.div>
                   )
                 })}
