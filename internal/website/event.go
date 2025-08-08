@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
@@ -94,7 +95,6 @@ func parseTime(s string) (time.Time, error) {
 		s = strings.Replace(s, "24:00", "23:59", 1)
 	}
 
-	var err error
 	for _, layout := range layouts {
 		parsed, err := time.Parse(layout, s)
 		if err == nil {
@@ -102,7 +102,7 @@ func parseTime(s string) (time.Time, error) {
 		}
 	}
 
-	return time.Time{}, fmt.Errorf("parse time %s  |%w", s, err)
+	return time.Time{}, fmt.Errorf("parse time %s", s)
 }
 
 func (c *Client) parseEventFile(ctx context.Context, dirName string, f fileMeta) (model.Event, error) {
@@ -164,29 +164,57 @@ func (c *Client) getEvents(ctx context.Context) ([]model.Event, error) {
 	}
 
 	var all []model.Event
+	var errs []error
+
+	var mu sync.Mutex
+	var wg sync.WaitGroup
 
 	for _, dir := range yearDirs {
 		if dir.Type != "dir" {
 			continue
 		}
 
-		var files []fileMeta
-		if err := c.github.FetchJSON(ctx, fmt.Sprintf("%s/%s", eventURL, dir.Name), &files); err != nil {
-			return nil, fmt.Errorf("failed to fetch files for %s: %w", dir.Name, err)
-		}
+		wg.Add(1)
 
-		for _, file := range files {
-			if file.Type != "file" || !strings.HasSuffix(file.Name, ".md") {
-				continue
+		go func(dir fileMeta) {
+			defer wg.Done()
+
+			var files []fileMeta
+			url := fmt.Sprintf("%s/%s", eventURL, dir.Name)
+
+			if err := c.github.FetchJSON(ctx, url, &files); err != nil {
+				mu.Lock()
+				errs = append(errs, fmt.Errorf("failed to fetch files for %s: %w", dir.Name, err))
+				mu.Unlock()
+
+				return
 			}
 
-			event, err := c.parseEventFile(ctx, dir.Name, file)
-			if err != nil {
-				return nil, err
-			}
+			for _, file := range files {
+				if file.Type != "file" || !strings.HasSuffix(file.Name, ".md") {
+					continue
+				}
 
-			all = append(all, event)
-		}
+				event, err := c.parseEventFile(ctx, dir.Name, file)
+				if err != nil {
+					mu.Lock()
+					errs = append(errs, err)
+					mu.Unlock()
+
+					return
+				}
+
+				mu.Lock()
+				all = append(all, event)
+				mu.Unlock()
+			}
+		}(dir)
+	}
+
+	wg.Wait()
+
+	if len(errs) != 0 {
+		return nil, errors.Join(errs...)
 	}
 
 	return all, nil
@@ -240,9 +268,16 @@ func (c *Client) UpdateEvent(ctx context.Context) error {
 		}
 	}
 
+	// Refresh events
+	newEventsP, err := c.eventRepo.GetAllWithYear(ctx)
+	if err != nil {
+		return err
+	}
+	newEvents := utils.SliceDereference(newEventsP)
+
 	// Delete old events
 	for _, event := range oldEvents {
-		if exists := slices.ContainsFunc(events, func(e model.Event) bool { return e.Equal(*event) }); !exists {
+		if exists := slices.ContainsFunc(newEvents, func(e model.Event) bool { return e.Equal(*event) }); !exists {
 			if err := c.eventRepo.Delete(ctx, event.ID); err != nil {
 				errs = append(errs, err)
 			}

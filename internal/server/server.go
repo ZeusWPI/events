@@ -26,7 +26,7 @@ type Server struct {
 
 const port = 4000
 
-func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
+func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 	app := fiber.New(fiber.Config{
 		BodyLimit:      1024 * 1024 * 1024,
 		ReadBufferSize: 8096,
@@ -58,7 +58,7 @@ func NewServer(service service.Service, pool *pgxpool.Pool) *Server {
 
 	// Api
 	apiRouter := app.Group("/api")
-	api.NewAuth(service, apiRouter)
+	api.NewAuth(apiRouter, service)
 
 	protectedRouter := apiRouter.Use(middleware.ProtectedRoute)
 

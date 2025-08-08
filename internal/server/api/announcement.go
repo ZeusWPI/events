@@ -12,7 +12,7 @@ type Announcement struct {
 	announcement service.Announcement
 }
 
-func NewAnnouncement(router fiber.Router, service service.Service) *Announcement {
+func NewAnnouncement(router fiber.Router, service *service.Service) *Announcement {
 	api := &Announcement{
 		router:       router.Group("/announcement"),
 		announcement: *service.NewAnnouncement(),

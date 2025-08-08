@@ -12,7 +12,7 @@ type Mail struct {
 	mail service.Mail
 }
 
-func NewMail(router fiber.Router, service service.Service) *Mail {
+func NewMail(router fiber.Router, service *service.Service) *Mail {
 	api := &Mail{
 		router: router.Group("/mail"),
 		mail:   *service.NewMail(),

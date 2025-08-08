@@ -58,7 +58,7 @@ func main() {
 	if err != nil {
 		zap.S().Fatalf("Unable to create website %v", err)
 	}
-	if err := cmd.Website(*website, taskManager); err != nil {
+	if err := cmd.Website(website, taskManager); err != nil {
 		zap.S().Fatalf("Unable to start website command %v", err)
 	}
 
@@ -99,8 +99,8 @@ func main() {
 	}
 
 	// Start API
-	service := service.New(*repo, checkManager, taskManager, *mail, *website, *mattermost, *poster)
-	if err := cmd.API(*service, db.Pool()); err != nil {
+	service := service.New(*repo, checkManager, taskManager, *mail, website, *mattermost, *poster)
+	if err := cmd.API(service, db.Pool()); err != nil {
 		zap.S().Error(err)
 	}
 }

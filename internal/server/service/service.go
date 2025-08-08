@@ -22,12 +22,12 @@ type Service struct {
 
 	mail       mail.Mail
 	mattermost mattermost.Client
-	website    website.Client
+	website    *website.Client
 	poster     poster.Client
 }
 
 // New creates a new Service
-func New(repo repository.Repository, check *check.Manager, task *task.Manager, mail mail.Mail, website website.Client, mattermost mattermost.Client, poster poster.Client) *Service {
+func New(repo repository.Repository, check *check.Manager, task *task.Manager, mail mail.Mail, website *website.Client, mattermost mattermost.Client, poster poster.Client) *Service {
 	return &Service{
 		repo:       repo,
 		check:      check,

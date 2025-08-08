@@ -14,7 +14,7 @@ type Task struct {
 	task service.Task
 }
 
-func NewTask(router fiber.Router, service service.Service) *Task {
+func NewTask(router fiber.Router, service *service.Service) *Task {
 	api := &Task{
 		router: router.Group("/task"),
 		task:   *service.NewTask(),

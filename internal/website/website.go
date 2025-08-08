@@ -7,7 +7,7 @@ import (
 )
 
 type Client struct {
-	github     github.Client
+	github     *github.Client
 	eventRepo  repository.Event
 	yearRepo   repository.Year
 	boardRepo  repository.Board
@@ -21,7 +21,7 @@ func New(repo repository.Repository) (*Client, error) {
 	}
 
 	return &Client{
-		github:     *github,
+		github:     github,
 		eventRepo:  *repo.NewEvent(),
 		yearRepo:   *repo.NewYear(),
 		boardRepo:  *repo.NewBoard(),

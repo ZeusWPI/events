@@ -10,7 +10,7 @@ type Gitmate struct {
 	poster service.Poster
 }
 
-func NewGitmate(router fiber.Router, service service.Service) *Gitmate {
+func NewGitmate(router fiber.Router, service *service.Service) *Gitmate {
 	webhook := &Gitmate{
 		router: router.Group("/gitmate"),
 		poster: *service.NewPoster(),

@@ -11,7 +11,7 @@ type Year struct {
 	year service.Year
 }
 
-func NewYear(router fiber.Router, service service.Service) *Year {
+func NewYear(router fiber.Router, service *service.Service) *Year {
 	api := &Year{
 		router: router.Group("/year"),
 		year:   *service.NewYear(),

@@ -10,7 +10,7 @@ type Github struct {
 	website service.Website
 }
 
-func NewGithub(router fiber.Router, service service.Service) *Github {
+func NewGithub(router fiber.Router, service *service.Service) *Github {
 	webhook := &Github{
 		router:  router.Group("/github"),
 		website: *service.NewWebsite(),

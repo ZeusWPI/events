@@ -13,7 +13,7 @@ type Event struct {
 	website service.Website
 }
 
-func NewEvent(router fiber.Router, service service.Service) *Event {
+func NewEvent(router fiber.Router, service *service.Service) *Event {
 	api := &Event{
 		router:  router.Group("/event"),
 		event:   *service.NewEvent(),

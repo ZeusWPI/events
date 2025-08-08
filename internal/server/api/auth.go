@@ -21,7 +21,7 @@ type Auth struct {
 	development bool
 }
 
-func NewAuth(service service.Service, router fiber.Router) *Auth {
+func NewAuth(router fiber.Router, service *service.Service) *Auth {
 	goth.UseProviders(
 		zauth.NewProvider(
 			config.GetString("auth.client"),

@@ -12,7 +12,7 @@ type Poster struct {
 	poster service.Poster
 }
 
-func NewPoster(router fiber.Router, service service.Service) *Poster {
+func NewPoster(router fiber.Router, service *service.Service) *Poster {
 	api := &Poster{
 		router: router.Group("/poster"),
 		poster: *service.NewPoster(),

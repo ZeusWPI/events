@@ -12,7 +12,7 @@ type Check struct {
 	check service.Check
 }
 
-func NewCheck(router fiber.Router, service service.Service) *Check {
+func NewCheck(router fiber.Router, service *service.Service) *Check {
 	api := &Check{
 		router: router.Group("/check"),
 		check:  *service.NewCheck(),

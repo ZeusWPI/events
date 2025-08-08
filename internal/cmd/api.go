@@ -10,7 +10,7 @@ import (
 )
 
 // API starts the webserver serving the API and static files
-func API(service service.Service, pool *pgxpool.Pool) error {
+func API(service *service.Service, pool *pgxpool.Pool) error {
 	server := server.NewServer(service, pool)
 
 	zap.S().Infof("Server is running on %s", server.Addr)

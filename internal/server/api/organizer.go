@@ -13,7 +13,7 @@ type Organizer struct {
 	organizer service.Organizer
 }
 
-func NewOrganizer(router fiber.Router, service service.Service) *Organizer {
+func NewOrganizer(router fiber.Router, service *service.Service) *Organizer {
 	api := &Organizer{
 		router:    router.Group("/organizer"),
 		organizer: *service.NewOrganizer(),

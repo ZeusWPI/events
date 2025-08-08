@@ -8,7 +8,7 @@ import (
 	"github.com/ZeusWPI/events/pkg/config"
 )
 
-func Website(w website.Client, t *task.Manager) error {
+func Website(w *website.Client, t *task.Manager) error {
 	// There's a webhook to trigger syncing but still run them periodically to be on the safe side
 	if err := t.Add(task.NewTask(
 		website.BoardTask,
