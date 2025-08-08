@@ -51,7 +51,7 @@ export function EventsYear() {
     <div className="flex flex-col gap-8">
       <PageHeader>
         <Title>{`${!isMobile ? "Events " : ""} ${yearString}`}</Title>
-        <Button size="lg" variant="outline" asChild>
+        <Button size="lg" variant="outline" disabled={!events?.length}>
           <Link to="/events/$year/assign" params={{ year: yearString }}>
             Assign
           </Link>
