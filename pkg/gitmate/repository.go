@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -34,9 +35,16 @@ func (c *Client) Files(ctx context.Context, path string) ([]File, error) {
 	if err != nil {
 		return nil, fmt.Errorf("do http request: %w", err)
 	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, nil
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected HTTP status for get files %s", resp.Status)
 	}
 
 	var files []File
@@ -49,27 +57,30 @@ func (c *Client) Files(ctx context.Context, path string) ([]File, error) {
 
 // File will fetch a file with it's contents
 // It's up to the user to only use this function if a single file return is expected
-func (c *Client) File(ctx context.Context, path string) (File, error) {
-	req, err := c.newJSONRequest(ctx, "GET", "/contents/"+path, nil)
+func (c *Client) File(ctx context.Context, path string) ([]byte, error) {
+	req, err := c.newJSONRequest(ctx, "GET", "/media/"+path, nil)
 	if err != nil {
-		return File{}, err
+		return nil, err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return File{}, fmt.Errorf("do http request: %w", err)
+		return nil, fmt.Errorf("do http request: %w", err)
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected HTTP status for get file %s", resp.Status)
 	}
 
-	if resp.StatusCode == http.StatusNotFound {
-		return File{}, nil
+	bytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read body bytes %w", err)
 	}
 
-	var file File
-	if err := decodeJSON(resp, &file); err != nil {
-		return File{}, fmt.Errorf("decode file: %w", err)
-	}
-
-	return file, nil
+	return bytes, nil
 }
 
 type FileCreate struct {
@@ -93,7 +104,7 @@ func (c *Client) FileCreate(ctx context.Context, path string, body FileCreate) e
 	}()
 
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("unexpected HTTP status file create: %s", resp.Status)
+		return fmt.Errorf("unexpected HTTP status for file create: %s", resp.Status)
 	}
 
 	return nil
@@ -114,6 +125,13 @@ func (c *Client) Pulls(ctx context.Context) ([]Pull, error) {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("do http request: %w", err)
+	}
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected HTTP status for get pulls: %s", resp.Status)
 	}
 
 	var pulls []Pull

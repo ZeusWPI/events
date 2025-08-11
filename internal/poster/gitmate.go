@@ -120,14 +120,10 @@ func (c *Client) fetchEvent(ctx context.Context, event model.Event, file gitmate
 // fetchPoster fetches a single poster from gitmate
 func (c *Client) fetchPoster(ctx context.Context, poster model.Poster, event model.Event) ([]byte, error) {
 	path := toPath(poster, event)
-	file, err := c.gitmate.File(ctx, path)
+	bytes, err := c.gitmate.File(ctx, path)
 	if err != nil {
 		return nil, err
 	}
 
-	if file.Type != gitmate.TypeFile {
-		return nil, fmt.Errorf("file wrong type for poster %+v | event %+v", poster, event)
-	}
-
-	return file.Content, nil
+	return bytes, nil
 }

@@ -181,6 +181,9 @@ func (c *Client) toDB(ctx context.Context, poster model.Poster, event model.Even
 	if err != nil {
 		return err
 	}
+	if len(bytes) == 0 {
+		return fmt.Errorf("no content received for event %+v", event)
+	}
 
 	a4, err := isA4(bytes)
 	if err != nil {
