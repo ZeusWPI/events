@@ -13,6 +13,8 @@ import { DateTimePicker } from "../organisms/DateTimePicker";
 import { MarkdownCombo } from "../organisms/markdown/MarkdownCombo";
 import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
+import { useOrganizerByYear } from "@/lib/api/organizer";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 interface Props {
   announcement?: AnnouncementSchema;
@@ -20,8 +22,10 @@ interface Props {
 }
 
 export function AnnouncementForm({ announcement, onSubmit }: Props) {
+  const { user } = useAuth()
   const { year } = useYear()
   const { data: events, isLoading: isLoadingEvents } = useEventByYear(year)
+  const { data: organizers, isLoading: isLoadingOrganizers } = useOrganizerByYear(year)
 
   const [referenceDate, setReferenceDate] = useState<Date | undefined>(undefined)
 
@@ -30,6 +34,12 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
 
     if (selected.some(e => e.startTime.getTime() < form.state.values.sendTime.getTime())) {
       toast.error("Invalid send time", { description: "Announcement send time needs to be before every selected event" })
+      return
+    }
+
+    const organizer = organizers?.find(o => o.id === user?.id)
+    if (!organizer) {
+      toast.error("Not a board member", { description: "You were not a board member that year" })
       return
     }
 
@@ -73,7 +83,7 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
               Cancel
             </Link>
           </Button>
-          <Button onClick={form.handleSubmit}>
+          <Button onClick={form.handleSubmit} disabled={isLoadingOrganizers}>
             Submit
           </Button>
         </div>

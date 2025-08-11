@@ -52,16 +52,16 @@ func (b *Board) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Bo
 	}), nil
 }
 
-func (b *Board) GetByMemberYear(ctx context.Context, member model.Member, year model.Year) (*model.Board, error) {
+func (b *Board) GetByMemberYear(ctx context.Context, memberID int, yearID int) (*model.Board, error) {
 	board, err := b.repo.queries(ctx).BoardGetByMemberYear(ctx, sqlc.BoardGetByMemberYearParams{
-		ID:   int32(member.ID),
-		ID_2: int32(year.ID),
+		ID:   int32(memberID),
+		ID_2: int32(yearID),
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get board by member and year %+v | %+v | %w", member, year, err)
+		return nil, fmt.Errorf("get board by member and year %+d | %+d | %w", memberID, yearID, err)
 	}
 
 	return model.BoardModelPopulated(sqlc.BoardGetAllPopulatedRow(board)), nil

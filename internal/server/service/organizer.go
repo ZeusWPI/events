@@ -49,18 +49,19 @@ func (o *Organizer) GetByMember(ctx context.Context, memberID int) (dto.Organize
 		return dto.Organizer{}, fiber.ErrInternalServerError
 	}
 
-	board, err := o.board.GetByMemberYear(ctx, *member, *year)
+	board, err := o.board.GetByMemberYear(ctx, member.ID, year.ID)
 	if err != nil {
 		zap.S().Error(err)
 		return dto.Organizer{}, fiber.ErrInternalServerError
 	}
 	if board == nil {
 		if o.development {
-			return dto.Organizer{Name: member.Name, Role: "Development"}, nil
+			return dto.Organizer{ID: member.ID, Name: member.Name, Role: "Development", ZauthID: member.ZauthID}, nil
 		}
 
 		return dto.Organizer{}, fiber.ErrBadRequest
 	}
+	board.Member = *member
 
 	return dto.OrganizerDTO(board), nil
 }

@@ -57,13 +57,12 @@ func (r *Mail) create(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	userID, ok := c.Locals("userId").(int)
+	userID, ok := c.Locals("memberID").(int)
 	if !ok {
 		return fiber.ErrUnauthorized
 	}
-	mail.AuthorID = userID
 
-	if _, err := r.mail.Save(c.Context(), mail); err != nil {
+	if _, err := r.mail.Save(c.Context(), mail, userID); err != nil {
 		return err
 	}
 
@@ -83,7 +82,12 @@ func (r *Mail) update(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if _, err := r.mail.Save(c.Context(), mail); err != nil {
+	userID, ok := c.Locals("memberID").(int)
+	if !ok {
+		return fiber.ErrUnauthorized
+	}
+
+	if _, err := r.mail.Save(c.Context(), mail, userID); err != nil {
 		return err
 	}
 

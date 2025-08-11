@@ -1,20 +1,21 @@
 import { useAnnouncementDelete } from "@/lib/api/announcement";
 import { useEventByYear } from "@/lib/api/event";
+import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useYear } from "@/lib/hooks/useYear";
 import { Announcement } from "@/lib/types/announcement";
 import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { Trash2Icon, UserRoundIcon } from "lucide-react";
+import { Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { toast } from "sonner";
+import { OrganizerIcon } from "../atoms/OrganizerIcon";
 import { DeleteConfirm } from "../molecules/DeleteConfirm";
 import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
-import { useOrganizerByYear } from "@/lib/api/organizer";
 
 interface Props {
   announcement: Announcement;
@@ -79,7 +80,10 @@ export function AnnouncementCard({ announcement }: Props) {
       <Card onClick={handleClick} className={!announcement.send && !announcement.error ? "transition-transform duration-300 cursor-pointer hover:scale-102" : ""}>
         <CardHeader>
           <div className="flex justify-between">
-            <CardTitle>{formatDate(announcement.sendTime)}</CardTitle>
+            <div className="flex items-center space-x-2">
+              {organizer && <OrganizerIcon user={organizer} />}
+              <CardTitle>{formatDate(announcement.sendTime)}</CardTitle>
+            </div>
             <AnnouncementBadge announcement={announcement} onDelete={handleDelete} />
           </div>
           <CardDescription>
@@ -99,12 +103,6 @@ export function AnnouncementCard({ announcement }: Props) {
           <MarkdownViewer value={announcement.content} />
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 items-start">
-          {organizer && (
-            <div className="flex items-center space-x-2">
-              <UserRoundIcon className="size-4" />
-              {organizer.name}
-            </div>
-          )}
           {announcement.error && <span className="text-sm text-red-500">{announcement.error}</span>}
         </CardFooter>
       </Card>

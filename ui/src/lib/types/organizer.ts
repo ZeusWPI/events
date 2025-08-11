@@ -4,6 +4,7 @@ import { Base } from "./general";
 export interface Organizer extends Base {
   role: string;
   name: string;
+  zauthId: number;
 }
 
 export function convertOrganizerToModel(organizer: API.Organizer): Organizer {
@@ -11,6 +12,7 @@ export function convertOrganizerToModel(organizer: API.Organizer): Organizer {
     id: organizer.id,
     role: organizer.role,
     name: organizer.name,
+    zauthId: organizer.zauth_id
   };
 }
 
