@@ -1,12 +1,13 @@
-import type { API } from "./api";
-import type { Organizer } from "./organizer";
-import type { Year } from "./year";
-import { convertOrganizerToModel } from "./organizer";
-import { convertYearToModel } from "./year";
-import { Check, convertCheckToModel } from "./check";
 import { Announcement, convertAnnouncementToModel } from "./announcement";
+import type { API } from "./api";
+import { Check, convertCheckToModel } from "./check";
 import { Base } from "./general";
+import { convertMailToModel, Mail } from "./mail";
+import type { Organizer } from "./organizer";
+import { convertOrganizerToModel } from "./organizer";
 import { convertPosterToModel, Poster } from "./poster";
+import type { Year } from "./year";
+import { convertYearToModel } from "./year";
 
 export interface Event extends Base {
   url: string;
@@ -18,7 +19,8 @@ export interface Event extends Base {
   year: Year;
   organizers: Organizer[];
   checks: Check[];
-  announcement?: Announcement;
+  announcements: Announcement[];
+  mails: Mail[];
   posters: Poster[];
 }
 
@@ -34,8 +36,9 @@ export function convertEventToModel(event: API.Event): Event {
     year: convertYearToModel(event.year),
     organizers: event.organizers.map(convertOrganizerToModel),
     checks: event.checks ? event.checks.map(convertCheckToModel).sort((a, b) => a.description.localeCompare(b.description)) : [],
-    announcement: event.announcement ? convertAnnouncementToModel(event.announcement) : undefined,
-    posters: event.posters.map(convertPosterToModel)
+    announcements: event.announcements?.map(convertAnnouncementToModel).sort((a, b) => a.sendTime.getTime() - b.sendTime.getTime()) ?? [],
+    mails: event.mails?.map(convertMailToModel).sort((a, b) => a.sendTime.getTime() - b.sendTime.getTime()) ?? [],
+    posters: event.posters.map(convertPosterToModel),
   };
 }
 

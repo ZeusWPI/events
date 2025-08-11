@@ -1,12 +1,13 @@
-import { Check, CheckSource, CheckStatus, statusToIcon } from "@/lib/types/check"
+import { useCheckCreate, useCheckDelete, useCheckToggle } from "@/lib/api/check";
+import { Check, CheckSource, CheckStatus, statusToIcon } from "@/lib/types/check";
 import { ColumnDef } from "@tanstack/react-table";
 import { ChevronDownIcon, ChevronUpIcon, ClipboardCheckIcon, ClipboardXIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Button } from "../ui/button";
-import { useCheckCreate, useCheckDelete, useCheckToggle } from "@/lib/api/check";
 import { toast } from "sonner";
-import { Input } from "../ui/input";
+import { IconButton } from "../atoms/IconButton";
 import { Table } from "../organisms/Table";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 interface Props {
   checks: Check[];
@@ -89,9 +90,9 @@ export function CheckTable({ checks, eventId }: Props) {
 
         return (
           <div className="flex justify-end">
-            <Button onClick={() => setAddCheck(true)} size="icon" variant="outline">
+            <IconButton onClick={() => setAddCheck(true)}>
               <PlusIcon className="text-primary" />
-            </Button>
+            </IconButton>
           </div>
         )
       },
@@ -104,9 +105,9 @@ export function CheckTable({ checks, eventId }: Props) {
 
         if (check.source === CheckSource.Automatic) {
           if (check.error) {
-            <Button onClick={row.getToggleExpandedHandler()} size="icon" variant="outline">
+            <IconButton onClick={row.getToggleExpandedHandler()}>
               {row.getIsExpanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
-            </Button>
+            </IconButton>
           }
 
           return null

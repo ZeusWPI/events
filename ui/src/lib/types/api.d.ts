@@ -16,7 +16,8 @@ export namespace API {
     year: Year;
     organizers: Organizer[];
     checks?: Check[];
-    announcement?: Announcement;
+    announcements?: Announcement[];
+    mails?: Mail[];
     posters: Poster[];
   }
 

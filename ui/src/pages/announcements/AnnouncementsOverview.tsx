@@ -1,4 +1,4 @@
-import { AnnouncementCard } from "@/components/announcements/AnnouncementCard";
+import { AnnouncementList } from "@/components/announcements/AnnouncementList";
 import { DividerText } from "@/components/atoms/DividerText";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { NoItems } from "@/components/atoms/NoItems";
@@ -35,21 +35,13 @@ export function AnnouncementsOverview() {
           </Link>
         </Button>
       </PageHeader>
-      <div className="grid gap-4 grid-cols-1">
-        {upcomingAnnouncements.map(a => (
-          <AnnouncementCard key={a.id} announcement={a} />
-        ))}
-      </div>
+      <AnnouncementList announcements={upcomingAnnouncements} />
       {passedAnnouncements.length > 0 && (
         <>
           <DividerText>
             Past Announcements
           </DividerText>
-          <div className="grid gap-4 grid-cols-1">
-            {passedAnnouncements.map(a => (
-              <AnnouncementCard key={a.id} announcement={a} />
-            ))}
-          </div>
+          <AnnouncementList announcements={passedAnnouncements} />
         </>
       )}
       {announcements?.length === 0 && <NoItems title="No announcements found" description="Get started by clicking the create button" />}
@@ -60,4 +52,3 @@ export function AnnouncementsOverview() {
 // TODO: timedate selector
 // Delete announcements
 // Keep track of who made a mail / announcement
-// Event multiple announcements and years

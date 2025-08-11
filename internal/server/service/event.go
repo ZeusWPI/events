@@ -15,18 +15,20 @@ import (
 type Event struct {
 	service Service
 
+	announcement repository.Announcement
 	board        repository.Board
 	event        repository.Event
-	announcement repository.Announcement
+	mail         repository.Mail
 	organizer    repository.Organizer
 }
 
 func (s *Service) NewEvent() *Event {
 	return &Event{
 		service:      *s,
+		announcement: *s.repo.NewAnnouncement(),
 		board:        *s.repo.NewBoard(),
 		event:        *s.repo.NewEvent(),
-		announcement: *s.repo.NewAnnouncement(),
+		mail:         *s.repo.NewMail(),
 		organizer:    *s.repo.NewOrganizer(),
 	}
 }
@@ -67,6 +69,21 @@ func (e *Event) GetByYear(ctx context.Context, yearID int) ([]dto.Event, error) 
 		for _, eventID := range announcement.EventIDs {
 			if idx := slices.IndexFunc(events, func(e dto.Event) bool { return e.ID == eventID }); idx != -1 {
 				events[idx].Announcements = append(events[idx].Announcements, dto.AnnouncementDTO(announcement))
+			}
+		}
+	}
+
+	// Add mails
+	mails, err := e.mail.GetByEvents(ctx, utils.SliceDereference(eventsDB))
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+
+	for _, mail := range mails {
+		for _, eventID := range mail.EventIDs {
+			if idx := slices.IndexFunc(events, func(e dto.Event) bool { return e.ID == eventID }); idx != -1 {
+				events[idx].Mails = append(events[idx].Mails, dto.MailDTO(mail))
 			}
 		}
 	}

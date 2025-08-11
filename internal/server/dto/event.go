@@ -23,6 +23,7 @@ type Event struct {
 	Organizers    []Organizer    `json:"organizers"`
 	Checks        []Check        `json:"checks"`
 	Announcements []Announcement `json:"announcements,omitzero"`
+	Mails         []Mail         `json:"mails,omitzero"`
 	Posters       []Poster       `json:"posters"`
 }
 

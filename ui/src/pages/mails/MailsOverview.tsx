@@ -2,7 +2,7 @@ import { DividerText } from "@/components/atoms/DividerText";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { NoItems } from "@/components/atoms/NoItems";
 import { Title } from "@/components/atoms/Title";
-import { MailCard } from "@/components/mails/MailCard";
+import { MailList } from "@/components/mails/MailList";
 import { PageHeader } from "@/components/molecules/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useMailByYear } from "@/lib/api/mail";
@@ -35,21 +35,13 @@ export function MailsOverview() {
           </Link>
         </Button>
       </PageHeader>
-      <div className="grid gap-4 grid-cols-1">
-        {upcomingMails.map(m => (
-          <MailCard key={m.id} mail={m} />
-        ))}
-      </div>
+      <MailList mails={upcomingMails} />
       {passedMails.length > 0 && (
         <>
           <DividerText>
             Past Mails
           </DividerText>
-          <div className="grid gap-4 grid-cols-1">
-            {passedMails.map(m => (
-              <MailCard key={m.id} mail={m} />
-            ))}
-          </div>
+          <MailList mails={passedMails} />
         </>
       )}
       {mails?.length === 0 && <NoItems title="No mails found" description="Get started by clicking the create button" />}
