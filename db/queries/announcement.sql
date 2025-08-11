@@ -1,3 +1,10 @@
+-- name: AnnouncementGetByID :many
+SELECT *
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
+WHERE a.id = $1;
+
+
 -- name: AnnouncmentGetByYear :many
 SELECT *
 FROM announcement a
@@ -37,3 +44,8 @@ WHERE id = $1;
 UPDATE announcement
 SET error = $1
 WHERE id = $2;
+
+-- name: AnnouncementDelete :exec
+DELETE FROM announcement
+WHERE id = $1
+AND NOT send AND error IS NULL;

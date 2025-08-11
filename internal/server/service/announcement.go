@@ -57,6 +57,21 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 		}
 	}
 
+	if announcement.ID != 0 {
+		oldAnnouncement, err := a.announcement.GetByID(ctx, announcement.ID)
+		if err != nil {
+			zap.S().Error(err)
+			return dto.Announcement{}, fiber.ErrInternalServerError
+		}
+		if oldAnnouncement == nil {
+			return dto.Announcement{}, fiber.ErrBadRequest
+		}
+
+		if oldAnnouncement.Send || oldAnnouncement.Error != "" {
+			return dto.Announcement{}, fiber.ErrBadRequest
+		}
+	}
+
 	if err = a.service.withRollback(ctx, func(ctx context.Context) error {
 		update := false
 		if announcement.ID == 0 {
@@ -81,4 +96,26 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 	}
 
 	return dto.AnnouncementDTO(announcement), nil
+}
+
+func (a *Announcement) Delete(ctx context.Context, announcementID int) error {
+	announcement, err := a.announcement.GetByID(ctx, announcementID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if announcement == nil {
+		return fiber.ErrBadRequest
+	}
+
+	if announcement.Send || announcement.Error != "" {
+		return fiber.ErrBadRequest
+	}
+
+	if err := a.announcement.Delete(ctx, announcementID); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
 }

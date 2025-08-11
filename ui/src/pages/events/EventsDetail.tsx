@@ -20,6 +20,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import { ChevronDownIcon, ChevronUpIcon, LinkIcon, MailIcon, MegaphoneIcon, UserRound } from "lucide-react";
 import { useState } from "react";
 import Error404 from "../404";
+import { Button } from "@/components/ui/button";
 
 export function EventsDetail() {
   const { id: eventID } = useParams({ from: "/events/$id" });
@@ -142,14 +143,14 @@ export function EventsDetail() {
         <div className="lg:col-span-3">
           <HeadlessCard>
             <CardHeader className="px-4 sm:px-0 pt-0">
-              <CardTitle className="flex justify-between items-center">
+              <CardTitle onClick={() => setShowAnnouncements(prev => !prev)} className="flex justify-between items-center cursor-pointer">
                 <span>{`${event.announcements.length} Announcement${event.announcements.length !== 1 ? 's' : ''}`}</span>
-                <IconButton onClick={() => setShowAnnouncements(prev => !prev)} disabled={event.announcements.length === 0}>
+                <Button size="icon" variant="ghost" disabled={event.announcements.length === 0}>
                   {showAnnouncements
                     ? <ChevronUpIcon />
                     : <ChevronDownIcon />
                   }
-                </IconButton>
+                </Button>
               </CardTitle>
             </CardHeader>
             {showAnnouncements && (
@@ -164,14 +165,14 @@ export function EventsDetail() {
         <div className="lg:col-span-3">
           <HeadlessCard>
             <CardHeader className="px-4 sm:px-0 pt-0">
-              <CardTitle className="flex justify-between items-center">
+              <CardTitle onClick={() => setShowMails(prev => !prev)} className="flex justify-between items-center cursor-pointer">
                 <span>{`${event.mails.length} Mail${event.mails.length !== 1 ? 's' : ''}`}</span>
-                <IconButton onClick={() => setShowMails(prev => !prev)} disabled={event.announcements.length === 0}>
+                <Button size="icon" variant="ghost" disabled={event.announcements.length === 0}>
                   {showMails
                     ? <ChevronUpIcon />
                     : <ChevronDownIcon />
                   }
-                </IconButton>
+                </Button>
               </CardTitle>
             </CardHeader>
             {showMails && (

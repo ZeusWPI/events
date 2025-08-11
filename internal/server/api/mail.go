@@ -27,6 +27,7 @@ func (r *Mail) createRoutes() {
 	r.router.Get("/year/:id", r.getByYear)
 	r.router.Put("/", r.create)
 	r.router.Post("/:id", r.update)
+	r.router.Delete("/:id", r.delete)
 }
 
 func (r *Mail) getByYear(c *fiber.Ctx) error {
@@ -81,4 +82,17 @@ func (r *Mail) update(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusOK)
+}
+
+func (r *Mail) delete(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if err := r.mail.Delete(c.Context(), id); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }

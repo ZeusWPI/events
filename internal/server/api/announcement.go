@@ -27,6 +27,7 @@ func (r *Announcement) createRoutes() {
 	r.router.Get("/year/:id", r.getByYear)
 	r.router.Put("/", r.create)
 	r.router.Post("/:id", r.update)
+	r.router.Delete("/:id", r.delete)
 }
 
 func (r *Announcement) getByYear(c *fiber.Ctx) error {
@@ -81,4 +82,17 @@ func (r *Announcement) update(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusOK)
+}
+
+func (r *Announcement) delete(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if err := r.announcement.Delete(c.Context(), id); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }

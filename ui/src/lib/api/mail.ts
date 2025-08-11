@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { convertMailsToModel, MailSchema } from "../types/mail"
+import { convertMailsToModel, Mail, MailSchema } from "../types/mail"
 import { Year } from "../types/year"
-import { apiGet, apiPost, apiPut } from "./query"
+import { apiDelete, apiGet, apiPost, apiPut } from "./query"
 
 const ENDPOINT = "mail"
 const STALE_5_MIN = 5 * 60 * 1000
@@ -37,5 +37,17 @@ export function useMailUpdate() {
       queryClient.invalidateQueries({ queryKey: ["mail"] });
       queryClient.invalidateQueries({ queryKey: ["event"] });
     },
+  })
+}
+
+export function useMailDelete() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id }: Pick<Mail, "id">) => apiDelete(`${ENDPOINT}/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mail"] });
+      queryClient.invalidateQueries({ queryKey: ["event"] });
+    }
   })
 }

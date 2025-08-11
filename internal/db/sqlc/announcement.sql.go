@@ -38,6 +38,17 @@ func (q *Queries) AnnouncementCreate(ctx context.Context, arg AnnouncementCreate
 	return id, err
 }
 
+const announcementDelete = `-- name: AnnouncementDelete :exec
+DELETE FROM announcement
+WHERE id = $1
+AND NOT send AND error IS NULL
+`
+
+func (q *Queries) AnnouncementDelete(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, announcementDelete, id)
+	return err
+}
+
 const announcementError = `-- name: AnnouncementError :exec
 UPDATE announcement
 SET error = $1
@@ -83,6 +94,55 @@ func (q *Queries) AnnouncementGetByEvents(ctx context.Context, dollar_1 []int32)
 	var items []AnnouncementGetByEventsRow
 	for rows.Next() {
 		var i AnnouncementGetByEventsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Content,
+			&i.SendTime,
+			&i.Send,
+			&i.Error,
+			&i.YearID,
+			&i.ID_2,
+			&i.EventID,
+			&i.AnnouncementID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const announcementGetByID = `-- name: AnnouncementGetByID :many
+SELECT a.id, content, send_time, send, error, year_id, a_e.id, event_id, announcement_id
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
+WHERE a.id = $1
+`
+
+type AnnouncementGetByIDRow struct {
+	ID             int32
+	Content        string
+	SendTime       pgtype.Timestamptz
+	Send           bool
+	Error          pgtype.Text
+	YearID         int32
+	ID_2           pgtype.Int4
+	EventID        pgtype.Int4
+	AnnouncementID pgtype.Int4
+}
+
+func (q *Queries) AnnouncementGetByID(ctx context.Context, id int32) ([]AnnouncementGetByIDRow, error) {
+	rows, err := q.db.Query(ctx, announcementGetByID, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AnnouncementGetByIDRow
+	for rows.Next() {
+		var i AnnouncementGetByIDRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Content,

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/sqlc"
+	"github.com/ZeusWPI/events/pkg/utils"
 )
 
 type Mail struct {
@@ -33,4 +34,33 @@ func MailModel(mail sqlc.Mail) *Mail {
 		Send:     mail.Send,
 		Error:    err,
 	}
+}
+
+func MailEventsModel(mails []sqlc.MailGetByIDRow) []*Mail {
+	mailMap := make(map[int32]*Mail)
+
+	for _, m := range mails {
+		if _, ok := mailMap[m.ID]; !ok {
+			err := ""
+			if m.Error.Valid {
+				err = m.Error.String
+			}
+			mailMap[m.ID] = &Mail{
+				ID:       int(m.ID),
+				YearID:   int(m.YearID),
+				EventIDs: []int{},
+				Title:    m.Title,
+				Content:  m.Content,
+				SendTime: m.SendTime.Time,
+				Send:     m.Send,
+				Error:    err,
+			}
+		}
+
+		if m.EventID.Valid {
+			mailMap[m.ID].EventIDs = append(mailMap[m.ID].EventIDs, int(m.EventID.Int32))
+		}
+	}
+
+	return utils.MapValues(mailMap)
 }

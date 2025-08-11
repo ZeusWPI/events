@@ -22,6 +22,18 @@ func (r *Repository) NewAnnouncement() *Announcement {
 	}
 }
 
+func (a *Announcement) GetByID(ctx context.Context, announcementID int) (*model.Announcement, error) {
+	announcements, err := a.repo.queries(ctx).AnnouncementGetByID(ctx, int32(announcementID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get announcement by id %d | %w", announcementID, err)
+	}
+
+	return model.AnnouncementEventsModel(announcements)[0], nil
+}
+
 func (a *Announcement) GetByYear(ctx context.Context, yearID int) ([]*model.Announcement, error) {
 	announcements, err := a.repo.queries(ctx).AnnouncmentGetByYear(ctx, int32(yearID))
 	if err != nil {
@@ -31,31 +43,9 @@ func (a *Announcement) GetByYear(ctx context.Context, yearID int) ([]*model.Anno
 		return nil, fmt.Errorf("get announcements by year %w", err)
 	}
 
-	announcementMap := make(map[int32]*model.Announcement)
-
-	for _, a := range announcements {
-		if _, ok := announcementMap[a.ID]; !ok {
-			err := ""
-			if a.Error.Valid {
-				err = a.Error.String
-			}
-			announcementMap[a.ID] = &model.Announcement{
-				ID:       int(a.ID),
-				YearID:   int(a.YearID),
-				EventIDs: []int{},
-				Content:  a.Content,
-				SendTime: a.SendTime.Time,
-				Send:     a.Send,
-				Error:    err,
-			}
-		}
-
-		if a.EventID.Valid {
-			announcementMap[a.ID].EventIDs = append(announcementMap[a.ID].EventIDs, int(a.EventID.Int32))
-		}
-	}
-
-	return utils.MapValues(announcementMap), nil
+	return model.AnnouncementEventsModel(utils.SliceMap(announcements, func(a sqlc.AnnouncmentGetByYearRow) sqlc.AnnouncementGetByIDRow {
+		return sqlc.AnnouncementGetByIDRow(a)
+	})), nil
 }
 
 func (a *Announcement) GetByEvents(ctx context.Context, events []model.Event) ([]*model.Announcement, error) {
@@ -67,31 +57,9 @@ func (a *Announcement) GetByEvents(ctx context.Context, events []model.Event) ([
 		return nil, fmt.Errorf("get announcement by events %+v | %w", events, err)
 	}
 
-	announcementMap := make(map[int32]*model.Announcement)
-
-	for _, a := range announcements {
-		if _, ok := announcementMap[a.ID]; !ok {
-			err := ""
-			if a.Error.Valid {
-				err = a.Error.String
-			}
-			announcementMap[a.ID] = &model.Announcement{
-				ID:       int(a.ID),
-				EventIDs: []int{},
-				YearID:   int(a.YearID),
-				Content:  a.Content,
-				SendTime: a.SendTime.Time,
-				Send:     a.Send,
-				Error:    err,
-			}
-		}
-
-		if a.EventID.Valid {
-			announcementMap[a.ID].EventIDs = append(announcementMap[a.ID].EventIDs, int(a.EventID.Int32))
-		}
-	}
-
-	return utils.MapValues(announcementMap), nil
+	return model.AnnouncementEventsModel(utils.SliceMap(announcements, func(a sqlc.AnnouncementGetByEventsRow) sqlc.AnnouncementGetByIDRow {
+		return sqlc.AnnouncementGetByIDRow(a)
+	})), nil
 }
 
 func (a *Announcement) GetUnsend(ctx context.Context) ([]*model.Announcement, error) {
@@ -103,31 +71,9 @@ func (a *Announcement) GetUnsend(ctx context.Context) ([]*model.Announcement, er
 		return nil, fmt.Errorf("get unsend announcements %w", err)
 	}
 
-	announcementMap := make(map[int32]*model.Announcement)
-
-	for _, a := range announcements {
-		if _, ok := announcementMap[a.ID]; !ok {
-			err := ""
-			if a.Error.Valid {
-				err = a.Error.String
-			}
-			announcementMap[a.ID] = &model.Announcement{
-				ID:       int(a.ID),
-				EventIDs: []int{},
-				YearID:   int(a.YearID),
-				Content:  a.Content,
-				SendTime: a.SendTime.Time,
-				Send:     a.Send,
-				Error:    err,
-			}
-		}
-
-		if a.EventID.Valid {
-			announcementMap[a.ID].EventIDs = append(announcementMap[a.ID].EventIDs, int(a.EventID.Int32))
-		}
-	}
-
-	return utils.MapValues(announcementMap), nil
+	return model.AnnouncementEventsModel(utils.SliceMap(announcements, func(a sqlc.AnnouncementGetUnsendRow) sqlc.AnnouncementGetByIDRow {
+		return sqlc.AnnouncementGetByIDRow(a)
+	})), nil
 }
 
 func (a *Announcement) Create(ctx context.Context, announcement *model.Announcement) error {
@@ -199,6 +145,14 @@ func (a *Announcement) Error(ctx context.Context, announcement model.Announcemen
 		Error: pgtype.Text{Valid: true, String: announcement.Error},
 	}); err != nil {
 		return fmt.Errorf("error announcement %+v | %w", announcement, err)
+	}
+
+	return nil
+}
+
+func (a *Announcement) Delete(ctx context.Context, announcementID int) error {
+	if err := a.repo.queries(ctx).AnnouncementDelete(ctx, int32(announcementID)); err != nil {
+		return fmt.Errorf("delete announcement %d | %w", announcementID, err)
 	}
 
 	return nil

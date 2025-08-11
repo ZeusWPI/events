@@ -40,6 +40,17 @@ func (q *Queries) MailCreate(ctx context.Context, arg MailCreateParams) (int32, 
 	return id, err
 }
 
+const mailDelete = `-- name: MailDelete :exec
+DELETE FROM mail
+WHERE id = $1
+AND NOT send AND error IS NULL
+`
+
+func (q *Queries) MailDelete(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, mailDelete, id)
+	return err
+}
+
 const mailError = `-- name: MailError :exec
 UPDATE mail
 SET error = $1
@@ -86,6 +97,57 @@ func (q *Queries) MailGetByEvents(ctx context.Context, dollar_1 []int32) ([]Mail
 	var items []MailGetByEventsRow
 	for rows.Next() {
 		var i MailGetByEventsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Content,
+			&i.SendTime,
+			&i.Send,
+			&i.Error,
+			&i.Title,
+			&i.YearID,
+			&i.ID_2,
+			&i.MailID,
+			&i.EventID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const mailGetByID = `-- name: MailGetByID :many
+SELECT m.id, content, send_time, send, error, title, year_id, m_e.id, mail_id, event_id
+FROM mail m
+LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
+WHERE m.id = $1
+`
+
+type MailGetByIDRow struct {
+	ID       int32
+	Content  string
+	SendTime pgtype.Timestamptz
+	Send     bool
+	Error    pgtype.Text
+	Title    string
+	YearID   int32
+	ID_2     pgtype.Int4
+	MailID   pgtype.Int4
+	EventID  pgtype.Int4
+}
+
+func (q *Queries) MailGetByID(ctx context.Context, id int32) ([]MailGetByIDRow, error) {
+	rows, err := q.db.Query(ctx, mailGetByID, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MailGetByIDRow
+	for rows.Next() {
+		var i MailGetByIDRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Content,

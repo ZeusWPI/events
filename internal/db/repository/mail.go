@@ -22,6 +22,18 @@ func (r *Repository) NewMail() *Mail {
 	}
 }
 
+func (m *Mail) GetByID(ctx context.Context, mailID int) (*model.Mail, error) {
+	mails, err := m.repo.queries(ctx).MailGetByID(ctx, int32(mailID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get mail by id %d | %w", mailID, err)
+	}
+
+	return model.MailEventsModel(mails)[0], nil
+}
+
 func (m *Mail) GetByYear(ctx context.Context, yearID int) ([]*model.Mail, error) {
 	mails, err := m.repo.queries(ctx).MailGetByYear(ctx, int32(yearID))
 	if err != nil {
@@ -31,32 +43,7 @@ func (m *Mail) GetByYear(ctx context.Context, yearID int) ([]*model.Mail, error)
 		return nil, fmt.Errorf("get mails by year %w", err)
 	}
 
-	mailMap := make(map[int32]*model.Mail)
-
-	for _, m := range mails {
-		if _, ok := mailMap[m.ID]; !ok {
-			err := ""
-			if m.Error.Valid {
-				err = m.Error.String
-			}
-			mailMap[m.ID] = &model.Mail{
-				ID:       int(m.ID),
-				YearID:   int(m.YearID),
-				EventIDs: []int{},
-				Title:    m.Title,
-				Content:  m.Content,
-				SendTime: m.SendTime.Time,
-				Send:     m.Send,
-				Error:    err,
-			}
-		}
-
-		if m.EventID.Valid {
-			mailMap[m.ID].EventIDs = append(mailMap[m.ID].EventIDs, int(m.EventID.Int32))
-		}
-	}
-
-	return utils.MapValues(mailMap), nil
+	return model.MailEventsModel(utils.SliceMap(mails, func(m sqlc.MailGetByYearRow) sqlc.MailGetByIDRow { return sqlc.MailGetByIDRow(m) })), nil
 }
 
 func (m *Mail) GetByEvents(ctx context.Context, events []model.Event) ([]*model.Mail, error) {
@@ -68,32 +55,7 @@ func (m *Mail) GetByEvents(ctx context.Context, events []model.Event) ([]*model.
 		return nil, fmt.Errorf("get mails by events %w", err)
 	}
 
-	mailMap := make(map[int32]*model.Mail)
-
-	for _, m := range mails {
-		if _, ok := mailMap[m.ID]; !ok {
-			err := ""
-			if m.Error.Valid {
-				err = m.Error.String
-			}
-			mailMap[m.ID] = &model.Mail{
-				ID:       int(m.ID),
-				YearID:   int(m.YearID),
-				EventIDs: []int{},
-				Title:    m.Title,
-				Content:  m.Content,
-				SendTime: m.SendTime.Time,
-				Send:     m.Send,
-				Error:    err,
-			}
-		}
-
-		if m.EventID.Valid {
-			mailMap[m.ID].EventIDs = append(mailMap[m.ID].EventIDs, int(m.EventID.Int32))
-		}
-	}
-
-	return utils.MapValues(mailMap), nil
+	return model.MailEventsModel(utils.SliceMap(mails, func(m sqlc.MailGetByEventsRow) sqlc.MailGetByIDRow { return sqlc.MailGetByIDRow(m) })), nil
 }
 
 func (m *Mail) GetUnsend(ctx context.Context) ([]*model.Mail, error) {
@@ -105,32 +67,7 @@ func (m *Mail) GetUnsend(ctx context.Context) ([]*model.Mail, error) {
 		return nil, fmt.Errorf("get unsend mails %w", err)
 	}
 
-	mailMap := make(map[int32]*model.Mail)
-
-	for _, m := range mails {
-		if _, ok := mailMap[m.ID]; !ok {
-			err := ""
-			if m.Error.Valid {
-				err = m.Error.String
-			}
-			mailMap[m.ID] = &model.Mail{
-				ID:       int(m.ID),
-				YearID:   int(m.YearID),
-				EventIDs: []int{},
-				Title:    m.Title,
-				Content:  m.Content,
-				SendTime: m.SendTime.Time,
-				Send:     m.Send,
-				Error:    err,
-			}
-		}
-
-		if m.EventID.Valid {
-			mailMap[m.ID].EventIDs = append(mailMap[m.ID].EventIDs, int(m.EventID.Int32))
-		}
-	}
-
-	return utils.MapValues(mailMap), nil
+	return model.MailEventsModel(utils.SliceMap(mails, func(m sqlc.MailGetUnsendRow) sqlc.MailGetByIDRow { return sqlc.MailGetByIDRow(m) })), nil
 }
 
 func (m *Mail) Create(ctx context.Context, mail *model.Mail) error {
@@ -204,6 +141,14 @@ func (m *Mail) Error(ctx context.Context, mail model.Mail) error {
 		Error: pgtype.Text{Valid: true, String: mail.Error},
 	}); err != nil {
 		return fmt.Errorf("error mail %+v | %w", mail, err)
+	}
+
+	return nil
+}
+
+func (m *Mail) Delete(ctx context.Context, mailID int) error {
+	if err := m.repo.queries(ctx).MailDelete(ctx, int32(mailID)); err != nil {
+		return fmt.Errorf("delete mail %d | %w", mailID, err)
 	}
 
 	return nil

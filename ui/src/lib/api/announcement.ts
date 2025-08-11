@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AnnouncementSchema, convertAnnouncementsToModel } from "../types/announcement";
+import { Announcement, AnnouncementSchema, convertAnnouncementsToModel } from "../types/announcement";
 import { Year } from "../types/year";
-import { apiGet, apiPost, apiPut } from "./query";
+import { apiDelete, apiGet, apiPost, apiPut } from "./query";
 
 const ENDPOINT = "announcement";
 const STALE_5_MIN = 5 * 60 * 1000;
@@ -33,6 +33,18 @@ export function useAnnouncementUpdate() {
 
   return useMutation({
     mutationFn: async (announcement: AnnouncementSchema) => apiPost(`${ENDPOINT}/${announcement.id}`, announcement),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["announcement"] });
+      queryClient.invalidateQueries({ queryKey: ["event"] });
+    }
+  })
+}
+
+export function useAnnouncementDelete() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id }: Pick<Announcement, "id">) => apiDelete(`${ENDPOINT}/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["announcement"] });
       queryClient.invalidateQueries({ queryKey: ["event"] });

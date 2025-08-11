@@ -57,6 +57,21 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail) (dto.Mail, error) {
 		}
 	}
 
+	if mail.ID != 0 {
+		oldMail, err := m.mail.GetByID(ctx, mail.ID)
+		if err != nil {
+			zap.S().Error(err)
+			return dto.Mail{}, fiber.ErrInternalServerError
+		}
+		if oldMail == nil {
+			return dto.Mail{}, fiber.ErrBadRequest
+		}
+
+		if oldMail.Send || oldMail.Error != "" {
+			return dto.Mail{}, fiber.ErrBadRequest
+		}
+	}
+
 	if err = m.service.withRollback(ctx, func(ctx context.Context) error {
 		update := false
 		if mail.ID == 0 {
@@ -81,4 +96,26 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail) (dto.Mail, error) {
 	}
 
 	return dto.MailDTO(mail), nil
+}
+
+func (m *Mail) Delete(ctx context.Context, mailID int) error {
+	mail, err := m.mail.GetByID(ctx, mailID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if mail == nil {
+		return fiber.ErrBadRequest
+	}
+
+	if mail.Send || mail.Error != "" {
+		return fiber.ErrBadRequest
+	}
+
+	if err := m.mail.Delete(ctx, mailID); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
 }
