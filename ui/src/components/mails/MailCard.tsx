@@ -1,20 +1,21 @@
-import { Mail } from "@/lib/types/mail";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
-import { useNavigate } from "@tanstack/react-router";
-import { formatDate } from "@/lib/utils/utils";
-import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
 import { useEventByYear } from "@/lib/api/event";
+import { useMailDelete } from "@/lib/api/mail";
+import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useYear } from "@/lib/hooks/useYear";
+import { Mail } from "@/lib/types/mail";
+import { formatDate } from "@/lib/utils/utils";
+import { useNavigate } from "@tanstack/react-router";
+import { Trash2Icon } from "lucide-react";
+import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
-import { Separator } from "../ui/separator";
+import { toast } from "sonner";
+import { OrganizerIcon } from "../atoms/OrganizerIcon";
+import { DeleteConfirm } from "../molecules/DeleteConfirm";
+import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Trash2Icon, UserRoundIcon } from "lucide-react";
-import { useMailDelete } from "@/lib/api/mail";
-import { useState } from "react";
-import { toast } from "sonner";
-import { DeleteConfirm } from "../molecules/DeleteConfirm";
-import { useOrganizerByYear } from "@/lib/api/organizer";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Separator } from "../ui/separator";
 
 interface Props {
   mail: Mail
@@ -79,7 +80,8 @@ export function MailCard({ mail }: Props) {
       <Card onClick={handleClick} className={!mail.send && !mail.error ? "transition-transform duration-300 cursor-pointer hover:scale-102" : ""}>
         <CardHeader>
           <div className="flex justify-between">
-            <CardTitle>
+            <CardTitle className="flex items-center space-x-2">
+              {organizer && <OrganizerIcon user={organizer} />}
               <span>{mail.title}</span>
               <span className="font-normal text-muted-foreground text-sm">{` | ${formatDate(mail.sendTime)}`}</span>
             </CardTitle>
@@ -102,12 +104,6 @@ export function MailCard({ mail }: Props) {
           <MarkdownViewer value={mail.content} />
         </CardContent>
         <CardFooter className="flex flex-col space-y-4 items-start">
-          {organizer && (
-            <div className="flex items-center space-x-2">
-              <UserRoundIcon className="size-4" />
-              {organizer.name}
-            </div>
-          )}
           {mail.error && <span className="text-sm text-red-500">{mail.error}</span>}
         </CardFooter>
       </Card>

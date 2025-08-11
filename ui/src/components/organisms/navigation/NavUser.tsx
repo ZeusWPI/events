@@ -23,7 +23,7 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg" className="hover:cursor-pointer">
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage alt={initials} />
+                <AvatarImage src={`https://zpi.zeus.gent/image/${user?.zauthId}`} alt={initials} />
                 <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -56,11 +56,11 @@ export function NavUser() {
               <DropdownMenuItem onClick={handleThemeSwitch}>
                 {theme === "light"
                   ? (
-                      <Sun />
-                    )
+                    <Sun />
+                  )
                   : (
-                      <Moon />
-                    )}
+                    <Moon />
+                  )}
                 Theme
               </DropdownMenuItem>
             </DropdownMenuGroup>

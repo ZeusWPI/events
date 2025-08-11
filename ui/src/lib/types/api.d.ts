@@ -47,6 +47,7 @@ export namespace API {
   export interface Organizer extends Base {
     role: string;
     name: string;
+    zauth_id: number;
   }
 
   export interface Poster extends Base {
