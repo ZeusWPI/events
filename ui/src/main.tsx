@@ -8,6 +8,7 @@ import { BreadcrumbProvider } from "./lib/providers/BreadcrumbProvider.tsx";
 import { ThemeProvider } from "./lib/providers/ThemeProvider.tsx";
 import { router } from "./router.ts";
 import "./index.css";
+import { YearProvider } from "./lib/providers/YearProvider.tsx";
 
 const queryClient = new QueryClient();
 
@@ -17,8 +18,10 @@ createRoot(document.getElementById("root")!).render(
       <AuthProvider>
         <ThemeProvider>
           <BreadcrumbProvider>
-            <Toaster richColors toastOptions={{}} />
-            <RouterProvider router={router} />
+            <YearProvider>
+              <Toaster richColors toastOptions={{}} />
+              <RouterProvider router={router} />
+            </YearProvider>
           </BreadcrumbProvider>
         </ThemeProvider>
       </AuthProvider>

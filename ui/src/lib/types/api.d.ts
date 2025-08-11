@@ -29,7 +29,8 @@ export namespace API {
   }
 
   export interface Announcement extends Base {
-    event_id: number;
+    year_id: number;
+    event_ids: number[];
     content: string;
     send_time: string;
     send: boolean;

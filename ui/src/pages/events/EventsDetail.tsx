@@ -1,6 +1,7 @@
-import { useParams } from "@tanstack/react-router";
-import { Link, UserRound } from "lucide-react";
+import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Title } from "@/components/atoms/Title";
+import { CheckTable } from "@/components/check/CheckTable";
+import { EventPoster } from "@/components/events/EventPoster";
 import { Datalist, DatalistItem, DatalistItemContent, DatalistItemTitle } from "@/components/molecules/Datalist";
 import { HeadlessCard } from "@/components/molecules/HeadlessCard";
 import { PageHeader } from "@/components/molecules/PageHeader";
@@ -8,28 +9,26 @@ import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useEventByYear } from "@/lib/api/event";
-import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
+import { useYear, useYearLock } from "@/lib/hooks/useYear";
+import { weightSubcategory } from "@/lib/types/general";
 import { formatDate } from "@/lib/utils/utils";
+import { useParams } from "@tanstack/react-router";
+import { Link, UserRound } from "lucide-react";
 import Error404 from "../404";
-import { Indeterminate } from "@/components/atoms/Indeterminate";
-import { CheckTable } from "@/components/check/CheckTable";
-import { EventPoster } from "@/components/events/EventPoster";
-import { weightItem } from "@/lib/types/general";
 
 export function EventsDetail() {
-  const { year: yearString, id: eventID } = useParams({ from: "/events/$year/$id" });
+  const { id: eventID } = useParams({ from: "/events/$id" });
+  const { year } = useYear()
 
-  const { data: years } = useYearGetAll();
-  // Event component makes sure it exists
-  const year = years!.find(({ formatted }) => formatted === yearString)!;
   const { data: events, isLoading } = useEventByYear(year);
   const event = events?.find(event => event.id.toString() === eventID);
 
   const big = event?.posters.find(p => !p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: false }
   const scc = event?.posters.find(p => p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: true }
 
-  useBreadcrumb({ title: event?.name ?? "", weight: weightItem, link: { to: "/events/$year/$id", params: { year: yearString, id: eventID } } });
+  useBreadcrumb({ title: event?.name ?? "", weight: weightSubcategory, link: { to: "/events/$id", params: { id: eventID } } });
+  useYearLock()
 
   if (isLoading) {
     return <Indeterminate />

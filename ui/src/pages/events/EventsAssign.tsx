@@ -1,8 +1,3 @@
-import { Link, useParams } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { ArrowLeft, LoaderCircle } from "lucide-react";
-import { Fragment, useState } from "react";
-import { toast } from "sonner";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Title } from "@/components/atoms/Title";
 import { EventAssignCard } from "@/components/events/EventAssignCard";
@@ -12,18 +7,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useEventByYear, useEventSaveOrganizers } from "@/lib/api/event";
 import { useOrganizerByYear } from "@/lib/api/organizer";
-import { useYearGetAll } from "@/lib/api/year";
+import { Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { Fragment, useState } from "react";
+import { toast } from "sonner";
 
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
-import { weightItem } from "@/lib/types/general";
+import { useYear, useYearLock } from "@/lib/hooks/useYear";
+import { weightSubcategory } from "@/lib/types/general";
 
 export function EventsAssign() {
-  const { year: yearString } = useParams({ from: "/events/$year" });
+  const { year } = useYear()
 
-  const { data: years } = useYearGetAll();
-  // Event component makes sure it exists
-  const year = years!.find(({ formatted }) => formatted === yearString)!;
   const { data: events, isLoading: isLoadingEvents } = useEventByYear(year);
   const { data: organizers, isLoading: isLoadingOrganizers } = useOrganizerByYear(year);
 
@@ -33,7 +30,8 @@ export function EventsAssign() {
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  useBreadcrumb({ title: "Assign", weight: weightItem, link: { to: "/events/$year/assign", params: { year: yearString } } });
+  useBreadcrumb({ title: "Assign", weight: weightSubcategory, link: { to: "/events/assign" } });
+  useYearLock()
   const isMobile = useIsMobile();
 
   const organizersEventCount = organizers?.map(organizer => ({
@@ -75,10 +73,10 @@ export function EventsAssign() {
   return (
     <div className="grid xl:grid-cols-4 gap-8">
       <PageHeader className="col-span-full">
-        <Title>{`Assign${!isMobile ? ` to Events ${yearString}` : ""}`}</Title>
+        <Title>{`Assign${!isMobile ? ` to Events ${year.formatted}` : ""}`}</Title>
         <div className="flex items-center gap-6">
           <Button size="lg" variant="outline" onClick={handleDiscard} asChild>
-            <Link to="/events/$year" params={{ year: yearString }}>
+            <Link to="/events">
               {isDirty
                 ? "Discard"
                 : (

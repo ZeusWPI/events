@@ -1,12 +1,12 @@
+import { useAuth } from "@/lib/hooks/useAuth";
+import { Check, CheckStatus, statusToIcon } from "@/lib/types/check";
 import type { Event } from "@/lib/types/event";
+import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { ClipboardList, UserRound } from "lucide-react";
-import { useAuth } from "@/lib/hooks/useAuth";
-import { formatDate } from "@/lib/utils/utils";
+import { ComponentProps } from "react";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { Check, CheckStatus, statusToIcon } from "@/lib/types/check";
-import { ComponentProps } from "react";
 
 interface Props extends ComponentProps<'div'> {
   event: Event;
@@ -36,7 +36,7 @@ export function EventCard({ event, ...props }: Props) {
   const isOrganizer = event.organizers.map(({ id }) => id).includes(user?.id ?? 0);
 
   const handleOnClick = () =>
-    void navigate({ to: "/events/$year/$id", params: { year: event.year.formatted, id: event.id.toString() } });
+    void navigate({ to: "/events/$id", params: { id: event.id.toString() } });
 
   const finishedChecks = event.checks.filter(check => check.status === CheckStatus.Finished)
 

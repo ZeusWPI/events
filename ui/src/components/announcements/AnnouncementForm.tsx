@@ -1,0 +1,96 @@
+import { useEventByYear } from "@/lib/api/event";
+import { useYear } from "@/lib/hooks/useYear";
+import { announcementSchema, AnnouncementSchema } from "@/lib/types/announcement";
+import { useForm } from "@tanstack/react-form";
+import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { FormField } from "../atoms/FormField";
+import { Indeterminate } from "../atoms/Indeterminate";
+import { Title } from "../atoms/Title";
+import { EventSelector } from "../events/EventSelector";
+import { PageHeader } from "../molecules/PageHeader";
+import { DateTimePicker } from "../organisms/DateTimePicker";
+import { MarkdownCombo } from "../organisms/markdown/MarkdownCombo";
+import { Button } from "../ui/button";
+
+interface Props {
+  announcement?: AnnouncementSchema;
+  onSubmit: (announcement: AnnouncementSchema) => void;
+}
+
+export function AnnouncementForm({ announcement, onSubmit }: Props) {
+  const { year } = useYear()
+  const { data: events, isLoading: isLoadingEvents } = useEventByYear(year)
+
+  const handleSubmit = () => {
+    const selected = events?.filter(e => form.state.values.eventIds.includes(e.id)) ?? []
+
+    if (selected.some(e => e.startTime.getTime() < form.state.values.sendTime.getTime())) {
+      toast.error("Invalid send time", { description: "Announcement send time needs to be before every selected event" })
+      return
+    }
+
+    onSubmit(form.state.values)
+  }
+
+  const form = useForm({
+    defaultValues: announcement ?? {
+      yearId: year.id,
+      eventIds: [],
+      content: "",
+      sendTime: new Date(),
+    },
+    validators: {
+      onSubmit: announcementSchema,
+    },
+    onSubmit: handleSubmit,
+  })
+
+  if (isLoadingEvents) {
+    return <Indeterminate />
+  }
+
+  return (
+    <div className="space-y-8">
+      <PageHeader>
+        <Title>{`${announcement ? "Edit" : "Create"} Announcement`}</Title>
+        <div className="flex justify-center gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/announcements" >
+              Cancel
+            </Link>
+          </Button>
+          <Button onClick={form.handleSubmit}>
+            Submit
+          </Button>
+        </div>
+      </PageHeader>
+      <form className="space-y-4" onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}>
+        <form.Field name="sendTime">
+          {(field) => (
+            <FormField field={field} className="flex items-center gap-4">
+              <label htmlFor={field.name}>Send time</label>
+              <DateTimePicker value={field.state.value as Date} onChange={field.handleChange} weekStartsOn={1} className="w-[280px]" />
+            </FormField>
+          )}
+        </form.Field>
+        <form.Field name="content">
+          {(field) => (
+            <FormField field={field}>
+              <MarkdownCombo value={field.state.value as string} onChange={field.handleChange} textareaProps={{ placeholder: "Write announcement here..." }} />
+            </FormField>
+          )}
+        </form.Field>
+        <form.Field name="eventIds">
+          {(field) => (
+            <EventSelector selected={field.state.value as number[]} setSelected={field.handleChange} />
+          )}
+        </form.Field>
+      </form>
+    </div>
+  )
+}

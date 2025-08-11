@@ -5,13 +5,13 @@ import { convertEventsToModel } from "../types/event";
 import { apiGet, apiPost } from "./query";
 
 const ENDPOINT = "event";
-const MIN_5 = 5 * 60 * 1000;
+const STALE_5_MIN = 5 * 60 * 1000;
 
 export function useEventByYear({ id }: Pick<Year, "id">) {
   return useQuery({
     queryKey: ["event", id],
     queryFn: async () => (await apiGet(`${ENDPOINT}/year/${id}`, convertEventsToModel)).data,
-    staleTime: MIN_5,
+    staleTime: STALE_5_MIN,
     throwOnError: true,
     enabled: id > 0,
   });

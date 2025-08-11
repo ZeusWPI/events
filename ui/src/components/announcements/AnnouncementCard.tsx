@@ -1,57 +1,78 @@
-import { Event } from "@/lib/types/event";
-import { formatDate, formatDateDiff } from "@/lib/utils/utils";
+import { useEventByYear } from "@/lib/api/event";
+import { useYear } from "@/lib/hooks/useYear";
+import { Announcement } from "@/lib/types/announcement";
+import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
-import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Separator } from "../ui/separator";
+import { Fragment } from "react/jsx-runtime";
 
 interface Props {
-  event: Event;
+  announcement: Announcement;
 }
 
-export function AnnouncementCard({ event }: Props) {
+function AnnouncementBadge({ announcement }: { announcement: Announcement }) {
+  if (announcement.send) {
+    return <Badge variant="outline" className="text-green-500 border-green-500">Send</Badge>
+  }
+
+  if (announcement.error) {
+    return <Badge variant="outline" className="text-red-500 border-red-500">Error</Badge>
+  }
+
+  return null
+}
+
+export function AnnouncementCard({ announcement }: Props) {
   const navigate = useNavigate()
 
-  if (!event.announcement) {
-    return null
+  const { year } = useYear()
+  const { data: allEvents, isLoading: isLoadingEvents } = useEventByYear(year)
+
+  const events = allEvents?.filter(e => announcement.eventIds.includes(e.id)) ?? []
+
+  if (isLoadingEvents) {
+    return
   }
 
   const handleClick = () => {
-    if (event.announcement!.send) {
+    if (announcement.send) {
       return
     }
 
-    navigate({ to: "/announcements/$year/$event", params: { year: event.year.formatted, event: event.id.toString() } })
+    navigate({ to: "/announcements/edit/$announcementId", params: { announcementId: announcement.id.toString() } })
   }
 
   return (
-    <Card onClick={handleClick} className={`transition-transform duration-300 hover:scale-101 ${!event.announcement.send && "hover:cursor-pointer"}`}>
+    <Card onClick={handleClick} className={!announcement.send && !announcement.error ? "transition-transform duration-300 cursor-pointer hover:scale-102" : ""}>
       <CardHeader>
         <div className="flex justify-between">
-          <div>
-            <CardTitle>{event.name}</CardTitle>
-            <CardDescription>
-              <div className="flex flex-col">
-                <span>{`Announcement: ${formatDate(event.announcement.sendTime)}`}</span>
-                <span>{`Event: ${formatDate(event.startTime)} | ${formatDateDiff(event.announcement.sendTime, event.startTime)}`}</span>
-              </div>
-            </CardDescription>
-          </div>
-          {(event.announcement.send || event.announcement.error) && (
-            <div>
-              <Badge variant="outline" className={event.announcement.send ? "text-green-500 border-green-500" : "text-red-500 border-red-500"}>{event.announcement.send ? "Send" : "Error"}</Badge>
-            </div>
-          )}
+          <CardTitle>
+            <span>{formatDate(announcement.sendTime)}</span>
+          </CardTitle>
+          <AnnouncementBadge announcement={announcement} />
         </div>
+        <CardDescription>
+          <div className="xs:flex md:grid md:grid-cols-[auto_1fr] md:space-x-2">
+            {events.map(e => (
+              <Fragment key={e.id}>
+                <span>{e.name}</span>
+                <span>{` | ${formatDate(e.startTime)}`}</span>
+                <br className="md:hidden" />
+              </Fragment>
+            ))}
+          </div>
+        </CardDescription>
         <Separator />
       </CardHeader>
       <CardContent>
-        <MarkdownViewer value={event.announcement.content} />
+        <MarkdownViewer value={announcement.content} />
       </CardContent>
-      {event.announcement.error && (
+      {announcement.error && (
         <CardFooter>
-          <span className="text-sm text-red-500">{event.announcement.error}</span>
+          <span className="text-sm text-red-500">{announcement.error}</span>
         </CardFooter>
       )}
     </Card>

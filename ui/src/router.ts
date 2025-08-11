@@ -1,22 +1,23 @@
 import { createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
 import App from "./App";
 import Error404 from "./pages/404";
+import { Announcements } from "./pages/announcements/Announcements";
+import { AnnouncementsCreate } from "./pages/announcements/AnnouncementsCreate";
+import { AnnouncementsOverview } from "./pages/announcements/AnnouncementsOverview";
 import { Error } from "./pages/Error";
 import Events from "./pages/events/Events";
 import { EventsAssign } from "./pages/events/EventsAssign";
 import { EventsDetail } from "./pages/events/EventsDetail";
-import { EventsYear } from "./pages/events/EventsYear";
+import { EventsOverview } from "./pages/events/EventsOverview";
 import Index from "./pages/Index";
+import { Mails } from "./pages/mails/Mails";
+import { MailsCreate } from "./pages/mails/MailsCreate";
+import { PowerPoints } from "./pages/powerpoints/Powerpoints";
 import { Tasks } from "./pages/tasks/Tasks";
 import { TasksDetail } from "./pages/tasks/TasksDetail";
 import { TasksHistory } from "./pages/tasks/TasksHistory";
 import { TasksOverview } from "./pages/tasks/TasksOverview";
-import { Announcements } from "./pages/announcements/Announcements";
-import { AnnouncementsYear } from "./pages/announcements/AnnouncementsYear";
-import { AnnouncementsCreate } from "./pages/announcements/AnnouncementsCreate";
-import { Mails } from "./pages/mails/Mails";
-import { MailsCreate } from "./pages/mails/MailsCreate";
-import { PowerPoints } from "./pages/powerpoints/Powerpoints";
+import { AnnouncementsEdit } from "./pages/announcements/AnnouncementsEdit";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -40,20 +41,20 @@ const eventsRoute = createRoute({
   component: Events,
 });
 
-const eventsYearRoute = createRoute({
+const eventsOverviewRoute = createRoute({
   getParentRoute: () => eventsRoute,
-  path: "$year",
-  component: EventsYear,
-});
+  path: "/",
+  component: EventsOverview,
+})
 
-const eventsYearDetailRoute = createRoute({
-  getParentRoute: () => eventsYearRoute,
+const eventsDetailRoute = createRoute({
+  getParentRoute: () => eventsRoute,
   path: "/$id",
   component: EventsDetail,
 });
 
-const eventsYearAssignRoute = createRoute({
-  getParentRoute: () => eventsYearRoute,
+const eventsAssignRoute = createRoute({
+  getParentRoute: () => eventsRoute,
   path: "/assign",
   component: EventsAssign,
 });
@@ -68,16 +69,22 @@ const announcementsRoute = createRoute({
   component: Announcements,
 })
 
-const announcementsYearRoute = createRoute({
+const announcementsOverviewRoute = createRoute({
   getParentRoute: () => announcementsRoute,
-  path: "$year",
-  component: AnnouncementsYear
+  path: "/",
+  component: AnnouncementsOverview,
 })
 
 const announcementsCreateRoute = createRoute({
-  getParentRoute: () => announcementsYearRoute,
-  path: "/$event",
+  getParentRoute: () => announcementsRoute,
+  path: "/create",
   component: AnnouncementsCreate,
+})
+
+const announcementsEditRoute = createRoute({
+  getParentRoute: () => announcementsRoute,
+  path: "/edit/$announcementId",
+  component: AnnouncementsEdit,
 })
 
 //
@@ -143,10 +150,14 @@ const tasksHistory = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   eventsRoute.addChildren([
-    eventsYearRoute.addChildren([eventsYearDetailRoute, eventsYearAssignRoute]),
+    eventsOverviewRoute,
+    eventsDetailRoute,
+    eventsAssignRoute,
   ]),
   announcementsRoute.addChildren([
-    announcementsYearRoute.addChildren([announcementsCreateRoute])
+    announcementsOverviewRoute,
+    announcementsCreateRoute,
+    announcementsEditRoute,
   ]),
   mailsRoute.addChildren([
     mailsCreateRoute,

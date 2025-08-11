@@ -1,8 +1,6 @@
-import { Link, Outlet, useMatch, useParams } from "@tanstack/react-router";
-import { isAfter, isBefore } from "date-fns";
-import { useEffect, useState } from "react";
 import { DividerText } from "@/components/atoms/DividerText";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
+import { NoItems } from "@/components/atoms/NoItems";
 import { Title } from "@/components/atoms/Title";
 import { EventCard } from "@/components/events/EventCard";
 import { PageHeader } from "@/components/molecules/PageHeader";
@@ -10,35 +8,24 @@ import { MultiSelect } from "@/components/organisms/MultiSelect";
 import { Button } from "@/components/ui/button";
 import { useEventByYear } from "@/lib/api/event";
 import { useOrganizerByYear } from "@/lib/api/organizer";
-import { useYearGetAll } from "@/lib/api/year";
 import { useIsMobile } from "@/lib/hooks/use-mobile";
-import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
-import { NoItems } from "@/components/atoms/NoItems";
-import { weightSubcategory } from "@/lib/types/general";
+import { useYear } from "@/lib/hooks/useYear";
+import { Link } from "@tanstack/react-router";
+import { isAfter, isBefore } from "date-fns";
+import { useState } from "react";
 
-export function EventsYear() {
-  const isDetail = useMatch({ from: "/events/$year/$id", shouldThrow: false });
-  const isAssign = useMatch({ from: "/events/$year/assign", shouldThrow: false });
-  const { year: yearString } = useParams({ from: "/events/$year" });
+export function EventsOverview() {
+  const { year } = useYear()
 
-  const { data: years } = useYearGetAll();
-  // Event component makes sure it exists
-  const year = years!.find(({ formatted }) => formatted === yearString)!;
   const { data: events, isLoading: isLoadingEvents } = useEventByYear(year);
 
   const { data: organizers, isLoading: isLoadingOrganizers } = useOrganizerByYear(year);
   const [selectedOrganizers, setSelectedOrganizers] = useState<string[]>([]);
-  useEffect(() => setSelectedOrganizers([]), [yearString]);
 
-  useBreadcrumb({ title: yearString, weight: weightSubcategory, link: { to: "/events/$year", params: { year: yearString } } });
   const isMobile = useIsMobile();
 
   if (isLoadingEvents || isLoadingOrganizers) {
     return <Indeterminate />;
-  }
-
-  if (isDetail || isAssign) {
-    return <Outlet />;
   }
 
   const handleValueChange = (value: string[]) => setSelectedOrganizers(value);
@@ -51,9 +38,9 @@ export function EventsYear() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader>
-        <Title>{`${!isMobile ? "Events " : ""} ${yearString}`}</Title>
+        <Title>{`${!isMobile ? "Events " : ""} ${year.formatted}`}</Title>
         <Button size="lg" variant="outline" disabled={!events?.length}>
-          <Link to="/events/$year/assign" params={{ year: yearString }}>
+          <Link to="/events/assign" params={{ year: year.formatted }}>
             Assign
           </Link>
         </Button>
