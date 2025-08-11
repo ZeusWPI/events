@@ -49,5 +49,3 @@ export function AnnouncementsOverview() {
   );
 }
 
-// TODO: timedate selector
-// Fix poster sync

@@ -45,6 +45,14 @@ export function formatDate(date?: Date) {
   return format(date, "eee dd MMM, HH:mm");
 }
 
+export function formatTime(date?: Date) {
+  if (date === undefined) {
+    return ""
+  }
+
+  return format(date, "HH:mm:ss")
+}
+
 export function formatDateDiff(first: Date, second: Date) {
   const diff = first.getTime() - second.getTime()
   const sign = diff >= 0 ? "-" : "+"

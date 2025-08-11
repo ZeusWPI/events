@@ -186,7 +186,7 @@ func (c *Client) toDB(ctx context.Context, poster model.Poster, event model.Even
 	if err != nil {
 		return err
 	}
-	if a4 {
+	if !a4 {
 		return fmt.Errorf("poster %+v for event %+v is not the right aspect ratio", poster, event)
 	}
 

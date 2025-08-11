@@ -12,6 +12,7 @@ import { PageHeader } from "../molecules/PageHeader";
 import { DateTimePicker } from "../organisms/DateTimePicker";
 import { MarkdownCombo } from "../organisms/markdown/MarkdownCombo";
 import { Button } from "../ui/button";
+import { useEffect, useState } from "react";
 
 interface Props {
   announcement?: AnnouncementSchema;
@@ -21,6 +22,8 @@ interface Props {
 export function AnnouncementForm({ announcement, onSubmit }: Props) {
   const { year } = useYear()
   const { data: events, isLoading: isLoadingEvents } = useEventByYear(year)
+
+  const [referenceDate, setReferenceDate] = useState<Date | undefined>(undefined)
 
   const handleSubmit = () => {
     const selected = events?.filter(e => form.state.values.eventIds.includes(e.id)) ?? []
@@ -45,6 +48,16 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
     },
     onSubmit: handleSubmit,
   })
+
+  const updateReferenceDate = (eventIds: number[]) => {
+    const selected = events?.filter(e => eventIds.includes(e.id)) ?? []
+    setReferenceDate(selected.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())[0]?.startTime)
+  }
+
+  useEffect(() => {
+    if (!announcement || !events) return
+    updateReferenceDate(announcement.eventIds)
+  }, [announcement, events]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoadingEvents) {
     return <Indeterminate />
@@ -74,7 +87,7 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
           {(field) => (
             <FormField field={field} className="flex items-center gap-4">
               <label htmlFor={field.name}>Send time</label>
-              <DateTimePicker value={field.state.value as Date} onChange={field.handleChange} weekStartsOn={1} className="w-[280px]" />
+              <DateTimePicker id={field.name} value={field.state.value as Date} setValue={field.handleChange} referenceDate={referenceDate} />
             </FormField>
           )}
         </form.Field>
@@ -85,7 +98,7 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
             </FormField>
           )}
         </form.Field>
-        <form.Field name="eventIds">
+        <form.Field name="eventIds" listeners={{ onChange: ({ value }) => updateReferenceDate(value as number[]) }}>
           {(field) => (
             <EventSelector selected={field.state.value as number[]} setSelected={field.handleChange} />
           )}

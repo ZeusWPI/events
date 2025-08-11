@@ -13,6 +13,8 @@ import { MarkdownCombo } from "../organisms/markdown/MarkdownCombo";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Link } from "@tanstack/react-router";
+import { Label } from "../ui/label";
+import { useEffect, useState } from "react";
 
 interface Props {
   mail?: MailSchema;
@@ -22,6 +24,9 @@ interface Props {
 export function MailForm({ mail, onSubmit }: Props) {
   const { year } = useYear()
   const { data: events, isLoading: isLoadingEvents } = useEventByYear(year)
+
+  const [referenceDate, setReferenceDate] = useState<Date | undefined>(undefined)
+
 
   const handleSubmit = () => {
     const selected = events?.filter(e => form.state.values.eventIds.includes(e.id)) ?? []
@@ -48,6 +53,16 @@ export function MailForm({ mail, onSubmit }: Props) {
     onSubmit: handleSubmit,
   })
 
+  const updateReferenceDate = (eventIds: number[]) => {
+    const selected = events?.filter(e => eventIds.includes(e.id)) ?? []
+    setReferenceDate(selected.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())[0]?.startTime)
+  }
+
+  useEffect(() => {
+    if (!mail || !events) return
+    updateReferenceDate(mail.eventIds)
+  }, [mail, events]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (isLoadingEvents) {
     return <Indeterminate />
   }
@@ -73,15 +88,15 @@ export function MailForm({ mail, onSubmit }: Props) {
         form.handleSubmit();
       }}>
         <div className="grid grid-cols-[auto_1fr] items-center gap-2 space-x-4">
-          <label>Send time</label>
+          <Label htmlFor="mail-form-send-time">Send time</Label>
           <form.Field name="sendTime">
             {(field) => (
               <FormField field={field} className="flex items-center gap-4">
-                <DateTimePicker value={field.state.value as Date} onChange={field.handleChange} weekStartsOn={1} className="w-[280px]" />
+                <DateTimePicker id="mail-form-send-time" value={field.state.value as Date} setValue={field.handleChange} referenceDate={referenceDate} />
               </FormField>
             )}
           </form.Field>
-          <label htmlFor="mail-form-title">Title</label>
+          <Label htmlFor="mail-form-title">Title</Label>
           <form.Field name="title">
             {(field) => (
               <FormField field={field}>
@@ -97,7 +112,7 @@ export function MailForm({ mail, onSubmit }: Props) {
             </FormField>
           )}
         </form.Field>
-        <form.Field name="eventIds">
+        <form.Field name="eventIds" listeners={{ onChange: ({ value }) => updateReferenceDate(value as number[]) }}>
           {(field) => (
             <EventSelector selected={field.state.value as number[]} setSelected={field.handleChange} />
           )}
