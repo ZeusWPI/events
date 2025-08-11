@@ -57,6 +57,12 @@ func (r *Announcement) create(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
+	userID, ok := c.Locals("userId").(int)
+	if !ok {
+		return fiber.ErrUnauthorized
+	}
+	announcement.AuthorID = userID
+
 	if _, err := r.announcement.Save(c.Context(), announcement); err != nil {
 		return err
 	}

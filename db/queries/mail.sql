@@ -25,8 +25,8 @@ LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 WHERE NOT send AND error IS NULL;
 
 -- name: MailCreate :one
-INSERT INTO mail (year_id, title, content, send_time, send, error)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO mail (year_id, author_id, title, content, send_time, send, error)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id;
 
 -- name: MailUpdate :exec

@@ -74,6 +74,7 @@ func (m *Mail) Create(ctx context.Context, mail *model.Mail) error {
 	return m.repo.WithRollback(ctx, func(ctx context.Context) error {
 		id, err := m.repo.queries(ctx).MailCreate(ctx, sqlc.MailCreateParams{
 			YearID:   int32(mail.YearID),
+			AuthorID: int32(mail.AuthorID),
 			Title:    mail.Title,
 			Content:  mail.Content,
 			SendTime: pgtype.Timestamptz{Valid: true, Time: mail.SendTime},

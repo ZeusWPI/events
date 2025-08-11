@@ -11,6 +11,7 @@ type Mail struct {
 	ID       int
 	YearID   int
 	EventIDs []int
+	AuthorID int
 	Title    string
 	Content  string
 	SendTime time.Time
@@ -28,6 +29,7 @@ func MailModel(mail sqlc.Mail) *Mail {
 		ID:       int(mail.ID),
 		YearID:   int(mail.YearID),
 		EventIDs: []int{},
+		AuthorID: int(mail.AuthorID),
 		Title:    mail.Title,
 		Content:  mail.Content,
 		SendTime: mail.SendTime.Time,
@@ -49,6 +51,7 @@ func MailEventsModel(mails []sqlc.MailGetByIDRow) []*Mail {
 				ID:       int(m.ID),
 				YearID:   int(m.YearID),
 				EventIDs: []int{},
+				AuthorID: int(m.AuthorID),
 				Title:    m.Title,
 				Content:  m.Content,
 				SendTime: m.SendTime.Time,

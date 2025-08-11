@@ -4,7 +4,7 @@ import { useYear } from "@/lib/hooks/useYear";
 import { Announcement } from "@/lib/types/announcement";
 import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { Trash2Icon } from "lucide-react";
+import { Trash2Icon, UserRoundIcon } from "lucide-react";
 import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
+import { useOrganizerByYear } from "@/lib/api/organizer";
 
 interface Props {
   announcement: Announcement;
@@ -40,13 +41,15 @@ export function AnnouncementCard({ announcement }: Props) {
 
   const { year } = useYear()
   const { data: allEvents, isLoading: isLoadingEvents } = useEventByYear(year)
+  const { data: organizers, isLoading: isLoadingOrganizers } = useOrganizerByYear(year)
 
   const events = allEvents?.filter(e => announcement.eventIds.includes(e.id)) ?? []
+  const organizer = organizers?.find(o => o.id === announcement.author_id)
 
   const [openDelete, setOpenDelete] = useState(false)
   const announcementDelete = useAnnouncementDelete()
 
-  if (isLoadingEvents) {
+  if (isLoadingEvents || isLoadingOrganizers) {
     return
   }
 
@@ -95,11 +98,15 @@ export function AnnouncementCard({ announcement }: Props) {
         <CardContent>
           <MarkdownViewer value={announcement.content} />
         </CardContent>
-        {announcement.error && (
-          <CardFooter>
-            <span className="text-sm text-red-500">{announcement.error}</span>
-          </CardFooter>
-        )}
+        <CardFooter className="flex flex-col space-y-4 items-start">
+          {organizer && (
+            <div className="flex items-center space-x-2">
+              <UserRoundIcon className="size-4" />
+              {organizer.name}
+            </div>
+          )}
+          {announcement.error && <span className="text-sm text-red-500">{announcement.error}</span>}
+        </CardFooter>
       </Card>
       <DeleteConfirm
         open={openDelete}

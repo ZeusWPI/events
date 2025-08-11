@@ -9,11 +9,12 @@ import { Fragment } from "react/jsx-runtime";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Trash2Icon } from "lucide-react";
+import { Trash2Icon, UserRoundIcon } from "lucide-react";
 import { useMailDelete } from "@/lib/api/mail";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DeleteConfirm } from "../molecules/DeleteConfirm";
+import { useOrganizerByYear } from "@/lib/api/organizer";
 
 interface Props {
   mail: Mail
@@ -40,13 +41,15 @@ export function MailCard({ mail }: Props) {
 
   const { year } = useYear()
   const { data: allEvents, isLoading: isLoadingEvents } = useEventByYear(year)
+  const { data: organizers, isLoading: isLoadingOrganizers } = useOrganizerByYear(year)
 
   const events = allEvents?.filter(e => mail.eventIds.includes(e.id)) ?? []
+  const organizer = organizers?.find(o => o.id === mail.author_id)
 
   const [openDelete, setOpenDelete] = useState(false)
   const mailDelete = useMailDelete()
 
-  if (isLoadingEvents) {
+  if (isLoadingEvents || isLoadingOrganizers) {
     return
   }
 
@@ -98,11 +101,15 @@ export function MailCard({ mail }: Props) {
         <CardContent>
           <MarkdownViewer value={mail.content} />
         </CardContent>
-        {mail.error && (
-          <CardFooter>
-            <span className="text-sm text-red-500">{mail.error}</span>
-          </CardFooter>
-        )}
+        <CardFooter className="flex flex-col space-y-4 items-start">
+          {organizer && (
+            <div className="flex items-center space-x-2">
+              <UserRoundIcon className="size-4" />
+              {organizer.name}
+            </div>
+          )}
+          {mail.error && <span className="text-sm text-red-500">{mail.error}</span>}
+        </CardFooter>
       </Card>
       <DeleteConfirm
         open={openDelete}

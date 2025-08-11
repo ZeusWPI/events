@@ -57,6 +57,12 @@ func (r *Mail) create(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
+	userID, ok := c.Locals("userId").(int)
+	if !ok {
+		return fiber.ErrUnauthorized
+	}
+	mail.AuthorID = userID
+
 	if _, err := r.mail.Save(c.Context(), mail); err != nil {
 		return err
 	}

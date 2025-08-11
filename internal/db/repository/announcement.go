@@ -80,6 +80,7 @@ func (a *Announcement) Create(ctx context.Context, announcement *model.Announcem
 	return a.repo.WithRollback(ctx, func(ctx context.Context) error {
 		id, err := a.repo.queries(ctx).AnnouncementCreate(ctx, sqlc.AnnouncementCreateParams{
 			YearID:   int32(announcement.YearID),
+			AuthorID: int32(announcement.AuthorID),
 			Content:  announcement.Content,
 			SendTime: pgtype.Timestamptz{Valid: true, Time: announcement.SendTime},
 			Send:     announcement.Send,

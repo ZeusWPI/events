@@ -15,6 +15,7 @@ type Announcement struct {
 	Send     bool
 	Error    pgtype.Text
 	YearID   int32
+	AuthorID int32
 }
 
 type AnnouncementEvent struct {
@@ -63,6 +64,7 @@ type Mail struct {
 	Error    pgtype.Text
 	Title    string
 	YearID   int32
+	AuthorID int32
 }
 
 type MailEvent struct {

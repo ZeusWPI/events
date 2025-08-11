@@ -5,6 +5,7 @@ import { z } from "zod";
 export interface Announcement extends Base {
   yearId: number;
   eventIds: number[];
+  author_id: number;
   content: string;
   sendTime: Date;
   send: boolean;
@@ -16,6 +17,7 @@ export function convertAnnouncementToModel(announcement: API.Announcement): Anno
     id: announcement.id,
     yearId: announcement.year_id,
     eventIds: announcement.event_ids,
+    author_id: announcement.author_id,
     content: announcement.content,
     sendTime: new Date(announcement.send_time),
     send: announcement.send,

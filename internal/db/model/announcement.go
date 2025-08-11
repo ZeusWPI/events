@@ -11,6 +11,7 @@ type Announcement struct {
 	ID       int
 	YearID   int
 	EventIDs []int
+	AuthorID int
 	Content  string
 	SendTime time.Time
 	Send     bool
@@ -27,6 +28,7 @@ func AnnouncementModel(announcement sqlc.Announcement) *Announcement {
 		ID:       int(announcement.ID),
 		YearID:   int(announcement.YearID),
 		EventIDs: []int{},
+		AuthorID: int(announcement.AuthorID),
 		Content:  announcement.Content,
 		SendTime: announcement.SendTime.Time,
 		Send:     announcement.Send,
@@ -47,6 +49,7 @@ func AnnouncementEventsModel(announcements []sqlc.AnnouncementGetByIDRow) []*Ann
 				ID:       int(a.ID),
 				YearID:   int(a.YearID),
 				EventIDs: []int{},
+				AuthorID: int(a.AuthorID),
 				Content:  a.Content,
 				SendTime: a.SendTime.Time,
 				Send:     a.Send,

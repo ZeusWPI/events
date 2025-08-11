@@ -26,8 +26,8 @@ LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 WHERE NOT send AND error IS NULL;
 
 -- name: AnnouncementCreate :one 
-INSERT INTO announcement (year_id, content, send_time, send, error)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO announcement (year_id, author_id, content, send_time, send, error)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id;
 
 -- name: AnnouncementUpdate :exec

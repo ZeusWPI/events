@@ -32,6 +32,7 @@ export namespace API {
   export interface Announcement extends Base {
     year_id: number;
     event_ids: number[];
+    author_id: number;
     content: string;
     send_time: string;
     send: boolean;
@@ -56,6 +57,7 @@ export namespace API {
   export interface Mail extends Base {
     year_id: number;
     event_ids: number[];
+    author_id: number;
     title: string;
     content: string;
     send_time: string;

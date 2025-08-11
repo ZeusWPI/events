@@ -10,6 +10,7 @@ type Mail struct {
 	ID       int       `json:"id"`
 	YearID   int       `json:"year_id" validate:"required"`
 	EventIDs []int     `json:"event_ids"`
+	AuthorID int       `json:"author_id"`
 	Title    string    `json:"title" validate:"required"`
 	Content  string    `json:"content" validate:"required"`
 	SendTime time.Time `json:"send_time" validate:"required"`

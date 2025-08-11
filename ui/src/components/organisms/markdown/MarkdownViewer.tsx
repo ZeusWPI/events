@@ -9,6 +9,7 @@ export function MarkdownViewer({ value }: Pick<MDEditorProps, 'value'>) {
     <div data-color-mode={theme}>
       <MDEditor.Markdown
         source={emojify(value ?? "")}
+        style={theme === "dark" ? { background: "#27272a" } : { background: "#f4f4f5" }}
       />
     </div>
   )

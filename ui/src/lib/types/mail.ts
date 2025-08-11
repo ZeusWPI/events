@@ -6,6 +6,7 @@ import { Base, JSONBody } from "./general";
 export interface Mail extends Base {
   yearId: number;
   eventIds: number[];
+  author_id: number;
   title: string;
   content: string;
   sendTime: Date;
@@ -18,6 +19,7 @@ export function convertMailToModel(mail: API.Mail): Mail {
     id: mail.id,
     yearId: mail.year_id,
     eventIds: mail.event_ids,
+    author_id: mail.author_id,
     title: mail.title,
     content: mail.content,
     sendTime: new Date(mail.send_time),
