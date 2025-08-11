@@ -30,6 +30,7 @@ func (m *Mail) sendMailAll(ctx context.Context, mail model.Mail) error {
 	return nil
 }
 
+// ScheduleMailAll will schedule a new mail to all Zeus users
 // If a mail is already scheduled then update needs to be set to true so that it cancels it first
 func (m *Mail) ScheduleMailAll(ctx context.Context, mail model.Mail, update bool) error {
 	name := fmt.Sprintf("%s %d", mailTask, mail.ID)

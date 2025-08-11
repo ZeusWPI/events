@@ -24,13 +24,18 @@ func NewMail(router fiber.Router, service *service.Service) *Mail {
 }
 
 func (r *Mail) createRoutes() {
-	r.router.Get("/", r.GetAll)
-	r.router.Put("/", r.Create)
-	r.router.Post("/:id", r.Update)
+	r.router.Get("/year/:id", r.getByYear)
+	r.router.Put("/", r.create)
+	r.router.Post("/:id", r.update)
 }
 
-func (r *Mail) GetAll(c *fiber.Ctx) error {
-	mails, err := r.mail.GetAll(c.Context())
+func (r *Mail) getByYear(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	mails, err := r.mail.GetByYear(c.Context(), id)
 	if err != nil {
 		return err
 	}
@@ -38,8 +43,8 @@ func (r *Mail) GetAll(c *fiber.Ctx) error {
 	return c.JSON(mails)
 }
 
-func (r *Mail) Create(c *fiber.Ctx) error {
-	var mail dto.MailSave
+func (r *Mail) create(c *fiber.Ctx) error {
+	var mail dto.Mail
 	if err := c.BodyParser(&mail); err != nil {
 		return fiber.ErrBadRequest
 	}
@@ -58,17 +63,13 @@ func (r *Mail) Create(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
-func (r *Mail) Update(c *fiber.Ctx) error {
-	var mail dto.MailSave
+func (r *Mail) update(c *fiber.Ctx) error {
+	var mail dto.Mail
 	if err := c.BodyParser(&mail); err != nil {
 		return fiber.ErrBadRequest
 	}
 	if mail.ID == 0 {
 		return fiber.ErrBadRequest
-	}
-
-	if err := dto.Validate.Struct(mail); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	if err := dto.Validate.Struct(mail); err != nil {

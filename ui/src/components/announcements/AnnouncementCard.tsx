@@ -38,7 +38,7 @@ export function AnnouncementCard({ announcement }: Props) {
   }
 
   const handleClick = () => {
-    if (announcement.send) {
+    if (announcement.send || announcement.error) {
       return
     }
 
@@ -49,9 +49,7 @@ export function AnnouncementCard({ announcement }: Props) {
     <Card onClick={handleClick} className={!announcement.send && !announcement.error ? "transition-transform duration-300 cursor-pointer hover:scale-102" : ""}>
       <CardHeader>
         <div className="flex justify-between">
-          <CardTitle>
-            <span>{formatDate(announcement.sendTime)}</span>
-          </CardTitle>
+          <CardTitle>{formatDate(announcement.sendTime)}</CardTitle>
           <AnnouncementBadge announcement={announcement} />
         </div>
         <CardDescription>

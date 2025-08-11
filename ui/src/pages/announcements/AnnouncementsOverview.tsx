@@ -58,3 +58,6 @@ export function AnnouncementsOverview() {
 }
 
 // TODO: timedate selector
+// Delete announcements
+// Keep track of who made a mail / announcement
+// Event multiple announcements and years

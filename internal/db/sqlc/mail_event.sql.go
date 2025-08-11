@@ -36,29 +36,3 @@ func (q *Queries) MailEventDeleteByMail(ctx context.Context, mailID int32) error
 	_, err := q.db.Exec(ctx, mailEventDeleteByMail, mailID)
 	return err
 }
-
-const mailEventGetByEvents = `-- name: MailEventGetByEvents :many
-SELECT id, mail_id, event_id
-FROM mail_event
-WHERE event_id = ANY($1::int[])
-`
-
-func (q *Queries) MailEventGetByEvents(ctx context.Context, dollar_1 []int32) ([]MailEvent, error) {
-	rows, err := q.db.Query(ctx, mailEventGetByEvents, dollar_1)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []MailEvent
-	for rows.Next() {
-		var i MailEvent
-		if err := rows.Scan(&i.ID, &i.MailID, &i.EventID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}

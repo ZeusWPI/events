@@ -21,7 +21,10 @@ export function useAnnouncementCreate() {
 
   return useMutation({
     mutationFn: async (announcement: AnnouncementSchema) => apiPut(ENDPOINT, announcement),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["announcement"] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["announcement"] });
+      queryClient.invalidateQueries({ queryKey: ["event"] });
+    }
   })
 }
 
@@ -30,6 +33,9 @@ export function useAnnouncementUpdate() {
 
   return useMutation({
     mutationFn: async (announcement: AnnouncementSchema) => apiPost(`${ENDPOINT}/${announcement.id}`, announcement),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["announcement"] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["announcement"] });
+      queryClient.invalidateQueries({ queryKey: ["event"] });
+    }
   })
 }

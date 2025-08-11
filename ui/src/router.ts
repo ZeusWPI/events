@@ -18,6 +18,8 @@ import { TasksDetail } from "./pages/tasks/TasksDetail";
 import { TasksHistory } from "./pages/tasks/TasksHistory";
 import { TasksOverview } from "./pages/tasks/TasksOverview";
 import { AnnouncementsEdit } from "./pages/announcements/AnnouncementsEdit";
+import { MailsEdit } from "./pages/mails/MailsEdit";
+import { MailsOverview } from "./pages/mails/MailsOverview";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -97,6 +99,12 @@ const mailsRoute = createRoute({
   component: Mails,
 })
 
+const mailsOverviewRoute = createRoute({
+  getParentRoute: () => mailsRoute,
+  path: "/",
+  component: MailsOverview,
+})
+
 const mailsCreateRoute = createRoute({
   getParentRoute: () => mailsRoute,
   path: "/create",
@@ -105,8 +113,8 @@ const mailsCreateRoute = createRoute({
 
 const mailsEditRoute = createRoute({
   getParentRoute: () => mailsRoute,
-  path: "/edit/$mail",
-  component: MailsCreate
+  path: "/edit/$mailId",
+  component: MailsEdit,
 })
 
 //
@@ -160,6 +168,7 @@ const routeTree = rootRoute.addChildren([
     announcementsEditRoute,
   ]),
   mailsRoute.addChildren([
+    mailsOverviewRoute,
     mailsCreateRoute,
     mailsEditRoute,
   ]),

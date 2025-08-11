@@ -2,10 +2,8 @@ package service
 
 import (
 	"context"
-	"slices"
 	"time"
 
-	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/pkg/utils"
@@ -28,66 +26,59 @@ func (s *Service) NewMail() *Mail {
 	}
 }
 
-func (m *Mail) GetAll(ctx context.Context) ([]dto.Mail, error) {
-	mailsDB, err := m.mail.GetAllPopulated(ctx)
+func (m *Mail) GetByYear(ctx context.Context, yearID int) ([]dto.Mail, error) {
+	mails, err := m.mail.GetByYear(ctx, yearID)
 	if err != nil {
 		zap.S().Error(err)
 		return []dto.Mail{}, fiber.ErrInternalServerError
 	}
 
-	events, err := m.events.GetByIDs(ctx, utils.SliceFlatten(utils.SliceMap(mailsDB, func(m *model.Mail) []int { return m.EventIDs })))
-	if err != nil {
-		zap.S().Error(err)
-		return []dto.Mail{}, fiber.ErrInternalServerError
-	}
-
-	mails := utils.SliceMap(mailsDB, dto.MailDTO)
-	for i, mail := range mails {
-		mails[i].Events = utils.SliceMap(
-			utils.SliceFilter(events, func(e *model.Event) bool { return slices.Contains(mail.EventIDs, e.ID) }),
-			dto.EventDTO,
-		)
-	}
-
-	return mails, nil
+	return utils.SliceMap(mails, dto.MailDTO), nil
 }
 
-func (m *Mail) Save(ctx context.Context, mailSave dto.MailSave) (dto.Mail, error) {
-	mail := model.Mail{
-		ID:       mailSave.ID,
-		Title:    mailSave.Title,
-		Content:  mailSave.Content,
-		SendTime: mailSave.SendTime,
-		Send:     false,
-		Error:    "",
-	}
+func (m *Mail) Save(ctx context.Context, mailSave dto.Mail) (dto.Mail, error) {
+	mail := mailSave.ToModel()
 
 	if mail.SendTime.Before(time.Now()) {
 		return dto.Mail{}, fiber.ErrBadRequest
 	}
 
-	if len(mailSave.EventIDs) == 0 {
+	events, err := m.events.GetByIDs(ctx, mail.EventIDs)
+	if err != nil {
+		return dto.Mail{}, fiber.ErrInternalServerError
+	}
+	if len(events) != len(mail.EventIDs) {
 		return dto.Mail{}, fiber.ErrBadRequest
 	}
 
-	var err error
-	update := false
-	if mail.ID == 0 {
-		err = m.mail.Create(ctx, &mail, mailSave.EventIDs)
-	} else {
-		err = m.mail.Update(ctx, mail, mailSave.EventIDs)
-		update = true
+	for _, event := range events {
+		if mail.SendTime.After(event.StartTime) {
+			return dto.Mail{}, fiber.ErrBadRequest
+		}
 	}
 
-	if err != nil {
+	if err = m.service.withRollback(ctx, func(ctx context.Context) error {
+		update := false
+		if mail.ID == 0 {
+			err = m.mail.Create(ctx, mail)
+		} else {
+			err = m.mail.Update(ctx, *mail)
+			update = true
+		}
+
+		if err != nil {
+			return err
+		}
+
+		if err = m.service.mail.ScheduleMailAll(ctx, *mail, update); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
 		zap.S().Error(err)
 		return dto.Mail{}, fiber.ErrInternalServerError
 	}
 
-	if err = m.service.mail.ScheduleMailAll(ctx, mail, update); err != nil {
-		zap.S().Error(err)
-		return dto.Mail{}, fiber.ErrInternalServerError
-	}
-
-	return dto.MailDTO(&mail), nil
+	return dto.MailDTO(mail), nil
 }

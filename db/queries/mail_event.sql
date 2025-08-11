@@ -1,8 +1,3 @@
--- name: MailEventGetByEvents :many
-SELECT *
-FROM mail_event
-WHERE event_id = ANY($1::int[]);
-
 -- name: MailEventCreateBatch :exec
 INSERT INTO mail_event (mail_id, event_id)
 VALUES (
@@ -13,4 +8,3 @@ VALUES (
 -- name: MailEventDeleteByMail :exec
 DELETE FROM mail_event
 WHERE mail_id = $1;
-

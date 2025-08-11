@@ -32,6 +32,7 @@ func (c *Client) sendAnnouncement(ctx context.Context, announcement model.Announ
 	return nil
 }
 
+// ScheduleAnnouncement schedules a new announcement to be sent
 // If an announcement is already scheduled then update needs to be set to true so that it cancels it first
 func (c *Client) ScheduleAnnouncement(ctx context.Context, announcement model.Announcement, update bool) error {
 	name := fmt.Sprintf("%s %d", announcementTask, announcement.ID)

@@ -28,12 +28,11 @@ func (a *Announcement) GetByYear(ctx context.Context, yearID int) ([]*model.Anno
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get all announcements %w", err)
+		return nil, fmt.Errorf("get announcements by year %w", err)
 	}
 
 	announcementMap := make(map[int32]*model.Announcement)
 
-	// TODO: Cleanup
 	for _, a := range announcements {
 		if _, ok := announcementMap[a.ID]; !ok {
 			err := ""
@@ -42,8 +41,8 @@ func (a *Announcement) GetByYear(ctx context.Context, yearID int) ([]*model.Anno
 			}
 			announcementMap[a.ID] = &model.Announcement{
 				ID:       int(a.ID),
-				EventIDs: []int{},
 				YearID:   int(a.YearID),
+				EventIDs: []int{},
 				Content:  a.Content,
 				SendTime: a.SendTime.Time,
 				Send:     a.Send,
@@ -160,15 +159,30 @@ func (a *Announcement) Create(ctx context.Context, announcement *model.Announcem
 }
 
 func (a *Announcement) Update(ctx context.Context, announcement model.Announcement) error {
-	if err := a.repo.queries(ctx).AnnouncementUpdate(ctx, sqlc.AnnouncementUpdateParams{
-		ID:       int32(announcement.ID),
-		Content:  announcement.Content,
-		SendTime: pgtype.Timestamptz{Valid: true, Time: announcement.SendTime},
-	}); err != nil {
-		return fmt.Errorf("update announcement %+v | %w", announcement, err)
-	}
+	return a.repo.WithRollback(ctx, func(ctx context.Context) error {
+		if err := a.repo.queries(ctx).AnnouncementUpdate(ctx, sqlc.AnnouncementUpdateParams{
+			ID:       int32(announcement.ID),
+			Content:  announcement.Content,
+			SendTime: pgtype.Timestamptz{Valid: true, Time: announcement.SendTime},
+		}); err != nil {
+			return fmt.Errorf("update announcement %+v | %w", announcement, err)
+		}
 
-	return nil
+		if err := a.repo.queries(ctx).AnnouncementEventDeleteByAnnouncement(ctx, int32(announcement.ID)); err != nil {
+			return fmt.Errorf("update announcement events (delete) %+v | %w", announcement, err)
+		}
+
+		if len(announcement.EventIDs) > 0 {
+			if err := a.repo.queries(ctx).AnnouncementEventCreateBatch(ctx, sqlc.AnnouncementEventCreateBatchParams{
+				Column1: utils.SliceRepeat(int32(announcement.ID), len(announcement.EventIDs)),
+				Column2: utils.SliceMap(announcement.EventIDs, func(id int) int32 { return int32(id) }),
+			}); err != nil {
+				return fmt.Errorf("update announcement events (inset) %+v | %w", announcement, err)
+			}
+		}
+
+		return nil
+	})
 }
 
 func (a *Announcement) Send(ctx context.Context, announcementID int) error {

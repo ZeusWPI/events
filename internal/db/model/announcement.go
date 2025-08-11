@@ -25,6 +25,7 @@ func AnnouncementModel(announcement sqlc.Announcement) *Announcement {
 	return &Announcement{
 		ID:       int(announcement.ID),
 		YearID:   int(announcement.YearID),
+		EventIDs: []int{},
 		Content:  announcement.Content,
 		SendTime: announcement.SendTime.Time,
 		Send:     announcement.Send,

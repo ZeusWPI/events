@@ -53,11 +53,12 @@ export namespace API {
   }
 
   export interface Mail extends Base {
+    year_id: number;
+    event_ids: number[];
     title: string;
     content: string;
     send_time: string;
     send: boolean;
-    events: Event[];
     error?: string;
   }
 

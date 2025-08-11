@@ -3,7 +3,7 @@ SELECT *
 FROM announcement a
 LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 WHERE a.year_id = $1
-ORDER BY send_time;
+ORDER BY a.send_time;
 
 -- name: AnnouncementGetByEvents :many
 SELECT * 
@@ -26,7 +26,7 @@ RETURNING id;
 -- name: AnnouncementUpdate :exec
 UPDATE announcement
 SET content = $1, send_time = $2
-WHERE id = $3 AND NOT send;
+WHERE id = $3 AND NOT send AND error IS NULL;
 
 -- name: AnnouncementSend :exec 
 UPDATE announcement

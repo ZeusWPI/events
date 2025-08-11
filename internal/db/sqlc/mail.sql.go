@@ -12,12 +12,13 @@ import (
 )
 
 const mailCreate = `-- name: MailCreate :one
-INSERT INTO mail (title, content, send_time, send, error)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO mail (year_id, title, content, send_time, send, error)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id
 `
 
 type MailCreateParams struct {
+	YearID   int32
 	Title    string
 	Content  string
 	SendTime pgtype.Timestamptz
@@ -27,6 +28,7 @@ type MailCreateParams struct {
 
 func (q *Queries) MailCreate(ctx context.Context, arg MailCreateParams) (int32, error) {
 	row := q.db.QueryRow(ctx, mailCreate,
+		arg.YearID,
 		arg.Title,
 		arg.Content,
 		arg.SendTime,
@@ -54,34 +56,36 @@ func (q *Queries) MailError(ctx context.Context, arg MailErrorParams) error {
 	return err
 }
 
-const mailGetAllPopulated = `-- name: MailGetAllPopulated :many
-SELECT m.id, content, send_time, send, error, title, m_e.id, mail_id, event_id
+const mailGetByEvents = `-- name: MailGetByEvents :many
+SELECT m.id, content, send_time, send, error, title, year_id, m_e.id, mail_id, event_id
 FROM mail m
 LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
-ORDER BY m.send_time
+WHERE m_e.event_id = ANY($1::int[])
+ORDER BY send_time
 `
 
-type MailGetAllPopulatedRow struct {
+type MailGetByEventsRow struct {
 	ID       int32
 	Content  string
 	SendTime pgtype.Timestamptz
 	Send     bool
 	Error    pgtype.Text
 	Title    string
+	YearID   int32
 	ID_2     pgtype.Int4
 	MailID   pgtype.Int4
 	EventID  pgtype.Int4
 }
 
-func (q *Queries) MailGetAllPopulated(ctx context.Context) ([]MailGetAllPopulatedRow, error) {
-	rows, err := q.db.Query(ctx, mailGetAllPopulated)
+func (q *Queries) MailGetByEvents(ctx context.Context, dollar_1 []int32) ([]MailGetByEventsRow, error) {
+	rows, err := q.db.Query(ctx, mailGetByEvents, dollar_1)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []MailGetAllPopulatedRow
+	var items []MailGetByEventsRow
 	for rows.Next() {
-		var i MailGetAllPopulatedRow
+		var i MailGetByEventsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Content,
@@ -89,6 +93,59 @@ func (q *Queries) MailGetAllPopulated(ctx context.Context) ([]MailGetAllPopulate
 			&i.Send,
 			&i.Error,
 			&i.Title,
+			&i.YearID,
+			&i.ID_2,
+			&i.MailID,
+			&i.EventID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const mailGetByYear = `-- name: MailGetByYear :many
+SELECT m.id, content, send_time, send, error, title, year_id, m_e.id, mail_id, event_id
+FROM mail m
+LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
+WHERE m.year_id = $1
+ORDER BY m.send_time
+`
+
+type MailGetByYearRow struct {
+	ID       int32
+	Content  string
+	SendTime pgtype.Timestamptz
+	Send     bool
+	Error    pgtype.Text
+	Title    string
+	YearID   int32
+	ID_2     pgtype.Int4
+	MailID   pgtype.Int4
+	EventID  pgtype.Int4
+}
+
+func (q *Queries) MailGetByYear(ctx context.Context, yearID int32) ([]MailGetByYearRow, error) {
+	rows, err := q.db.Query(ctx, mailGetByYear, yearID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MailGetByYearRow
+	for rows.Next() {
+		var i MailGetByYearRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Content,
+			&i.SendTime,
+			&i.Send,
+			&i.Error,
+			&i.Title,
+			&i.YearID,
 			&i.ID_2,
 			&i.MailID,
 			&i.EventID,
@@ -104,20 +161,34 @@ func (q *Queries) MailGetAllPopulated(ctx context.Context) ([]MailGetAllPopulate
 }
 
 const mailGetUnsend = `-- name: MailGetUnsend :many
-SELECT id, content, send_time, send, error, title
-FROM mail
+SELECT m.id, content, send_time, send, error, title, year_id, m_e.id, mail_id, event_id
+FROM mail m
+LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 WHERE NOT send AND error IS NULL
 `
 
-func (q *Queries) MailGetUnsend(ctx context.Context) ([]Mail, error) {
+type MailGetUnsendRow struct {
+	ID       int32
+	Content  string
+	SendTime pgtype.Timestamptz
+	Send     bool
+	Error    pgtype.Text
+	Title    string
+	YearID   int32
+	ID_2     pgtype.Int4
+	MailID   pgtype.Int4
+	EventID  pgtype.Int4
+}
+
+func (q *Queries) MailGetUnsend(ctx context.Context) ([]MailGetUnsendRow, error) {
 	rows, err := q.db.Query(ctx, mailGetUnsend)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Mail
+	var items []MailGetUnsendRow
 	for rows.Next() {
-		var i Mail
+		var i MailGetUnsendRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Content,
@@ -125,6 +196,10 @@ func (q *Queries) MailGetUnsend(ctx context.Context) ([]Mail, error) {
 			&i.Send,
 			&i.Error,
 			&i.Title,
+			&i.YearID,
+			&i.ID_2,
+			&i.MailID,
+			&i.EventID,
 		); err != nil {
 			return nil, err
 		}
@@ -150,7 +225,7 @@ func (q *Queries) MailSend(ctx context.Context, id int32) error {
 const mailUpdate = `-- name: MailUpdate :exec
 UPDATE mail
 SET title = $1, content = $2, send_time = $3
-WHERE id = $4 AND NOT send
+WHERE id = $4 AND NOT send AND error IS NULL
 `
 
 type MailUpdateParams struct {

@@ -8,13 +8,13 @@ import (
 
 type Mail struct {
 	ID       int
+	YearID   int
+	EventIDs []int
 	Title    string
 	Content  string
 	SendTime time.Time
 	Send     bool
 	Error    string
-	// Non db fields
-	EventIDs []int
 }
 
 func MailModel(mail sqlc.Mail) *Mail {
@@ -25,6 +25,8 @@ func MailModel(mail sqlc.Mail) *Mail {
 
 	return &Mail{
 		ID:       int(mail.ID),
+		YearID:   int(mail.YearID),
+		EventIDs: []int{},
 		Title:    mail.Title,
 		Content:  mail.Content,
 		SendTime: mail.SendTime.Time,

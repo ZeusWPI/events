@@ -10,12 +10,12 @@ import (
 )
 
 type CheckMail struct {
-	repoMailEvent repository.MailEvent
+	repoMail repository.Mail
 }
 
 func (m *Mail) NewCheckMail() *CheckMail {
 	return &CheckMail{
-		repoMailEvent: m.repoMailEvent,
+		repoMail: m.repoMail,
 	}
 }
 
@@ -35,7 +35,7 @@ func (c *CheckMail) Status(ctx context.Context, events []model.Event) []check.Ch
 		}
 	}
 
-	mails, err := c.repoMailEvent.GetByEvents(ctx, events)
+	mails, err := c.repoMail.GetByEvents(ctx, events)
 	if err != nil {
 		for k, v := range statusses {
 			v.Error = err
@@ -46,9 +46,11 @@ func (c *CheckMail) Status(ctx context.Context, events []model.Event) []check.Ch
 	}
 
 	for _, mail := range mails {
-		if status, ok := statusses[mail.EventID]; ok {
-			status.Status = check.Finished
-			statusses[mail.EventID] = status
+		for _, eventID := range mail.EventIDs {
+			if status, ok := statusses[eventID]; ok {
+				status.Status = check.Finished
+				statusses[eventID] = status
+			}
 		}
 	}
 

@@ -26,3 +26,13 @@ func (q *Queries) AnnouncementEventCreateBatch(ctx context.Context, arg Announce
 	_, err := q.db.Exec(ctx, announcementEventCreateBatch, arg.Column1, arg.Column2)
 	return err
 }
+
+const announcementEventDeleteByAnnouncement = `-- name: AnnouncementEventDeleteByAnnouncement :exec
+DELETE FROM announcement_event
+WHERE announcement_id = $1
+`
+
+func (q *Queries) AnnouncementEventDeleteByAnnouncement(ctx context.Context, announcementID int32) error {
+	_, err := q.db.Exec(ctx, announcementEventDeleteByAnnouncement, announcementID)
+	return err
+}

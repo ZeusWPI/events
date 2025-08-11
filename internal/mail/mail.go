@@ -8,16 +8,14 @@ import (
 )
 
 type Mail struct {
-	repoMail      repository.Mail
-	repoMailEvent repository.MailEvent
-	task          *task.Manager
+	repoMail repository.Mail
+	task     *task.Manager
 }
 
 func New(repo repository.Repository, task *task.Manager) (*Mail, error) {
 	mail := &Mail{
-		repoMail:      *repo.NewMail(),
-		repoMailEvent: *repo.NewMailEvent(),
-		task:          task,
+		repoMail: *repo.NewMail(),
+		task:     task,
 	}
 
 	if err := mail.startup(context.Background()); err != nil {

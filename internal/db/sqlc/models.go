@@ -62,6 +62,7 @@ type Mail struct {
 	Send     bool
 	Error    pgtype.Text
 	Title    string
+	YearID   int32
 }
 
 type MailEvent struct {
