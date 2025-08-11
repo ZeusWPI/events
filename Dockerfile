@@ -1,7 +1,7 @@
 # Build backend
 FROM golang:1.24.6-alpine3.22 AS build_backend
 
-RUN apk add upx alpine-sdk tzdata
+RUN apk add upx alpine-sdk
 
 WORKDIR /backend
 
@@ -37,6 +37,8 @@ RUN pnpm run build
 
 # End container
 FROM alpine:3.22
+
+RUN apk add --no-cache tzdata
 
 WORKDIR /
 
