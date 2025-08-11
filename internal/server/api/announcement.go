@@ -24,11 +24,26 @@ func NewAnnouncement(router fiber.Router, service *service.Service) *Announcemen
 }
 
 func (r *Announcement) createRoutes() {
-	r.router.Put("/", r.Create)
-	r.router.Post("/:id", r.Update)
+	r.router.Get("/year/:id", r.getByYear)
+	r.router.Put("/", r.create)
+	r.router.Post("/:id", r.update)
 }
 
-func (r *Announcement) Create(c *fiber.Ctx) error {
+func (r *Announcement) getByYear(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	announcements, err := r.announcement.GetByYear(c.Context(), id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(announcements)
+}
+
+func (r *Announcement) create(c *fiber.Ctx) error {
 	var announcement dto.Announcement
 	if err := c.BodyParser(&announcement); err != nil {
 		return fiber.ErrBadRequest
@@ -48,7 +63,7 @@ func (r *Announcement) Create(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusCreated)
 }
 
-func (r *Announcement) Update(c *fiber.Ctx) error {
+func (r *Announcement) update(c *fiber.Ctx) error {
 	var announcement dto.Announcement
 	if err := c.BodyParser(&announcement); err != nil {
 		return fiber.ErrBadRequest

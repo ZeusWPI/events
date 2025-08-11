@@ -1,3 +1,4 @@
+// Package mattermost communicates with mattermost
 package mattermost
 
 import (

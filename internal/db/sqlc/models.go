@@ -10,11 +10,17 @@ import (
 
 type Announcement struct {
 	ID       int32
-	EventID  int32
 	Content  string
 	SendTime pgtype.Timestamptz
 	Send     bool
 	Error    pgtype.Text
+	YearID   int32
+}
+
+type AnnouncementEvent struct {
+	ID             int32
+	EventID        int32
+	AnnouncementID int32
 }
 
 type Board struct {

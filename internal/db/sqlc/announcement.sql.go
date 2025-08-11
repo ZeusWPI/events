@@ -12,13 +12,13 @@ import (
 )
 
 const announcementCreate = `-- name: AnnouncementCreate :one
-INSERT INTO announcement (event_id, content, send_time, send, error)
+INSERT INTO announcement (year_id, content, send_time, send, error)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 `
 
 type AnnouncementCreateParams struct {
-	EventID  int32
+	YearID   int32
 	Content  string
 	SendTime pgtype.Timestamptz
 	Send     bool
@@ -27,7 +27,7 @@ type AnnouncementCreateParams struct {
 
 func (q *Queries) AnnouncementCreate(ctx context.Context, arg AnnouncementCreateParams) (int32, error) {
 	row := q.db.QueryRow(ctx, announcementCreate,
-		arg.EventID,
+		arg.YearID,
 		arg.Content,
 		arg.SendTime,
 		arg.Send,
@@ -55,28 +55,44 @@ func (q *Queries) AnnouncementError(ctx context.Context, arg AnnouncementErrorPa
 }
 
 const announcementGetByEvents = `-- name: AnnouncementGetByEvents :many
-SELECT id, event_id, content, send_time, send, error 
-FROM announcement
-WHERE event_id = ANY($1::int[])
+SELECT a.id, content, send_time, send, error, year_id, a_e.id, event_id, announcement_id 
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
+WHERE a_e.event_id = ANY($1::int[])
 ORDER BY send_time
 `
 
-func (q *Queries) AnnouncementGetByEvents(ctx context.Context, dollar_1 []int32) ([]Announcement, error) {
+type AnnouncementGetByEventsRow struct {
+	ID             int32
+	Content        string
+	SendTime       pgtype.Timestamptz
+	Send           bool
+	Error          pgtype.Text
+	YearID         int32
+	ID_2           pgtype.Int4
+	EventID        pgtype.Int4
+	AnnouncementID pgtype.Int4
+}
+
+func (q *Queries) AnnouncementGetByEvents(ctx context.Context, dollar_1 []int32) ([]AnnouncementGetByEventsRow, error) {
 	rows, err := q.db.Query(ctx, announcementGetByEvents, dollar_1)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Announcement
+	var items []AnnouncementGetByEventsRow
 	for rows.Next() {
-		var i Announcement
+		var i AnnouncementGetByEventsRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.EventID,
 			&i.Content,
 			&i.SendTime,
 			&i.Send,
 			&i.Error,
+			&i.YearID,
+			&i.ID_2,
+			&i.EventID,
+			&i.AnnouncementID,
 		); err != nil {
 			return nil, err
 		}
@@ -89,27 +105,43 @@ func (q *Queries) AnnouncementGetByEvents(ctx context.Context, dollar_1 []int32)
 }
 
 const announcementGetUnsend = `-- name: AnnouncementGetUnsend :many
-SELECT id, event_id, content, send_time, send, error
-FROM announcement
+SELECT a.id, content, send_time, send, error, year_id, a_e.id, event_id, announcement_id
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 WHERE NOT send AND error IS NULL
 `
 
-func (q *Queries) AnnouncementGetUnsend(ctx context.Context) ([]Announcement, error) {
+type AnnouncementGetUnsendRow struct {
+	ID             int32
+	Content        string
+	SendTime       pgtype.Timestamptz
+	Send           bool
+	Error          pgtype.Text
+	YearID         int32
+	ID_2           pgtype.Int4
+	EventID        pgtype.Int4
+	AnnouncementID pgtype.Int4
+}
+
+func (q *Queries) AnnouncementGetUnsend(ctx context.Context) ([]AnnouncementGetUnsendRow, error) {
 	rows, err := q.db.Query(ctx, announcementGetUnsend)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Announcement
+	var items []AnnouncementGetUnsendRow
 	for rows.Next() {
-		var i Announcement
+		var i AnnouncementGetUnsendRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.EventID,
 			&i.Content,
 			&i.SendTime,
 			&i.Send,
 			&i.Error,
+			&i.YearID,
+			&i.ID_2,
+			&i.EventID,
+			&i.AnnouncementID,
 		); err != nil {
 			return nil, err
 		}
@@ -147,4 +179,54 @@ type AnnouncementUpdateParams struct {
 func (q *Queries) AnnouncementUpdate(ctx context.Context, arg AnnouncementUpdateParams) error {
 	_, err := q.db.Exec(ctx, announcementUpdate, arg.Content, arg.SendTime, arg.ID)
 	return err
+}
+
+const announcmentGetByYear = `-- name: AnnouncmentGetByYear :many
+SELECT a.id, content, send_time, send, error, year_id, a_e.id, event_id, announcement_id
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
+WHERE a.year_id = $1
+ORDER BY send_time
+`
+
+type AnnouncmentGetByYearRow struct {
+	ID             int32
+	Content        string
+	SendTime       pgtype.Timestamptz
+	Send           bool
+	Error          pgtype.Text
+	YearID         int32
+	ID_2           pgtype.Int4
+	EventID        pgtype.Int4
+	AnnouncementID pgtype.Int4
+}
+
+func (q *Queries) AnnouncmentGetByYear(ctx context.Context, yearID int32) ([]AnnouncmentGetByYearRow, error) {
+	rows, err := q.db.Query(ctx, announcmentGetByYear, yearID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AnnouncmentGetByYearRow
+	for rows.Next() {
+		var i AnnouncmentGetByYearRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Content,
+			&i.SendTime,
+			&i.Send,
+			&i.Error,
+			&i.YearID,
+			&i.ID_2,
+			&i.EventID,
+			&i.AnnouncementID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

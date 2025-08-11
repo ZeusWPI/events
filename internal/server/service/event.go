@@ -64,8 +64,10 @@ func (e *Event) GetByYear(ctx context.Context, yearID int) ([]dto.Event, error) 
 	}
 
 	for _, announcement := range announcements {
-		if idx := slices.IndexFunc(events, func(e dto.Event) bool { return e.ID == announcement.EventID }); idx != -1 {
-			events[idx].Announcement = dto.AnnouncementDTO(*announcement)
+		for _, eventID := range announcement.EventIDs {
+			if idx := slices.IndexFunc(events, func(e dto.Event) bool { return e.ID == eventID }); idx != -1 {
+				events[idx].Announcements = append(events[idx].Announcements, dto.AnnouncementDTO(announcement))
+			}
 		}
 	}
 

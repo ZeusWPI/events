@@ -1,3 +1,4 @@
+// Package model contains all internal representations of various database related objects
 package model
 
 import (

@@ -12,18 +12,18 @@ import (
 const eventURL = "https://zeus.gent/events"
 
 type Event struct {
-	ID           int          `json:"id"`
-	URL          string       `json:"url"`
-	Name         string       `json:"name"`
-	Description  string       `json:"description"`
-	StartTime    time.Time    `json:"start_time"`
-	EndTime      *time.Time   `json:"end_time,omitempty"` // Pointer to support omitempty
-	Location     string       `json:"location"`
-	Year         Year         `json:"year"`
-	Organizers   []Organizer  `json:"organizers"`
-	Checks       []Check      `json:"checks"`
-	Announcement Announcement `json:"announcement,omitzero"`
-	Posters      []Poster     `json:"posters"`
+	ID            int            `json:"id"`
+	URL           string         `json:"url"`
+	Name          string         `json:"name"`
+	Description   string         `json:"description"`
+	StartTime     time.Time      `json:"start_time"`
+	EndTime       *time.Time     `json:"end_time,omitempty"` // Pointer to support omitempty
+	Location      string         `json:"location"`
+	Year          Year           `json:"year"`
+	Organizers    []Organizer    `json:"organizers"`
+	Checks        []Check        `json:"checks"`
+	Announcements []Announcement `json:"announcements,omitzero"`
+	Posters       []Poster       `json:"posters"`
 }
 
 func EventDTO(event *model.Event) Event {

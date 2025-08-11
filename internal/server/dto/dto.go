@@ -1,3 +1,4 @@
+// Package dto contains all data transferable objects
 package dto
 
 import (

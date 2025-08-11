@@ -6,6 +6,7 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
+	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -25,6 +26,16 @@ func (s *Service) NewAnnouncement() *Announcement {
 	}
 }
 
+func (a *Announcement) GetByYear(ctx context.Context, yearID int) ([]dto.Announcement, error) {
+	announcements, err := a.announcement.GetByYear(ctx, yearID)
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+
+	return utils.SliceMap(announcements, dto.AnnouncementDTO), nil
+}
+
 func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announcement) (dto.Announcement, error) {
 	announcement := announcementSave.ToModel()
 
@@ -32,24 +43,26 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 		return dto.Announcement{}, fiber.ErrBadRequest
 	}
 
-	event, err := a.event.GetByID(ctx, announcement.EventID)
+	events, err := a.event.GetByIDs(ctx, announcement.EventIDs)
 	if err != nil {
 		return dto.Announcement{}, fiber.ErrInternalServerError
 	}
-	if event == nil {
+	if len(events) != len(announcement.EventIDs) {
 		return dto.Announcement{}, fiber.ErrBadRequest
 	}
 
-	if announcement.SendTime.After(event.StartTime) {
-		return dto.Announcement{}, fiber.ErrBadRequest
+	for _, event := range events {
+		if announcement.SendTime.After(event.StartTime) {
+			return dto.Announcement{}, fiber.ErrBadRequest
+		}
 	}
 
 	if err = a.service.withRollback(ctx, func(ctx context.Context) error {
 		update := false
 		if announcement.ID == 0 {
-			err = a.announcement.Create(ctx, &announcement)
+			err = a.announcement.Create(ctx, announcement)
 		} else {
-			err = a.announcement.Update(ctx, announcement)
+			err = a.announcement.Update(ctx, *announcement)
 			update = true
 		}
 
@@ -57,7 +70,7 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 			return err
 		}
 
-		if err = a.service.mattermost.ScheduleAnnouncement(ctx, announcement, update); err != nil {
+		if err = a.service.mattermost.ScheduleAnnouncement(ctx, *announcement, update); err != nil {
 			return err
 		}
 

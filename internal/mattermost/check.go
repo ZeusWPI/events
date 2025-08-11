@@ -47,9 +47,11 @@ func (c *CheckAnnouncement) Status(ctx context.Context, events []model.Event) []
 	}
 
 	for _, announcement := range announcements {
-		if status, ok := statusses[announcement.EventID]; ok {
-			status.Status = check.Finished
-			statusses[announcement.EventID] = status
+		for _, eventID := range announcement.EventIDs {
+			if status, ok := statusses[eventID]; ok {
+				status.Status = check.Finished
+				statusses[eventID] = status
+			}
 		}
 	}
 

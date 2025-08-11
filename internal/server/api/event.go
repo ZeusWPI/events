@@ -1,3 +1,4 @@
+// Package api contains all api routes
 package api
 
 import (

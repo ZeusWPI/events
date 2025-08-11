@@ -8,7 +8,8 @@ import (
 
 type Announcement struct {
 	ID       int
-	EventID  int
+	YearID   int
+	EventIDs []int
 	Content  string
 	SendTime time.Time
 	Send     bool
@@ -23,7 +24,7 @@ func AnnouncementModel(announcement sqlc.Announcement) *Announcement {
 
 	return &Announcement{
 		ID:       int(announcement.ID),
-		EventID:  int(announcement.EventID),
+		YearID:   int(announcement.YearID),
 		Content:  announcement.Content,
 		SendTime: announcement.SendTime.Time,
 		Send:     announcement.Send,

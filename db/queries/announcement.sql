@@ -1,16 +1,25 @@
+-- name: AnnouncmentGetByYear :many
+SELECT *
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
+WHERE a.year_id = $1
+ORDER BY send_time;
+
 -- name: AnnouncementGetByEvents :many
 SELECT * 
-FROM announcement
-WHERE event_id = ANY($1::int[])
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
+WHERE a_e.event_id = ANY($1::int[])
 ORDER BY send_time;
 
 -- name: AnnouncementGetUnsend :many
 SELECT *
-FROM announcement
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 WHERE NOT send AND error IS NULL;
 
 -- name: AnnouncementCreate :one 
-INSERT INTO announcement (event_id, content, send_time, send, error)
+INSERT INTO announcement (year_id, content, send_time, send, error)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
