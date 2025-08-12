@@ -12,7 +12,7 @@ export function OrganizerIcon({ user, className }: Props) {
 
   return (
     <Avatar className={cn("aspect-square h-8 w-8 rounded-lg", className)}>
-      <AvatarImage src={`https://zpi.zeus.gent/image/${user?.zauthId}`} alt={initials} />
+      <AvatarImage src={`https://zpi.zeus.gent/image/${user.zauthId}?size=64&placeholder=true`} alt={initials} />
       <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
     </Avatar>
   )
