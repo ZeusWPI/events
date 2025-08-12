@@ -45,7 +45,6 @@ func (e *Event) GetByYear(ctx context.Context, yearID int) ([]dto.Event, error) 
 	events := utils.SliceMap(eventsDB, dto.EventDTO)
 
 	// Add checks
-
 	checks, err := e.service.check.Status(ctx, yearID)
 	if err != nil {
 		zap.S().Error(err)

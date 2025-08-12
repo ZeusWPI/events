@@ -14,6 +14,7 @@ import (
 type Mail struct {
 	service Service
 
+	board  repository.Board
 	events repository.Event
 	mail   repository.Mail
 }
@@ -21,6 +22,7 @@ type Mail struct {
 func (s *Service) NewMail() *Mail {
 	return &Mail{
 		service: *s,
+		board:   *s.repo.NewBoard(),
 		events:  *s.repo.NewEvent(),
 		mail:    *s.repo.NewMail(),
 	}
@@ -36,7 +38,7 @@ func (m *Mail) GetByYear(ctx context.Context, yearID int) ([]dto.Mail, error) {
 	return utils.SliceMap(mails, dto.MailDTO), nil
 }
 
-func (m *Mail) Save(ctx context.Context, mailSave dto.Mail) (dto.Mail, error) {
+func (m *Mail) Save(ctx context.Context, mailSave dto.Mail, memberID int) (dto.Mail, error) {
 	mail := mailSave.ToModel()
 
 	if mail.SendTime.Before(time.Now()) {
@@ -45,6 +47,7 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail) (dto.Mail, error) {
 
 	events, err := m.events.GetByIDs(ctx, mail.EventIDs)
 	if err != nil {
+		zap.S().Error(err)
 		return dto.Mail{}, fiber.ErrInternalServerError
 	}
 	if len(events) != len(mail.EventIDs) {
@@ -56,6 +59,17 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail) (dto.Mail, error) {
 			return dto.Mail{}, fiber.ErrBadRequest
 		}
 	}
+
+	board, err := m.board.GetByMemberYear(ctx, memberID, mail.YearID)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Mail{}, fiber.ErrInternalServerError
+	}
+	if board == nil {
+		return dto.Mail{}, fiber.ErrBadRequest
+	}
+
+	mail.AuthorID = board.ID
 
 	if mail.ID != 0 {
 		oldMail, err := m.mail.GetByID(ctx, mail.ID)
