@@ -117,6 +117,32 @@ func (e *Event) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Ev
 	return events, nil
 }
 
+func (e *Event) GetNextWithYear(ctx context.Context) (*model.Event, error) {
+	event, err := e.repo.queries(ctx).EventGetNextWithYear(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get next event with year %w", err)
+	}
+
+	return &model.Event{
+		ID:          int(event.ID),
+		FileName:    event.FileName,
+		Name:        event.Name,
+		Description: event.Description.String,
+		StartTime:   event.StartTime.Time,
+		EndTime:     event.EndTime.Time,
+		YearID:      int(event.YearID),
+		Location:    event.Location.String,
+		Year: model.Year{
+			ID:    int(event.ID_2),
+			Start: int(event.YearStart),
+			End:   int(event.YearEnd),
+		},
+	}, nil
+}
+
 func (e *Event) Create(ctx context.Context, event *model.Event) error {
 	id, err := e.repo.queries(ctx).EventCreate(ctx, sqlc.EventCreateParams{
 		FileName:    event.FileName,

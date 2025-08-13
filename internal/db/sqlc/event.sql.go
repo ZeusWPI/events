@@ -315,6 +315,48 @@ func (q *Queries) EventGetByYearPopulated(ctx context.Context, yearID int32) ([]
 	return items, nil
 }
 
+const eventGetNextWithYear = `-- name: EventGetNextWithYear :one
+SELECT e.id, file_name, name, description, start_time, end_time, location, year_id, y.id, year_start, year_end
+FROM event e
+INNER JOIN year y ON e.year_id = y.id
+WHERE e.start_time > NOW()
+ORDER BY e.start_time
+LIMIT 1
+`
+
+type EventGetNextWithYearRow struct {
+	ID          int32
+	FileName    string
+	Name        string
+	Description pgtype.Text
+	StartTime   pgtype.Timestamptz
+	EndTime     pgtype.Timestamptz
+	Location    pgtype.Text
+	YearID      int32
+	ID_2        int32
+	YearStart   int32
+	YearEnd     int32
+}
+
+func (q *Queries) EventGetNextWithYear(ctx context.Context) (EventGetNextWithYearRow, error) {
+	row := q.db.QueryRow(ctx, eventGetNextWithYear)
+	var i EventGetNextWithYearRow
+	err := row.Scan(
+		&i.ID,
+		&i.FileName,
+		&i.Name,
+		&i.Description,
+		&i.StartTime,
+		&i.EndTime,
+		&i.Location,
+		&i.YearID,
+		&i.ID_2,
+		&i.YearStart,
+		&i.YearEnd,
+	)
+	return i, err
+}
+
 const eventUpdate = `-- name: EventUpdate :exec
 UPDATE event 
 SET name = $1, description = $2, start_time = $3, end_time = $4, year_id = $5, location = $6

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/ZeusWPI/events/internal/server/api"
+	v1 "github.com/ZeusWPI/events/internal/server/api/v1"
 	"github.com/ZeusWPI/events/internal/server/middleware"
 	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/ZeusWPI/events/internal/server/webhook"
@@ -55,9 +56,14 @@ func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 	})
 
 	// Initialize all routes
-
-	// Api
 	apiRouter := app.Group("/api")
+
+	// Public api
+	v1Router := apiRouter.Group("/v1")
+
+	v1.NewEvent(v1Router, service)
+
+	// Internal api
 	api.NewAuth(apiRouter, service)
 
 	protectedRouter := apiRouter.Use(middleware.ProtectedRoute)
@@ -72,8 +78,8 @@ func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 	api.NewPoster(protectedRouter, service)
 
 	// Webhook
-
 	webhookRouter := app.Group("/webhook")
+
 	webhook.NewGithub(webhookRouter, service)
 	webhook.NewGitmate(webhookRouter, service)
 
