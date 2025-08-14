@@ -1,0 +1,151 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Events API V1 Specifications",
+        "title": "Events API V1",
+        "contact": {
+            "name": "Zeus WPI",
+            "url": "https://zeus.gent/contact",
+            "email": "bestuur@zeus.ugent.be"
+        },
+        "license": {
+            "name": "GNU General Public License v3.0",
+            "url": "https://github.com/ZeusWPI/events/blob/main/LICENSE"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/event": {
+            "get": {
+                "description": "Get all planned events for the current academic year.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "event"
+                ],
+                "summary": "Get this years events",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.event"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/event/next": {
+            "get": {
+                "description": "Get the next event. Returns a 404 if there's no next event planned.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "event"
+                ],
+                "summary": "Get next event",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.event"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/event/{id}": {
+            "get": {
+                "description": "Get the poster for an event. Returns 400 if the event isn't found and 404 if the event doesn't have the requested poster type",
+                "produces": [
+                    "image/png"
+                ],
+                "tags": [
+                    "event"
+                ],
+                "summary": "Get event poster",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "event id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "set to true if the scc poster version is desired",
+                        "name": "scc",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "v1.event": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "Can be empty",
+                    "type": "string"
+                },
+                "end_time": {
+                    "description": "Might not be present if not applicable",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "location": {
+                    "description": "Can be empty",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "url": {
+                    "description": "URL to the website page",
+                    "type": "string"
+                },
+                "year_end": {
+                    "type": "integer"
+                },
+                "year_start": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

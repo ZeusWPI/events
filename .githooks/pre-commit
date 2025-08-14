@@ -3,27 +3,36 @@
 echo "Backend linting"
 golangci-lint run
 if [ $? -ne 0 ]; then
-    echo "golangci-lint failed. Please fix the errors before committing."
-    exit 1
+  echo "golangci-lint failed. Please fix the errors before committing."
+  exit 1
 fi
 
 echo "Backend testing"
 go test ./...
 if [ $? -ne 0 ]; then
-    echo "backend tests failed. Please fix the tests before committing."
-    exit 1
+  echo "backend tests failed. Please fix the tests before committing."
+  exit 1
+fi
+
+echo "Swagger docs generation && formatting"
+make swagger
+
+if ! git diff --exit-code; then
+  echo "Swagger docs were not up to date."
+  echo "Add the changes to the commit."
+  exit 1
 fi
 
 echo "Frontend linting"
 (cd ui && pnpm --silent run precommit:lint)
 if [ $? -ne 0 ]; then
-    echo "Frontend linting failed. Please fix the errors before committing."
-    exit 1
+  echo "Frontend linting failed. Please fix the errors before committing."
+  exit 1
 fi
 
 echo "Frontend typecheck"
 (cd ui && pnpm --silent run precommit:typecheck)
 if [ $? -ne 0 ]; then
-    echo "Frontend type checking failed. Please fix the errors before committing."
-    exit 1
+  echo "Frontend type checking failed. Please fix the errors before committing."
+  exit 1
 fi

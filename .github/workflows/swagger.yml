@@ -1,0 +1,40 @@
+name: Swagger Docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  swagger:
+    name: swagger
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.6
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate Swagger docs
+        run: |
+          swag fmt -g ./internal/server/api/v1/v1.go
+          swag init -q --generatedTime -g ./internal/server/api/v1/v1.go -o ./docs/v1/
+
+      - name: Check for changes
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::Swagger docs are not up to date. Run the following locally:"
+            echo "  make swagger"
+            exit 1
+          fi

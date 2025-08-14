@@ -1,0 +1,102 @@
+basePath: /api/v1
+definitions:
+  v1.event:
+    properties:
+      description:
+        description: Can be empty
+        type: string
+      end_time:
+        description: Might not be present if not applicable
+        type: string
+      id:
+        type: integer
+      location:
+        description: Can be empty
+        type: string
+      name:
+        type: string
+      start_time:
+        type: string
+      url:
+        description: URL to the website page
+        type: string
+      year_end:
+        type: integer
+      year_start:
+        type: integer
+    type: object
+info:
+  contact:
+    email: bestuur@zeus.ugent.be
+    name: Zeus WPI
+    url: https://zeus.gent/contact
+  description: Events API V1 Specifications
+  license:
+    name: GNU General Public License v3.0
+    url: https://github.com/ZeusWPI/events/blob/main/LICENSE
+  title: Events API V1
+  version: "1.0"
+paths:
+  /event:
+    get:
+      description: Get all planned events for the current academic year.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.event'
+            type: array
+        "500":
+          description: Internal Server Error
+      summary: Get this years events
+      tags:
+      - event
+  /event/{id}:
+    get:
+      description: Get the poster for an event. Returns 400 if the event isn't found
+        and 404 if the event doesn't have the requested poster type
+      parameters:
+      - description: event id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: set to true if the scc poster version is desired
+        in: query
+        name: scc
+        type: boolean
+      produces:
+      - image/png
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get event poster
+      tags:
+      - event
+  /event/next:
+    get:
+      description: Get the next event. Returns a 404 if there's no next event planned.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.event'
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get next event
+      tags:
+      - event
+swagger: "2.0"

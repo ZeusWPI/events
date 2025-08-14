@@ -1,4 +1,3 @@
-// Package v1 contains the first version of the public API
 package v1
 
 import (
@@ -19,29 +18,29 @@ type Event struct {
 	poster service.Poster
 }
 
-type eventAPI struct {
+type event struct {
 	ID          int        `json:"id"`
-	URL         string     `json:"url"`
+	URL         string     `json:"url"` // URL to the website page
 	Name        string     `json:"name"`
-	Description string     `json:"description"`
+	Description string     `json:"description"` // Can be empty
 	StartTime   time.Time  `json:"start_time"`
-	EndTime     *time.Time `json:"end_time,omitempty"` // Pointer to support omitempty
-	Location    string     `json:"location"`
+	EndTime     *time.Time `json:"end_time,omitempty"` // Might not be present if not applicable
+	Location    string     `json:"location"`           // Can be empty
 	YearStart   int        `json:"year_start"`
 	YearEnd     int        `json:"year_end"`
 }
 
-func toEventAPI(event dto.Event) eventAPI {
-	return eventAPI{
-		ID:          event.ID,
-		URL:         event.URL,
-		Name:        event.Name,
-		Description: event.Description,
-		StartTime:   event.StartTime,
-		EndTime:     event.EndTime,
-		Location:    event.Location,
-		YearStart:   event.Year.Start,
-		YearEnd:     event.Year.End,
+func toEvent(e dto.Event) event {
+	return event{
+		ID:          e.ID,
+		URL:         e.URL,
+		Name:        e.Name,
+		Description: e.Description,
+		StartTime:   e.StartTime,
+		EndTime:     e.EndTime,
+		Location:    e.Location,
+		YearStart:   e.Year.Start,
+		YearEnd:     e.Year.End,
 	}
 }
 
@@ -63,24 +62,56 @@ func (r *Event) createRoutes() {
 	r.router.Get("/", r.get)
 }
 
+// get returns all events for the current academic year
+//
+//	@Summary		Get this years events
+//	@Description	Get all planned events for the current academic year.
+//	@Tags			event
+//	@Produce		json
+//	@Success		200	{array}	event
+//	@Failure		500
+//	@Router			/event [get]
 func (r *Event) get(c *fiber.Ctx) error {
 	events, err := r.event.GetByLastYear(c.Context())
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(utils.SliceMap(events, toEventAPI))
+	return c.JSON(utils.SliceMap(events, toEvent))
 }
 
+// getNext returns the next event
+//
+//	@Summary		Get next event
+//	@Description	Get the next event. Returns a 404 if there's no next event planned.
+//	@Tags			event
+//	@Produce		json
+//	@Success		200	{object}	event
+//	@Failure		404
+//	@Failure		500
+//	@Router			/event/next [get]
 func (r *Event) getNext(c *fiber.Ctx) error {
 	event, err := r.event.GetNext(c.Context())
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(toEventAPI(event))
+	return c.JSON(toEvent(event))
 }
 
+// getPoster returns the poster for an event
+//
+//	@Summary		Get event poster
+//	@Description	Get the poster for an event. Returns 400 if the event isn't found and 404 if the event doesn't have the requested poster type
+//	@Tags			event
+//	@Produce		png
+//	@Success		200
+//	@Failure		400
+//	@Failure		404
+//	@Failure		500
+//	@Param			id	path	int		true	"event id"
+//	@Param			scc	query	boolean	false	"set to true if the scc poster version is desired"
+//	@Router			/event/{id} [get]
 func (r *Event) getPoster(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {

@@ -11,8 +11,13 @@ run:
 	@go run cmd/api/main.go
 
 watch:
+	@make swagger
 	@docker compose up backend frontend
 	@docker compose down
+
+swagger:
+	@swag fmt -g ./internal/server/api/v1/v1.go
+	@swag init -q -g ./internal/server/api/v1/v1.go -o ./docs/v1/
 
 seed:
 	@docker compose up --abort-on-container-exit --exit-code-from seed seed
@@ -46,4 +51,4 @@ test:
 dead:
 	go tool deadcode ./...
 
-.PHONY: all setup build run watch seed goose migrate create-migration query test dead
+.PHONY: all setup build run watch swagger seed goose migrate create-migration query test dead

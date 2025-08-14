@@ -18,6 +18,8 @@ services:
       MINIO_ROOT_PASSWORD: miniominio
     volumes:
       - minio_data:/data
+    ports:
+      - "9000:9000"
 
   createbuckets:
     image: minio/mc

@@ -6,6 +6,7 @@ require (
 	github.com/go-co-op/gocron/v2 v2.16.3
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gofiber/contrib/fiberzap v1.0.2
+	github.com/gofiber/contrib/swagger v1.3.0
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/gofiber/storage/minio v0.4.0
 	github.com/gofiber/storage/postgres/v3 v3.3.0
@@ -16,6 +17,7 @@ require (
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/shareed2k/goth_fiber v0.3.2
 	github.com/spf13/viper v1.20.1
+	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.27.0
 	golang.org/x/oauth2 v0.30.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -26,8 +28,10 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/ClickHouse/ch-go v0.65.1 // indirect
 	github.com/ClickHouse/clickhouse-go/v2 v2.34.0 // indirect
+	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/coder/websocket v1.8.13 // indirect
 	github.com/cubicdaiya/gonp v1.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -41,6 +45,16 @@ require (
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/go-faster/errors v0.7.1 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
+	github.com/go-openapi/analysis v0.21.4 // indirect
+	github.com/go-openapi/errors v0.20.4 // indirect
+	github.com/go-openapi/jsonpointer v0.20.0 // indirect
+	github.com/go-openapi/jsonreference v0.20.2 // indirect
+	github.com/go-openapi/loads v0.21.2 // indirect
+	github.com/go-openapi/runtime v0.26.2 // indirect
+	github.com/go-openapi/spec v0.20.11 // indirect
+	github.com/go-openapi/strfmt v0.21.8 // indirect
+	github.com/go-openapi/swag v0.22.4 // indirect
+	github.com/go-openapi/validate v0.22.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-sql-driver/mysql v1.9.2 // indirect
@@ -59,9 +73,11 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jonboulle/clockwork v0.5.0 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
@@ -71,7 +87,9 @@ require (
 	github.com/minio/crc64nvme v1.1.0 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/minio-go/v7 v7.0.95 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
+	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/paulmach/orb v0.11.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pganalyze/pg_query_go/v6 v6.1.0 // indirect
@@ -110,6 +128,7 @@ require (
 	github.com/ydb-platform/ydb-go-genproto v0.0.0-20241112172322-ea1f63298f77 // indirect
 	github.com/ydb-platform/ydb-go-sdk/v3 v3.108.1 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
+	go.mongodb.org/mongo-driver v1.13.1 // indirect
 	go.opentelemetry.io/otel v1.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.35.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
@@ -128,6 +147,7 @@ require (
 	google.golang.org/grpc v1.71.1 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	howett.net/plist v1.0.1 // indirect
 	modernc.org/libc v1.65.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect

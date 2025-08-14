@@ -38,12 +38,13 @@ RUN pnpm run build
 # End container
 FROM alpine:3.22
 
-RUN apk add --no-cache tzdata
-
 WORKDIR /
+
+RUN apk add --no-cache tzdata
 
 COPY --from=build_backend /backend/main .
 COPY --from=build_backend /backend/migrate .
+COPY --from=build_backend /backend/docs ./docs
 COPY --from=build_frontend /frontend/dist ./public
 
 RUN chmod +x ./main ./migrate

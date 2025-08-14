@@ -11,6 +11,7 @@ import (
 	"github.com/ZeusWPI/events/internal/server/webhook"
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/gofiber/contrib/fiberzap"
+	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -54,6 +55,13 @@ func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 		Storage:        postgres.New(postgres.Config{DB: pool}),
 		CookieSecure:   env != "development",
 	})
+
+	// Swagger
+	app.Use(swagger.New(swagger.Config{
+		BasePath: "/api/v1",
+		FilePath: "./docs/v1/swagger.json",
+		CacheAge: 0,
+	}))
 
 	// Initialize all routes
 	apiRouter := app.Group("/api")

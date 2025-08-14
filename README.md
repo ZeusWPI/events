@@ -57,6 +57,11 @@ More information can be found in the [visueel repository](https://git.zeus.gent/
 You can generate a PowerPoint covering one or more events.
 If available it includes event posters and generates QR codes to the event's webpage.
 
+### Public API
+
+There's a public API to get some basic events data.
+Click [here](https://events.zeus.gent/api/v1/docs) to go to the swagger.
+
 ---
 
 ## Development
