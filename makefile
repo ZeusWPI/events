@@ -2,6 +2,7 @@ all: build
 
 setup:
 	@go get tool
+	@go install github.com/swaggo/swag/cmd/swag@latest
 	@cd ui && pnpm install
 
 build:
@@ -11,7 +12,6 @@ run:
 	@go run cmd/api/main.go
 
 watch:
-	@make swagger
 	@docker compose up backend frontend
 	@docker compose down
 

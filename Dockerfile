@@ -1,5 +1,5 @@
 # Build backend
-FROM golang:1.24.6-alpine3.22 AS build_backend
+FROM golang:1.25.0-alpine3.22 AS build_backend
 
 RUN apk add upx alpine-sdk
 
