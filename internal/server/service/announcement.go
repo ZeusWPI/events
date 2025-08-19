@@ -15,6 +15,7 @@ type Announcement struct {
 	service Service
 
 	announcement repository.Announcement
+	board        repository.Board
 	event        repository.Event
 }
 
@@ -22,6 +23,7 @@ func (s *Service) NewAnnouncement() *Announcement {
 	return &Announcement{
 		service:      *s,
 		announcement: *s.repo.NewAnnouncement(),
+		board:        *s.repo.NewBoard(),
 		event:        *s.repo.NewEvent(),
 	}
 }
@@ -36,7 +38,7 @@ func (a *Announcement) GetByYear(ctx context.Context, yearID int) ([]dto.Announc
 	return utils.SliceMap(announcements, dto.AnnouncementDTO), nil
 }
 
-func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announcement) (dto.Announcement, error) {
+func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announcement, memberID int) (dto.Announcement, error) {
 	announcement := announcementSave.ToModel()
 
 	if announcement.SendTime.Before(time.Now()) {
@@ -45,6 +47,7 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 
 	events, err := a.event.GetByIDs(ctx, announcement.EventIDs)
 	if err != nil {
+		zap.S().Error(err)
 		return dto.Announcement{}, fiber.ErrInternalServerError
 	}
 	if len(events) != len(announcement.EventIDs) {
@@ -56,6 +59,17 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 			return dto.Announcement{}, fiber.ErrBadRequest
 		}
 	}
+
+	board, err := a.board.GetByMemberYear(ctx, memberID, announcement.YearID)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Announcement{}, fiber.ErrInternalServerError
+	}
+	if board == nil {
+		return dto.Announcement{}, fiber.ErrBadRequest
+	}
+
+	announcement.AuthorID = board.ID
 
 	if announcement.ID != 0 {
 		oldAnnouncement, err := a.announcement.GetByID(ctx, announcement.ID)

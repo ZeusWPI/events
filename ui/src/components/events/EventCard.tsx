@@ -7,18 +7,10 @@ import { ClipboardList, UserRound } from "lucide-react";
 import { ComponentProps } from "react";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { OrganizerGroup } from "../molecules/OrganizerGroup";
 
 interface Props extends ComponentProps<'div'> {
   event: Event;
-}
-
-function organizersColor(amount: number) {
-  switch (amount) {
-    case 0:
-      return "text-red-500";
-    default:
-      return "text-secondary-foreground";
-  }
 }
 
 function checksColor(finishedChecks: Check[], checks: Check[]) {
@@ -52,10 +44,7 @@ export function EventCard({ event, ...props }: Props) {
         <div className="flex items-center justify-between w-full">
           <Tooltip>
             <TooltipTrigger>
-              <div className="flex space-x-2">
-                <UserRound className="size-6" />
-                <span className={organizersColor(event.organizers.length)}>{event.organizers.length}</span>
-              </div>
+              <OrganizerGroup organizers={event.organizers} />
             </TooltipTrigger>
             {event.organizers.length > 0 && (
               <TooltipContent>

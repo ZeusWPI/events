@@ -29,6 +29,11 @@ func BoardModelPopulated(board sqlc.BoardGetAllPopulatedRow) *Board {
 		username = board.Username.String
 	}
 
+	zauthID := 0
+	if board.ZauthID.Valid {
+		zauthID = int(board.ZauthID.Int32)
+	}
+
 	return &Board{
 		ID:       int(board.ID),
 		MemberID: int(board.ID_2),
@@ -36,6 +41,7 @@ func BoardModelPopulated(board sqlc.BoardGetAllPopulatedRow) *Board {
 			ID:       int(board.ID_2),
 			Name:     board.Name,
 			Username: username,
+			ZauthID:  zauthID,
 		},
 		YearID: int(board.ID_3),
 		Year: Year{
