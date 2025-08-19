@@ -69,6 +69,10 @@ Click [here](https://events.zeus.gent/api/v1/docs) to go to the swagger.
 In development, no roles or permissions are required to access the application.  
 However, only board members will be visible as organizers.
 
+Some modules require external API keys. The will fail to launch without them and by result the application will fail to start
+You can find each API key in the [example env file](./.env.example).
+If you don't have an API key you should remove the startup of the relevant module inside the [main file](./cmd/api/main.go).
+
 ### Quickstart
 
 1. Install all tools listed in the [asdf tool versions file](./.tool-versions).  
@@ -159,24 +163,6 @@ docker compose up backend frontend db
 
 **Adding a migration**
 
-1) Run
-
-- Postgres
-- Minio (or any S3 equivalent e.g. Garage)
-
-> !NOTE
-> Make sure to set the environment to `production` and populate the `production.yml` file.
-
-## Useful flows
-
-### Add a new typed query (sqlc)
-
-1) Add your new query to db/queries/{target}.sql
-2) Run `make query`
-3) Enjoy your statically typed query
-
-### Adding a migration
-
 1) Run `make create-migration`
 
 > [!NOTE]
@@ -197,9 +183,13 @@ docker compose up backend frontend db
 
 **Check for dead code**
 
-```bash
-make dead
-```
+1. Run `make dead`
+
+**Generate swagger docs**
+
+This will also format the swagger comments
+
+1. Run `make swagger`
 
 ### Running without docker
 
@@ -232,9 +222,10 @@ It is recommended to run the application using Docker.
 **Requirements**
 
 - Postgres
+- Minio
 
-> !NOTE
-> Set the environment to `production` and populate the [production config file](./config/production.yml).
+> [!NOTE]
+> Set the environment to `production` and populate the [production config file](./config/production.yml)
 
 This repository automatically builds and publishes a docker container.
-The container will before startup try to run the migrations.
+The container will run the migrations before starting the webserver.
