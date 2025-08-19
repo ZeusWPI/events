@@ -8,12 +8,12 @@ import { Year } from "../types/year"
 const ENDPOINT = "poster"
 const STALE_30_MIN = 30 * 60 * 1000
 
-export function usePosterGetFile(poster: Pick<Poster, 'id' | 'eventId'>) {
+export function usePosterGetFile(poster: Pick<Poster, 'id' | 'eventId'>, original: boolean = false) {
   return useQuery({
-    queryKey: ["event", poster.eventId, "poster", poster.id],
+    queryKey: ["event", poster.eventId, "poster", poster.id, original],
     queryFn: async () => {
-      const { data } = await apiGet<Blob>(`${ENDPOINT}/${poster.id}/file`)
-      return new File([data], `${getUuid()}.png`, { type: CONTENT_TYPE.PNG })
+      const { data } = await apiGet<Blob>(`${ENDPOINT}/${poster.id}/file?original=${original}`)
+      return new File([data], `${getUuid()}.${original ? "png" : "webp"}`, { type: original ? CONTENT_TYPE.PNG : CONTENT_TYPE.WEBP })
     },
     staleTime: STALE_30_MIN,
     enabled: poster.id > 0,

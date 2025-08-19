@@ -20,7 +20,7 @@ export function EventPosterDialog({ poster, open, setOpen }: Props) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  const { data: initialFile, isLoading } = usePosterGetFile(poster)
+  const { data: initialFile, isLoading } = usePosterGetFile(poster, true)
   const [file, setFile] = useState<File | undefined>(initialFile)
 
   useEffect(() => {

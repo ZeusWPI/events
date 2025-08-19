@@ -3,4 +3,5 @@ export namespace CONTENT_TYPE {
   export const MULTIPART = "multipart/form-data";
   export const PDF = "application/pdf";
   export const PNG = "image/png"
+  export const WEBP = "image/webp"
 }

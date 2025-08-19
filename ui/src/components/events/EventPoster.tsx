@@ -1,13 +1,15 @@
-import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
-import { FileImg } from "../atoms/FileImg";
-import { Button } from "../ui/button";
-import { Poster } from "@/lib/types/poster";
 import { usePosterDelete, usePosterGetFile } from "@/lib/api/poster";
-import { useState } from "react";
-import { EventPosterDialog } from "./EventPosterDialog";
-import { DeleteConfirm } from "../molecules/DeleteConfirm";
-import { toast } from "sonner";
+import { Poster } from "@/lib/types/poster";
 import { Year } from "@/lib/types/year";
+import { DownloadIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { FileImg } from "../atoms/FileImg";
+import { TooltipText } from "../atoms/TooltipText";
+import { DeleteConfirm } from "../molecules/DeleteConfirm";
+import { Button } from "../ui/button";
+import { EventPosterDialog } from "./EventPosterDialog";
+import { getUuid } from "@/lib/utils/utils";
 
 interface Props {
   title: string;
@@ -24,6 +26,17 @@ export const EventPoster = ({ title, description, poster, year }: Props) => {
 
   const posterDelete = usePosterDelete()
 
+  const handleDownload = () => {
+    const a = document.createElement('a')
+
+    a.href = `/api/poster/${poster.id}/file?original=true`
+    a.download = `${getUuid()}.png`
+    document.body.appendChild(a)
+    a.click()
+
+    document.body.removeChild(a)
+  }
+
   const handleDeleteConfirm = () => {
     posterDelete.mutate({ poster, year }, {
       onSuccess: () => toast.success("Poster deleted"),
@@ -33,12 +46,14 @@ export const EventPoster = ({ title, description, poster, year }: Props) => {
   }
 
   return (
-    <div className="flex flex-col border rounded-xl max-w-96 w-full">
-      {poster.id > 0 && (
-        <div className="rounded-xl overflow-hidden aspect-poster">
-          <FileImg file={file} isLoading={isLoading} alt={title} />
-        </div>
-      )}
+    <div className="flex flex-col border rounded-xl max-w-96 w-full justify-between">
+      <div>
+        {poster.id > 0 && (
+          <div className="rounded-xl overflow-hidden aspect-poster">
+            <FileImg file={file} isLoading={isLoading} alt={title} />
+          </div>
+        )}
+      </div>
       <div className="flex justify-between p-4">
         <div className="flex flex-col space-y-1">
           <span className="leading-none font-semibold">
@@ -49,6 +64,13 @@ export const EventPoster = ({ title, description, poster, year }: Props) => {
           </span>
         </div>
         <div className="flex gap-1 items-end">
+          {file && (
+            <TooltipText text="Download uncompressed poster">
+              <Button onClick={handleDownload} size="icon" variant="ghost" className="size-6">
+                <DownloadIcon />
+              </Button>
+            </TooltipText>
+          )}
           <Button onClick={() => setOpenEdit(true)} size="icon" variant="ghost" disabled={isLoading} className="size-6">
             {file
               ? <PencilIcon />

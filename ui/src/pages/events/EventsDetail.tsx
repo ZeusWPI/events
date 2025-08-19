@@ -21,6 +21,7 @@ import { ChevronDownIcon, ChevronUpIcon, LinkIcon, MailIcon, MegaphoneIcon, User
 import { useState } from "react";
 import Error404 from "../404";
 import { Button } from "@/components/ui/button";
+import { TooltipText } from "@/components/atoms/TooltipText";
 
 export function EventsDetail() {
   const { id: eventID } = useParams({ from: "/events/$id" });
@@ -51,21 +52,27 @@ export function EventsDetail() {
       <PageHeader className="col-span-full">
         <Title>{event.name}</Title>
         <ButtonGroup>
-          <IconButton>
-            <Link to="/announcements/create">
-              <MegaphoneIcon />
-            </Link>
-          </IconButton>
-          <IconButton>
-            <Link to="/mails/create">
-              <MailIcon />
-            </Link>
-          </IconButton>
-          <IconButton asChild>
-            <a href={event.url} rel="noopener noreferrer" target="_blank">
-              <LinkIcon />
-            </a>
-          </IconButton>
+          <TooltipText text="Create announcement">
+            <IconButton>
+              <Link to="/announcements/create">
+                <MegaphoneIcon />
+              </Link>
+            </IconButton>
+          </TooltipText>
+          <TooltipText text="Create mail">
+            <IconButton>
+              <Link to="/mails/create">
+                <MailIcon />
+              </Link>
+            </IconButton>
+          </TooltipText>
+          <TooltipText text="Go to event website page">
+            <IconButton asChild>
+              <a href={event.url} rel="noopener noreferrer" target="_blank">
+                <LinkIcon />
+              </a>
+            </IconButton>
+          </TooltipText>
         </ButtonGroup>
       </PageHeader>
       <div className="lg:col-span-4">
