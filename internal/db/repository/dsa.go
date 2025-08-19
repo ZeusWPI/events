@@ -29,6 +29,15 @@ func (d *DSA) GetByEvents(ctx context.Context, events []model.Event) ([]*model.D
 	return utils.SliceMap(dsa, model.DSAModel), nil
 }
 
+func (d *DSA) GetByEventID(ctx context.Context, eventID int) (*model.DSA, error) {
+	dsa, err := d.repo.queries(ctx).DsaGetByEvent(ctx, int32(eventID))
+	if err != nil {
+		return nil, fmt.Errorf("get event %+v | %w", eventID, err)
+	}
+
+	return model.DSAModel(dsa), nil
+}
+
 func (d *DSA) Create(ctx context.Context, dsa *model.DSA) error {
 	id, err := d.repo.queries(ctx).DsaCreate(ctx, sqlc.DsaCreateParams{
 		EventID: int32(dsa.EventID),
@@ -49,6 +58,7 @@ func (d *DSA) Update(ctx context.Context, dsa *model.DSA) error {
 		ID:      int32(dsa.ID),
 		EventID: int32(dsa.EventID),
 		DsaID:   pgtype.Int4{Int32: int32(dsa.DsaID), Valid: valid},
+		Deleted: dsa.Deleted,
 	}); err != nil {
 		return fmt.Errorf("update dsa %+v | %w", d, err)
 	}

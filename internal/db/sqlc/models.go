@@ -89,6 +89,7 @@ type Dsa struct {
 	ID      int32
 	EventID int32
 	DsaID   pgtype.Int4
+	Deleted bool
 }
 
 type Event struct {

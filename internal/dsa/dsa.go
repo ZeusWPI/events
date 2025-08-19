@@ -75,7 +75,9 @@ func (d *DSA) Status(ctx context.Context, events []model.Event) []check.CheckRes
 
 	for _, dsa := range dsas {
 		if status, ok := statusses[dsa.EventID]; ok {
-			if dsa.DsaID != 0 {
+			if dsa.Deleted {
+				status.Status = check.Warning
+			} else if dsa.DsaID != 0 {
 				status.Status = check.Finished
 			}
 			statusses[dsa.EventID] = status

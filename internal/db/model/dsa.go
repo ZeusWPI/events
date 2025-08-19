@@ -6,6 +6,7 @@ type DSA struct {
 	ID      int
 	EventID int
 	DsaID   int
+	Deleted bool // deleted on the DSA website
 }
 
 func DSAModel(dsa sqlc.Dsa) *DSA {
@@ -19,5 +20,6 @@ func DSAModel(dsa sqlc.Dsa) *DSA {
 		ID:      int(dsa.ID),
 		EventID: int(dsa.EventID),
 		DsaID:   dsaID,
+		Deleted: dsa.Deleted,
 	}
 }

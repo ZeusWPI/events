@@ -39,8 +39,27 @@ func (q *Queries) DsaDelete(ctx context.Context, id int32) error {
 	return err
 }
 
+const dsaGetByEvent = `-- name: DsaGetByEvent :one
+SELECT id, event_id, dsa_id, deleted
+FROM dsa 
+WHERE event_id = $1
+LIMIT 1
+`
+
+func (q *Queries) DsaGetByEvent(ctx context.Context, eventID int32) (Dsa, error) {
+	row := q.db.QueryRow(ctx, dsaGetByEvent, eventID)
+	var i Dsa
+	err := row.Scan(
+		&i.ID,
+		&i.EventID,
+		&i.DsaID,
+		&i.Deleted,
+	)
+	return i, err
+}
+
 const dsaGetByEvents = `-- name: DsaGetByEvents :many
-SELECT id, event_id, dsa_id
+SELECT id, event_id, dsa_id, deleted
 FROM dsa 
 WHERE event_id = ANY($1::int[])
 `
@@ -54,7 +73,12 @@ func (q *Queries) DsaGetByEvents(ctx context.Context, dollar_1 []int32) ([]Dsa, 
 	var items []Dsa
 	for rows.Next() {
 		var i Dsa
-		if err := rows.Scan(&i.ID, &i.EventID, &i.DsaID); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.EventID,
+			&i.DsaID,
+			&i.Deleted,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -67,7 +91,7 @@ func (q *Queries) DsaGetByEvents(ctx context.Context, dollar_1 []int32) ([]Dsa, 
 
 const dsaUpdate = `-- name: DsaUpdate :exec
 UPDATE dsa
-SET event_id = $1, dsa_id = $2
+SET event_id = $1, dsa_id = $2, deleted = $4
 WHERE id = $3
 `
 
@@ -75,9 +99,15 @@ type DsaUpdateParams struct {
 	EventID int32
 	DsaID   pgtype.Int4
 	ID      int32
+	Deleted bool
 }
 
 func (q *Queries) DsaUpdate(ctx context.Context, arg DsaUpdateParams) error {
-	_, err := q.db.Exec(ctx, dsaUpdate, arg.EventID, arg.DsaID, arg.ID)
+	_, err := q.db.Exec(ctx, dsaUpdate,
+		arg.EventID,
+		arg.DsaID,
+		arg.ID,
+		arg.Deleted,
+	)
 	return err
 }
