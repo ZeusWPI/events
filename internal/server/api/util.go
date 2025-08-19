@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	mimePNG = "image/png"
+	mimePNG  = "image/png"
+	mimeWEBP = "image/webp"
 )
 
 func getFormFile(form *multipart.Form, field string) ([]byte, error) {

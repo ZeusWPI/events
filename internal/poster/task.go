@@ -10,6 +10,7 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/pkg/gitmate"
+	"github.com/ZeusWPI/events/pkg/image"
 	"github.com/ZeusWPI/events/pkg/storage"
 	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/google/uuid"
@@ -193,9 +194,18 @@ func (c *Client) toDB(ctx context.Context, poster model.Poster, event model.Even
 		return fmt.Errorf("poster %+v for event %+v is not the right aspect ratio", poster, event)
 	}
 
+	webp, err := image.ToWebp(bytes)
+	if err != nil {
+		return err
+	}
+
 	poster.FileID = uuid.NewString()
 	if err := storage.S.Set(poster.FileID, bytes, 0); err != nil {
 		return fmt.Errorf("unable to store new poster %+v | %w", poster, err)
+	}
+	poster.WebpID = uuid.NewString()
+	if err := storage.S.Set(poster.WebpID, webp, 0); err != nil {
+		return fmt.Errorf("unable to store new webp poster %+v | %w", poster, err)
 	}
 
 	if err := c.poster.Create(ctx, &poster); err != nil {

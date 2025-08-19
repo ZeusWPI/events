@@ -51,7 +51,7 @@ const docTemplate = `{
         },
         "/event/next": {
             "get": {
-                "description": "Get the next event. Returns a 404 if there's no next event planned.",
+                "description": "Get the next event.\nReturns a 404 if there's no next event planned.",
                 "produces": [
                     "application/json"
                 ],
@@ -75,11 +75,11 @@ const docTemplate = `{
                 }
             }
         },
-        "/event/{id}": {
+        "/event/poster/{id}": {
             "get": {
-                "description": "Get the poster for an event. Returns 400 if the event isn't found and 404 if the event doesn't have the requested poster type",
+                "description": "Get the poster for an event.\nBy default it will return the converted webp version for the poster\nIf the original png is desired you can use the query paramter 'original'\nReturns 400 if the event isn't found and 404 if the event doesn't have the requested poster type",
                 "produces": [
-                    "image/png"
+                    "image/webp png"
                 ],
                 "tags": [
                     "event"
@@ -95,7 +95,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "boolean",
-                        "description": "set to true if the scc poster version is desired",
+                        "description": "set to true for the original png version",
+                        "name": "original",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "set to true for the scc version",
                         "name": "scc",
                         "in": "query"
                     }

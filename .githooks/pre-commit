@@ -17,8 +17,9 @@ fi
 echo "Swagger docs generation && formatting"
 make swagger
 
-if ! git diff --exit-code; then
+if ! git diff --exit-code ./docs/ ./internal/server/api/v1/; then
   echo "Swagger docs were not up to date."
+  echo "They have been generated and formatted automatically."
   echo "Add the changes to the commit."
   exit 1
 fi

@@ -1,7 +1,7 @@
 # Build backend
 FROM golang:1.25.0-alpine3.22 AS build_backend
 
-RUN apk add upx alpine-sdk
+RUN apk add --no-cache upx alpine-sdk gcc musl-dev libwebp-dev
 
 WORKDIR /backend
 
@@ -40,7 +40,7 @@ FROM alpine:3.22
 
 WORKDIR /
 
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata gcc musl-dev libwebp-dev
 
 COPY --from=build_backend /backend/main .
 COPY --from=build_backend /backend/migrate .

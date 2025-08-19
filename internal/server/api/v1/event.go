@@ -9,7 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-const mimePNG = "image/png"
+const (
+	mimeWEBP = "image/webp"
+	mimePNG  = "image/png"
+)
 
 type Event struct {
 	router fiber.Router
@@ -58,7 +61,7 @@ func NewEvent(router fiber.Router, service *service.Service) *Event {
 
 func (r *Event) createRoutes() {
 	r.router.Get("/next", r.getNext)
-	r.router.Get("/:id", r.getPoster)
+	r.router.Get("/poster/:id", r.getPoster)
 	r.router.Get("/", r.get)
 }
 
@@ -83,7 +86,8 @@ func (r *Event) get(c *fiber.Ctx) error {
 // getNext returns the next event
 //
 //	@Summary		Get next event
-//	@Description	Get the next event. Returns a 404 if there's no next event planned.
+//	@Description	Get the next event.
+//	@Description	Returns a 404 if there's no next event planned.
 //	@Tags			event
 //	@Produce		json
 //	@Success		200	{object}	event
@@ -102,22 +106,27 @@ func (r *Event) getNext(c *fiber.Ctx) error {
 // getPoster returns the poster for an event
 //
 //	@Summary		Get event poster
-//	@Description	Get the poster for an event. Returns 400 if the event isn't found and 404 if the event doesn't have the requested poster type
+//	@Description	Get the poster for an event.
+//	@Description	By default it will return the converted webp version for the poster
+//	@Description	If the original png is desired you can use the query paramter 'original'
+//	@Description	Returns 400 if the event isn't found and 404 if the event doesn't have the requested poster type
 //	@Tags			event
-//	@Produce		png
+//	@Produce		image/webp png
 //	@Success		200
 //	@Failure		400
 //	@Failure		404
 //	@Failure		500
-//	@Param			id	path	int		true	"event id"
-//	@Param			scc	query	boolean	false	"set to true if the scc poster version is desired"
-//	@Router			/event/{id} [get]
+//	@Param			id			path	int		true	"event id"
+//	@Param			original	query	boolean	false	"set to true for the original png version"
+//	@Param			scc			query	boolean	false	"set to true for the scc version"
+//	@Router			/event/poster/{id} [get]
 func (r *Event) getPoster(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
 		return fiber.ErrBadRequest
 	}
 
+	original := c.QueryBool("original", false)
 	scc := c.QueryBool("scc", false)
 
 	event, err := r.event.GetByID(c.Context(), id)
@@ -133,11 +142,15 @@ func (r *Event) getPoster(c *fiber.Ctx) error {
 		return fiber.ErrNotFound
 	}
 
-	file, err := r.poster.GetFile(c.Context(), poster.ID)
+	file, err := r.poster.GetFile(c.Context(), poster.ID, original)
 	if err != nil {
 		return err
 	}
 
-	c.Set("Content-Type", mimePNG)
+	contentType := mimeWEBP
+	if original {
+		contentType = mimePNG
+	}
+	c.Set("Content-Type", contentType)
 	return c.Send(file)
 }

@@ -18,6 +18,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y libwebp-dev
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:

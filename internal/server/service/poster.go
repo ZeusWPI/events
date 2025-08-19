@@ -12,6 +12,7 @@ import (
 	"github.com/ZeusWPI/events/internal/poster"
 	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/internal/task"
+	"github.com/ZeusWPI/events/pkg/image"
 	"github.com/ZeusWPI/events/pkg/storage"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -36,7 +37,7 @@ func (s *Service) NewPoster() *Poster {
 	}
 }
 
-func (p *Poster) GetFile(ctx context.Context, posterID int) ([]byte, error) {
+func (p *Poster) GetFile(ctx context.Context, posterID int, original bool) ([]byte, error) {
 	poster, err := p.poster.Get(ctx, posterID)
 	if err != nil {
 		zap.S().Error(err)
@@ -46,10 +47,20 @@ func (p *Poster) GetFile(ctx context.Context, posterID int) ([]byte, error) {
 		return nil, fiber.ErrBadRequest
 	}
 
-	file, err := storage.S.Get(poster.FileID)
+	var file []byte
+
+	if original {
+		file, err = storage.S.Get(poster.FileID)
+	} else {
+		file, err = storage.S.Get(poster.WebpID)
+	}
+
 	if err != nil {
 		zap.S().Error(err)
 		return nil, fiber.ErrInternalServerError
+	}
+	if file == nil {
+		return nil, fiber.ErrBadRequest
 	}
 
 	return file, nil
@@ -85,6 +96,18 @@ func (p *Poster) Save(ctx context.Context, posterSave dto.PosterSave) (dto.Poste
 		if err = storage.S.Delete(oldPoster.FileID); err != nil {
 			zap.S().Error(err) // Only log error, it's fine
 		}
+	}
+
+	webp, err := image.ToWebp(posterSave.File)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Poster{}, fiber.ErrInternalServerError
+	}
+
+	poster.WebpID = uuid.NewString()
+	if err := storage.S.Set(poster.WebpID, webp, 0); err != nil {
+		zap.S().Error(err)
+		return dto.Poster{}, fiber.ErrInternalServerError
 	}
 
 	poster.FileID = uuid.NewString()
@@ -131,7 +154,7 @@ func (p *Poster) Delete(ctx context.Context, posterID int) error {
 func (p *Poster) Sync() error {
 	// The task manager runs everything in the background
 	// The returned error is the status for adding it to the task manager
-	// The result of the task itself if logged by the task manager
+	// The result of the task itself is logged by the task manager
 	if err := p.service.task.AddOnce(task.NewTask(poster.SyncTask, task.Now, p.service.poster.Sync)); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError

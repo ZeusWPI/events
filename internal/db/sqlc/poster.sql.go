@@ -10,19 +10,25 @@ import (
 )
 
 const posterCreate = `-- name: PosterCreate :one
-INSERT INTO poster (event_id, file_id, scc)
-VALUES ($1, $2, $3)
+INSERT INTO poster (event_id, file_id, webp_id, scc)
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
 type PosterCreateParams struct {
 	EventID int32
 	FileID  string
+	WebpID  string
 	Scc     bool
 }
 
 func (q *Queries) PosterCreate(ctx context.Context, arg PosterCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, posterCreate, arg.EventID, arg.FileID, arg.Scc)
+	row := q.db.QueryRow(ctx, posterCreate,
+		arg.EventID,
+		arg.FileID,
+		arg.WebpID,
+		arg.Scc,
+	)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
@@ -39,7 +45,7 @@ func (q *Queries) PosterDelete(ctx context.Context, id int32) error {
 }
 
 const posterGet = `-- name: PosterGet :one
-SELECT id, event_id, file_id, scc
+SELECT id, event_id, file_id, scc, webp_id
 FROM poster
 WHERE id = $1
 `
@@ -52,12 +58,13 @@ func (q *Queries) PosterGet(ctx context.Context, id int32) (Poster, error) {
 		&i.EventID,
 		&i.FileID,
 		&i.Scc,
+		&i.WebpID,
 	)
 	return i, err
 }
 
 const posterGetAll = `-- name: PosterGetAll :many
-SELECT id, event_id, file_id, scc
+SELECT id, event_id, file_id, scc, webp_id
 FROM poster
 `
 
@@ -75,6 +82,7 @@ func (q *Queries) PosterGetAll(ctx context.Context) ([]Poster, error) {
 			&i.EventID,
 			&i.FileID,
 			&i.Scc,
+			&i.WebpID,
 		); err != nil {
 			return nil, err
 		}
@@ -87,7 +95,7 @@ func (q *Queries) PosterGetAll(ctx context.Context) ([]Poster, error) {
 }
 
 const posterGetByEvents = `-- name: PosterGetByEvents :many
-SELECT id, event_id, file_id, scc
+SELECT id, event_id, file_id, scc, webp_id
 FROM poster
 WHERE event_id = ANY($1::int[])
 `
@@ -106,6 +114,7 @@ func (q *Queries) PosterGetByEvents(ctx context.Context, dollar_1 []int32) ([]Po
 			&i.EventID,
 			&i.FileID,
 			&i.Scc,
+			&i.WebpID,
 		); err != nil {
 			return nil, err
 		}
@@ -119,13 +128,14 @@ func (q *Queries) PosterGetByEvents(ctx context.Context, dollar_1 []int32) ([]Po
 
 const posterUpdate = `-- name: PosterUpdate :exec
 UPDATE poster
-SET event_id = $1, file_id = $2, scc = $3
-WHERE id = $4
+SET event_id = $1, file_id = $2, webp_id = $3, scc = $4
+WHERE id = $5
 `
 
 type PosterUpdateParams struct {
 	EventID int32
 	FileID  string
+	WebpID  string
 	Scc     bool
 	ID      int32
 }
@@ -134,6 +144,7 @@ func (q *Queries) PosterUpdate(ctx context.Context, arg PosterUpdateParams) erro
 	_, err := q.db.Exec(ctx, posterUpdate,
 		arg.EventID,
 		arg.FileID,
+		arg.WebpID,
 		arg.Scc,
 		arg.ID,
 	)

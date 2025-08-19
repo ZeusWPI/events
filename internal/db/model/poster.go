@@ -8,6 +8,7 @@ type Poster struct {
 	ID      int    `json:"id"`
 	EventID int    `json:"event_id"`
 	FileID  string `json:"file_id"`
+	WebpID  string `json:"webp_id"`
 	SCC     bool   `json:"scc"`
 }
 
@@ -16,6 +17,7 @@ func PosterModel(poster sqlc.Poster) *Poster {
 		ID:      int(poster.ID),
 		EventID: int(poster.EventID),
 		FileID:  poster.FileID,
+		WebpID:  poster.WebpID,
 		SCC:     poster.Scc,
 	}
 }

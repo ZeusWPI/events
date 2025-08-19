@@ -54,37 +54,11 @@ paths:
       summary: Get this years events
       tags:
       - event
-  /event/{id}:
-    get:
-      description: Get the poster for an event. Returns 400 if the event isn't found
-        and 404 if the event doesn't have the requested poster type
-      parameters:
-      - description: event id
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: set to true if the scc poster version is desired
-        in: query
-        name: scc
-        type: boolean
-      produces:
-      - image/png
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-        "404":
-          description: Not Found
-        "500":
-          description: Internal Server Error
-      summary: Get event poster
-      tags:
-      - event
   /event/next:
     get:
-      description: Get the next event. Returns a 404 if there's no next event planned.
+      description: |-
+        Get the next event.
+        Returns a 404 if there's no next event planned.
       produces:
       - application/json
       responses:
@@ -97,6 +71,41 @@ paths:
         "500":
           description: Internal Server Error
       summary: Get next event
+      tags:
+      - event
+  /event/poster/{id}:
+    get:
+      description: |-
+        Get the poster for an event.
+        By default it will return the converted webp version for the poster
+        If the original png is desired you can use the query paramter 'original'
+        Returns 400 if the event isn't found and 404 if the event doesn't have the requested poster type
+      parameters:
+      - description: event id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: set to true for the original png version
+        in: query
+        name: original
+        type: boolean
+      - description: set to true for the scc version
+        in: query
+        name: scc
+        type: boolean
+      produces:
+      - image/webp png
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get event poster
       tags:
       - event
 swagger: "2.0"

@@ -61,6 +61,7 @@ func (p *Poster) Create(ctx context.Context, poster *model.Poster) error {
 	id, err := p.repo.queries(ctx).PosterCreate(ctx, sqlc.PosterCreateParams{
 		EventID: int32(poster.EventID),
 		FileID:  poster.FileID,
+		WebpID:  poster.WebpID,
 		Scc:     poster.SCC,
 	})
 	if err != nil {
@@ -77,6 +78,7 @@ func (p *Poster) Update(ctx context.Context, poster model.Poster) error {
 		ID:      int32(poster.ID),
 		EventID: int32(poster.EventID),
 		FileID:  poster.FileID,
+		WebpID:  poster.WebpID,
 		Scc:     poster.SCC,
 	}); err != nil {
 		return fmt.Errorf("update poster %+v | %w", poster, err)

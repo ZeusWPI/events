@@ -13,12 +13,14 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1
+	github.com/kolesa-team/go-webp v1.0.5
 	github.com/markbates/goth v1.81.0
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/shareed2k/goth_fiber v0.3.2
 	github.com/spf13/viper v1.20.1
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.27.0
+	golang.org/x/image v0.30.0
 	golang.org/x/oauth2 v0.30.0
 	gopkg.in/yaml.v3 v3.0.1
 )

@@ -91,6 +91,7 @@ type Poster struct {
 	EventID int32
 	FileID  string
 	Scc     bool
+	WebpID  string
 }
 
 type Task struct {

@@ -36,12 +36,19 @@ func (r *Poster) getFile(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	file, err := r.poster.GetFile(c.Context(), id)
+	original := c.QueryBool("original", false)
+
+	file, err := r.poster.GetFile(c.Context(), id, original)
 	if err != nil {
 		return err
 	}
 
-	c.Set("Content-Type", mimePNG)
+	contentType := mimeWEBP
+	if original {
+		contentType = mimePNG
+	}
+
+	c.Set("Content-Type", contentType)
 	return c.Send(file)
 }
 

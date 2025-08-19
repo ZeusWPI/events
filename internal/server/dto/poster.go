@@ -6,6 +6,7 @@ type Poster struct {
 	ID      int    `json:"id"`
 	EventID int    `json:"event_id"`
 	FileID  string `json:"-"`
+	WebpID  string `json:"-"`
 	SCC     bool   `json:"scc"`
 }
 
