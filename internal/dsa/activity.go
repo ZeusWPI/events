@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
@@ -26,6 +27,9 @@ type activityResponse struct {
 type activity struct {
 	Association string    `json:"association"`
 	StartTime   time.Time `json:"start_time"`
+	EndTime     time.Time `json:"end_time"`
+	Location    string    `json:"location"`
+	Description string    `json:"description"`
 	ID          int       `json:"id"`
 }
 
@@ -39,6 +43,18 @@ type activityCreate struct {
 	Title       string    `json:"title"`
 	Type        string    `json:"type"`
 	Terrain     string    `json:"terrain"`
+}
+
+type activityUpdate struct {
+	Association string    `json:"association,omitzero"`
+	Description string    `json:"description,omitzero"`
+	EndTime     time.Time `json:"end_time,omitzero"`
+	StartTime   time.Time `json:"start_time,omitzero"`
+	Location    string    `json:"location,omitzero"`
+	Public      *bool     `json:"public,omitempty"`
+	Title       string    `json:"title,omitzero"`
+	Type        string    `json:"type,omitzero"`
+	Terrain     string    `json:"terrain,omitzero"`
 }
 
 func (d *DSA) BuildDsaURL(endpoint string, queries map[string]string) (string, error) {
@@ -64,55 +80,14 @@ func (d *DSA) BuildDsaURL(endpoint string, queries map[string]string) (string, e
 	return u.String(), nil
 }
 
-func (d *DSA) getActivities(ctx context.Context, target *activityResponse) error {
-	dsaURL, err := d.BuildDsaURL("activiteiten", map[string]string{
-		"page_size":   "100",
-		"association": d.abbreviation,
-	})
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "GET", dsaURL, nil)
-	if err != nil {
-		return fmt.Errorf("new http request %w", err)
-	}
-
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", d.dsaKey)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("do http request %w", err)
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected http status code %s", resp.Status)
-	}
-
-	if err = json.NewDecoder(resp.Body).Decode(target); err != nil {
-		return fmt.Errorf("decode body to json %w", err)
-	}
-
-	return nil
-}
-
-func (d *DSA) createActivity(ctx context.Context, body *activityCreate, target *activity) error {
-	dsaURL, err := d.BuildDsaURL("activiteiten", map[string]string{})
-	if err != nil {
-		return err
-	}
-
+func (d *DSA) DoRequest(ctx context.Context, method string, url string, body any, target any) error {
 	var buf bytes.Buffer
-	err = json.NewEncoder(&buf).Encode(body)
+	err := json.NewEncoder(&buf).Encode(body)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", dsaURL, &buf)
+	req, err := http.NewRequestWithContext(ctx, method, url, &buf)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)
 	}
@@ -135,6 +110,48 @@ func (d *DSA) createActivity(ctx context.Context, body *activityCreate, target *
 
 	if err = json.NewDecoder(resp.Body).Decode(target); err != nil {
 		return fmt.Errorf("decode body to json %w", err)
+	}
+
+	return nil
+}
+
+func (d *DSA) getActivities(ctx context.Context, target *activityResponse) error {
+	dsaURL, err := d.BuildDsaURL("activiteiten", map[string]string{
+		"page_size":   "100",
+		"association": d.abbreviation,
+	})
+	if err != nil {
+		return err
+	}
+
+	if err = d.DoRequest(ctx, http.MethodGet, dsaURL, nil, target); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DSA) createActivity(ctx context.Context, body *activityCreate, target *activity) error {
+	dsaURL, err := d.BuildDsaURL("activiteiten", map[string]string{})
+	if err != nil {
+		return err
+	}
+
+	if err = d.DoRequest(ctx, http.MethodPost, dsaURL, body, target); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DSA) updateActivity(ctx context.Context, id int, body *activityUpdate, target *activity) error {
+	dsaURL, err := d.BuildDsaURL("activiteiten/"+strconv.Itoa(id), map[string]string{})
+	if err != nil {
+		return err
+	}
+
+	if err = d.DoRequest(ctx, http.MethodPatch, dsaURL, body, target); err != nil {
+		return err
 	}
 
 	return nil
@@ -176,12 +193,12 @@ func (d *DSA) CreateActivities(ctx context.Context) error {
 		event, err := d.repoEvent.GetByID(ctx, dsa.EventID)
 		act, activityOk := utils.SliceFind(activities, func(a activity) bool { return a.StartTime.Equal(event.StartTime) })
 
+		if err != nil {
+			return err
+		}
+
 		if !activityOk {
 			// Event is not yet on the dsa website
-
-			if err != nil {
-				return err
-			}
 
 			activityCreate := activityCreate{
 				Title:       event.Name,
@@ -247,13 +264,37 @@ func (d *DSA) UpdateActivities(ctx context.Context) error {
 	var toCreate []*model.DSA
 
 	for _, event := range upcomingEvents {
-		activity, activityOk := utils.SliceFind(activities, func(a activity) bool { return a.StartTime.Equal(event.StartTime) })
-		_, dsaOk := utils.SliceFind(dsas, func(d *model.DSA) bool { return d.EventID == event.ID })
+		act, activityOk := utils.SliceFind(activities, func(a activity) bool { return a.StartTime.Equal(event.StartTime) }) //TODO do not match based on start time as this can change
+		dsa, dsaOk := utils.SliceFind(dsas, func(d *model.DSA) bool { return d.EventID == event.ID })
 
 		if activityOk {
 			// Event is on the dsa website
 			if !dsaOk {
-				toCreate = append(toCreate, &model.DSA{EventID: event.ID, DsaID: activity.ID})
+				// Event has not been created yet locally
+				toCreate = append(toCreate, &model.DSA{EventID: event.ID, DsaID: act.ID})
+			} else if dsa.DsaID != 0 {
+				// Both on the DSA website and locally in events, check if there is an update.
+				updateBody := activityUpdate{}
+				if act.Description != event.Description {
+					updateBody.Description = event.Description
+				}
+				if !act.StartTime.Equal(event.StartTime) {
+					updateBody.StartTime = event.StartTime
+				}
+				if !act.EndTime.Equal(event.EndTime) {
+					updateBody.EndTime = event.EndTime
+				}
+				if act.Location != event.Location {
+					updateBody.Location = event.Location
+				}
+
+				if (activityUpdate{}) != updateBody {
+					var response activity
+					d.updateActivity(ctx, dsa.DsaID, &updateBody, &response)
+				}
+			} else {
+				// This activity has been deleted on the DSA website
+				// TODO 
 			}
 		} else if !dsaOk {
 			// Event is not on the dsa website yet (or has been removed)
