@@ -35,6 +35,6 @@ export function FileImg({ file, isLoading, className, ...props }: Props) {
     return null;
   }
 
-  return <img src={url} className={clsx("w-full h-full object-fill", className)} {...props} />;
+  return <img src={url} className={clsx("w-full h-full object-contain", className)} {...props} />;
 }
 

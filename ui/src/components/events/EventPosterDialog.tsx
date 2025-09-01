@@ -24,6 +24,8 @@ export function EventPosterDialog({ poster, open, setOpen }: Props) {
   const [file, setFile] = useState<File | undefined>(initialFile)
 
   useEffect(() => {
+    setError("")
+
     if (open) {
       setFile(initialFile)
     } else {
@@ -62,6 +64,8 @@ export function EventPosterDialog({ poster, open, setOpen }: Props) {
   }
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setError(() => "")
+
     const file = e.target.files?.[0] ?? undefined
 
     if (!file) {
@@ -73,7 +77,7 @@ export function EventPosterDialog({ poster, open, setOpen }: Props) {
       .then((isA4) => {
         if (!isA4) {
           setFile(undefined)
-          setError("Poster needs to have the same aspect ratio as A4")
+          setError(() => "Poster needs to have the same aspect ratio as A4")
           return
         }
 
@@ -83,7 +87,7 @@ export function EventPosterDialog({ poster, open, setOpen }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="">
+      <DialogContent>
         <DialogTitle>
           Edit event poster
         </DialogTitle>
@@ -101,9 +105,11 @@ export function EventPosterDialog({ poster, open, setOpen }: Props) {
                       <span className="text-red-500">{error}</span>
                     </div>
                   )}
-                  <div className="aspect-poster rounded-xl overflow-hidden">
-                    {file && <FileImg file={file} isLoading={isLoading} alt="Poster preview" />}
-                  </div>
+                  {file && (
+                    <div className="w-fit rounded-xl overflow-hidden mx-auto">
+                      <FileImg file={file} isLoading={isLoading} alt="Poster preview" className="max-h-[60vh] w-auto" />
+                    </div>
+                  )}
                 </>
               ) : (
                 <Indeterminate />
