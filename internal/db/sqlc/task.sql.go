@@ -61,14 +61,34 @@ func (q *Queries) TaskGet(ctx context.Context, id int32) (Task, error) {
 	return i, err
 }
 
-const taskGetAll = `-- name: TaskGetAll :many
-SELECT id, name, run_at, error, recurring, duration, result 
+const taskGetFiltered = `-- name: TaskGetFiltered :many
+SELECT id, name, run_at, error, recurring, duration, result
 FROM task
+WHERE
+  (name = $1 OR NOT $5) AND
+  (result = $2 OR NOT $6)
 ORDER BY run_at DESC
+LIMIT $3 OFFSET $4
 `
 
-func (q *Queries) TaskGetAll(ctx context.Context) ([]Task, error) {
-	rows, err := q.db.Query(ctx, taskGetAll)
+type TaskGetFilteredParams struct {
+	Name         string
+	Result       TaskResult
+	Limit        int32
+	Offset       int32
+	FilterName   interface{}
+	FilterResult interface{}
+}
+
+func (q *Queries) TaskGetFiltered(ctx context.Context, arg TaskGetFilteredParams) ([]Task, error) {
+	rows, err := q.db.Query(ctx, taskGetFiltered,
+		arg.Name,
+		arg.Result,
+		arg.Limit,
+		arg.Offset,
+		arg.FilterName,
+		arg.FilterResult,
+	)
 	if err != nil {
 		return nil, err
 	}

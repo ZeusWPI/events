@@ -63,7 +63,7 @@ export function TaskCard({ task }: Props) {
                 Failed
               </Pill>
             )}
-            {task.status === TaskStatus.running && (
+            {task.status === TaskStatus.RUNNING && (
               <Pill color="green">
                 Running
               </Pill>
@@ -76,12 +76,12 @@ export function TaskCard({ task }: Props) {
         {task.recurring && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={handleRun} disabled={task.status === TaskStatus.running || updating} size="icon" className="rounded-full">
-                {task.status === TaskStatus.running ? <LoaderCircle className="animate-spin" /> : <Play />}
+              <Button onClick={handleRun} disabled={task.status === TaskStatus.RUNNING || updating} size="icon" className="rounded-full">
+                {task.status === TaskStatus.RUNNING ? <LoaderCircle className="animate-spin" /> : <Play />}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <span>{task.status === TaskStatus.running ? "Running" : "Run"}</span>
+              <span>{task.status === TaskStatus.RUNNING ? "Running" : "Run"}</span>
             </TooltipContent>
           </Tooltip>
         )}

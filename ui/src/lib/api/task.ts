@@ -6,7 +6,7 @@ import { apiGet, apiPost } from "./query";
 const ENDPOINT = "task";
 const PAGE_LIMIT = 100;
 const STALE_MIN_5 = 5 * 60 * 1000;
-const REFETCH_SEC_30 = 10 * 1000;
+const REFETCH_SEC_10 = 10 * 1000;
 
 export function useTaskGetAll() {
   const queryClient = useQueryClient();
@@ -14,7 +14,7 @@ export function useTaskGetAll() {
   return useQuery({
     queryKey: ["task"],
     queryFn: async () => (await apiGet(ENDPOINT, convertTasksToModel)).data,
-    refetchInterval: REFETCH_SEC_30,
+    refetchInterval: REFETCH_SEC_10,
     structuralSharing(oldData, newData) {
       if (JSON.stringify(oldData) !== JSON.stringify(newData)) {
         void queryClient.invalidateQueries({ queryKey: ["task_history"] });
@@ -26,25 +26,21 @@ export function useTaskGetAll() {
   });
 }
 
-export function useTaskGetHistory(filters?: TaskHistoryFilter) {
+export function useTaskGetHistory(filter?: TaskHistoryFilter) {
   const { data, isLoading, fetchNextPage, isFetchingNextPage, hasNextPage, error, refetch, isFetching } = useInfiniteQuery({
-    queryKey: ["task_history", filters],
-    queryFn: async ({ pageParam = 1 }) => {
+    queryKey: ["task_history", JSON.stringify(filter)],
+    queryFn: async ({ pageParam = 0 }) => {
       const queryParams = new URLSearchParams({
         page: pageParam.toString(),
         limit: PAGE_LIMIT.toString(),
       });
 
-      if (filters?.name !== undefined) {
-        queryParams.append("name", filters.name);
+      if (filter?.name !== undefined) {
+        queryParams.append("name", filter.name);
       }
 
-      if (filters?.onlyErrored !== undefined) {
-        queryParams.append("only_errored", filters.onlyErrored.toString());
-      }
-
-      if (filters?.recurring !== undefined) {
-        queryParams.append("recurring", filters.recurring.toString());
+      if (filter?.result !== undefined) {
+        queryParams.append("result", filter.result.toString())
       }
 
       const url = `${ENDPOINT}/history?${queryParams.toString()}`;
@@ -54,7 +50,7 @@ export function useTaskGetHistory(filters?: TaskHistoryFilter) {
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length < PAGE_LIMIT ? undefined : allPages.length + 1;
     },
-    enabled: filters !== undefined,
+    enabled: filter !== undefined,
     staleTime: STALE_MIN_5,
     throwOnError: true,
   });

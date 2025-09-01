@@ -1,8 +1,8 @@
 import { useTaskResolve } from "@/lib/api/task";
-import { TaskHistoryStatus, type TaskHistory } from "@/lib/types/task";
+import { TaskResult, type TaskHistory } from "@/lib/types/task";
 import { formatDate } from "@/lib/utils/utils";
 import type { ColumnDef, Row } from "@tanstack/react-table";
-import { CalendarDaysIcon, CalendarIcon, ChevronDownIcon, ChevronUpIcon, CircleCheckIcon } from "lucide-react";
+import { CalendarDaysIcon, CalendarIcon, ChevronDownIcon, ChevronUpIcon, FireExtinguisherIcon } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { TooltipText } from "../atoms/TooltipText";
@@ -78,9 +78,9 @@ function TaskIcon({ row }: { row: Row<TaskHistory> }) {
 
   const color = () => {
     switch (task.result) {
-      case TaskHistoryStatus.failed:
+      case TaskResult.FAILED:
         return "text-red-500"
-      case TaskHistoryStatus.resolved:
+      case TaskResult.RESOLVED:
         return "stroke-primary"
       default:
         return ""
@@ -89,9 +89,9 @@ function TaskIcon({ row }: { row: Row<TaskHistory> }) {
 
   const text = () => {
     switch (task.result) {
-      case TaskHistoryStatus.failed:
+      case TaskResult.FAILED:
         return "Failed"
-      case TaskHistoryStatus.resolved:
+      case TaskResult.RESOLVED:
         return "Resolved"
       default:
         return "Success"
@@ -125,10 +125,10 @@ function TaskActions({ row }: { row: Row<TaskHistory> }) {
 
   return (
     <div className="flex justify-center space-x-0">
-      {task.result === TaskHistoryStatus.failed && (
+      {task.result === TaskResult.FAILED && (
         <TooltipText text={"Mark as resolved"}>
           <Button onClick={handleResolve} size="icon" variant="ghost">
-            <CircleCheckIcon className="text-green-500" />
+            <FireExtinguisherIcon />
           </Button>
         </TooltipText>
       )}

@@ -81,7 +81,7 @@ export function TasksDetail() {
         <div className="flex flex-col gap-1.5">
           <div className="flex align-center space-x-2">
             <Title>{task.name}</Title>
-            {task.status === TaskStatus.running && (
+            {task.status === TaskStatus.RUNNING && (
               <Pill color="green">
                 Running
               </Pill>
@@ -97,8 +97,8 @@ export function TasksDetail() {
             )}
           </div>
         </div>
-        <Button onClick={handleRun} disabled={task.status === TaskStatus.running || updating} size="icon" className="rounded-full">
-          {task.status === TaskStatus.running ? <LoaderCircle className="animate-spin" /> : <Play />}
+        <Button onClick={handleRun} disabled={task.status === TaskStatus.RUNNING || updating} size="icon" className="rounded-full">
+          {task.status === TaskStatus.RUNNING ? <LoaderCircle className="animate-spin" /> : <Play />}
         </Button>
       </PageHeader>
       <div className="flex justify-between align-center p-6 w-full border rounded-md gap-4">

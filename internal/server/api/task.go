@@ -1,8 +1,7 @@
 package api
 
 import (
-	"strconv"
-
+	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/gofiber/fiber/v2"
@@ -43,27 +42,26 @@ func (r *Task) getAll(c *fiber.Ctx) error {
 
 func (r *Task) getHistory(c *fiber.Ctx) error {
 	name := c.Query("name")
-	onlyErrored := c.Query("only_errored", "false") == "true"
+	resultStr := c.Query("result")
 
-	var recurring *bool
-	recurringRaw := c.Query("recurring")
-	if recurringRaw != "" {
-		recurringValue := recurringRaw == "true"
-		recurring = &recurringValue
+	var result *model.TaskResult
+	switch resultStr {
+	case string(model.Success), string(model.Resolved), string(model.Failed):
+		resultTmp := model.TaskResult(resultStr)
+		result = &resultTmp
 	}
 
-	page, err1 := strconv.Atoi(c.Query("page", "1"))
-	limit, err2 := strconv.Atoi(c.Query("limit", "10"))
-	if err1 != nil || err2 != nil || page < 0 || limit < 1 {
+	limit := c.QueryInt("limit", 10)
+	page := c.QueryInt("page", 0)
+	if limit < 1 || page < 0 {
 		return fiber.ErrBadRequest
 	}
 
 	tasks, err := r.task.GetHistory(c.Context(), dto.TaskHistoryFilter{
-		Name:        name,
-		OnlyErrored: onlyErrored,
-		Recurring:   recurring,
-		Page:        page,
-		Limit:       limit,
+		Name:   name,
+		Result: result,
+		Limit:  limit,
+		Offset: page * limit,
 	})
 	if err != nil {
 		return err

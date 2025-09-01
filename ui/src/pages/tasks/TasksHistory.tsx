@@ -1,7 +1,3 @@
-import type { TaskHistoryFilter } from "@/lib/types/task";
-import { Calendar, CalendarDays, CircleX } from "lucide-react";
-import { useState } from "react";
-import useInfiniteScroll from "react-infinite-scroll-hook";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Title } from "@/components/atoms/Title";
 import { BottomOfPage } from "@/components/molecules/BottomOfPage";
@@ -12,10 +8,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useTaskGetHistory } from "@/lib/api/task";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { weightSubcategory } from "@/lib/types/general";
+import { TaskResult, type TaskHistoryFilter } from "@/lib/types/task";
+import { CheckIcon, FireExtinguisherIcon, FlameIcon } from "lucide-react";
+import { useState } from "react";
+import useInfiniteScroll from "react-infinite-scroll-hook";
 
 export function TasksHistory() {
-  const [filters, setFilters] = useState<TaskHistoryFilter>({ onlyErrored: false, recurring: undefined });
-  const { history, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useTaskGetHistory(filters);
+  const [filter, setFilter] = useState<TaskHistoryFilter>({});
+  const { history, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useTaskGetHistory(filter);
 
   useBreadcrumb({ title: "History", weight: weightSubcategory, link: { to: "/tasks/history" } });
 
@@ -39,44 +39,44 @@ export function TasksHistory() {
       </PageHeader>
       <div className="grid grid-cols-3 gap-4">
         <Card
-          onClick={() => setFilters(val => ({ ...val, onlyErrored: !val.onlyErrored }))}
+          onClick={() => setFilter(val => ({ ...val, result: TaskResult.FAILED }))}
           className="cursor-pointer"
         >
           <CardContent>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between">
-                <CircleX />
-                <Checkbox checked={filters.onlyErrored} />
+                <FlameIcon />
+                <Checkbox checked={filter.result === TaskResult.FAILED} />
               </div>
-              <span>Errored</span>
+              <span>Failed</span>
             </div>
           </CardContent>
         </Card>
         <Card
-          onClick={() => setFilters(val => ({ ...val, recurring: val.recurring !== false ? false : undefined }))}
+          onClick={() => setFilter(val => ({ ...val, result: TaskResult.RESOLVED }))}
           className="cursor-pointer"
         >
           <CardContent>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between">
-                <CalendarDays />
-                <Checkbox checked={filters.recurring !== false} />
+                <FireExtinguisherIcon />
+                <Checkbox checked={filter.result === TaskResult.RESOLVED} />
               </div>
-              <span>Recurring</span>
+              <span>Resolved</span>
             </div>
           </CardContent>
         </Card>
         <Card
-          onClick={() => setFilters(val => ({ ...val, recurring: val.recurring !== true ? true : undefined }))}
+          onClick={() => setFilter(val => ({ ...val, result: TaskResult.SUCCESS }))}
           className="cursor-pointer"
         >
           <CardContent>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between">
-                <Calendar />
-                <Checkbox checked={filters.recurring !== true} />
+                <CheckIcon />
+                <Checkbox checked={filter.result === TaskResult.SUCCESS} />
               </div>
-              <span>One Time</span>
+              <span>Success</span>
             </div>
           </CardContent>
         </Card>

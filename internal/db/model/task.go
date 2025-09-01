@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/sqlc"
@@ -15,6 +16,15 @@ const (
 	Resolved TaskResult = "resolved"
 )
 
+func TaskResultModel(result string) (TaskResult, error) {
+	switch result {
+	case string(Success), string(Failed), string(Resolved):
+		return TaskResult(result), nil
+	default:
+		return "", fmt.Errorf("invalid task result %s", result)
+	}
+}
+
 type Task struct {
 	ID        int
 	Name      string
@@ -26,11 +36,10 @@ type Task struct {
 }
 
 type TaskFilter struct {
-	Name        string
-	OnlyErrored bool
-	Recurring   *bool
-	Page        int
-	Limit       int
+	Name   string
+	Result *TaskResult
+	Limit  int
+	Offset int
 }
 
 func TaskModel(task sqlc.Task) *Task {

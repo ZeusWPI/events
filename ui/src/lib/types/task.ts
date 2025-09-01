@@ -2,8 +2,8 @@ import type { API } from "./api";
 import { Base } from "./general";
 
 export enum TaskStatus {
-  running = "running",
-  waiting = "waiting",
+  RUNNING = "running",
+  WAITING = "waiting",
 }
 
 export interface Task extends Base {
@@ -11,21 +11,21 @@ export interface Task extends Base {
   status: TaskStatus;
   nextRun: Date;
   recurring: boolean;
-  lastStatus?: TaskHistoryStatus;
+  lastStatus?: TaskResult;
   lastRun?: Date;
   lastError?: string;
   interval?: number;
 }
 
-export enum TaskHistoryStatus {
-  success = "success",
-  failed = "failed",
-  resolved = "resolved",
+export enum TaskResult {
+  SUCCESS = "success",
+  FAILED = "failed",
+  RESOLVED = "resolved",
 }
 
 export interface TaskHistory extends Base {
   name: string;
-  result: TaskHistoryStatus;
+  result: TaskResult;
   runAt: Date;
   error?: string;
   recurring: boolean;
@@ -34,27 +34,17 @@ export interface TaskHistory extends Base {
 
 export interface TaskHistoryFilter {
   name?: string;
-  onlyErrored?: boolean;
-  recurring?: boolean;
-}
-
-export function convertTaskStatusToModel(status: string): TaskStatus {
-  if (Object.values(TaskStatus).includes(status as TaskStatus)) {
-    return status as TaskStatus;
-  }
-
-  // Can only happen if the backend and frontend statuses are out of sync
-  return TaskStatus.waiting;
+  result?: TaskResult;
 }
 
 export function convertTaskToModel(task: API.Task): Task {
   return {
     id: task.id,
     name: task.name,
-    status: convertTaskStatusToModel(task.status),
+    status: task.status as TaskStatus,
     nextRun: new Date(task.next_run),
     recurring: task.recurring,
-    lastStatus: task.last_status ? convertTaskHistoryStatusToModel(task.last_status) : undefined,
+    lastStatus: task.last_status ? task.last_status as TaskResult : undefined,
     lastRun: task.last_run ? new Date(task.last_run) : undefined,
     lastError: task.last_error,
     interval: task.interval,
@@ -65,20 +55,11 @@ export function convertTasksToModel(tasks: API.Task[]): Task[] {
   return tasks.map(convertTaskToModel);
 }
 
-export function convertTaskHistoryStatusToModel(status: string): TaskHistoryStatus {
-  if (Object.values(TaskHistoryStatus).includes(status as TaskHistoryStatus)) {
-    return status as TaskHistoryStatus;
-  }
-
-  // Can only happend if the backend and frontend statuses are out of sync
-  return TaskHistoryStatus.failed;
-}
-
 export function convertTaskHistoryToModel(history: API.TaskHistory[]): TaskHistory[] {
   return history.map(history => ({
     id: history.id,
     name: history.name,
-    result: convertTaskHistoryStatusToModel(history.result),
+    result: history.result as TaskResult,
     runAt: new Date(history.run_at),
     error: history.error,
     recurring: history.recurring,

@@ -3,10 +3,14 @@ SELECT *
 FROM task
 WHERE id = $1;
 
--- name: TaskGetAll :many
-SELECT * 
+-- name: TaskGetFiltered :many
+SELECT *
 FROM task
-ORDER BY run_at DESC;
+WHERE
+  (name = $1 OR NOT @filter_name) AND
+  (result = $2 OR NOT @filter_result)
+ORDER BY run_at DESC
+LIMIT $3 OFFSET $4;
 
 -- name: TaskCreate :one 
 INSERT INTO task (name, result, run_at, error, recurring, duration)

@@ -27,7 +27,8 @@ func (s *Service) NewTask() *Task {
 func (t *Task) GetAll() ([]dto.Task, error) {
 	tasks, err := t.service.task.Tasks()
 	if err != nil {
-		return nil, err
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
 	}
 	if tasks == nil {
 		return []dto.Task{}, nil
@@ -36,10 +37,11 @@ func (t *Task) GetAll() ([]dto.Task, error) {
 	return utils.SliceMap(tasks, dto.TaskDTO), nil
 }
 
-func (t *Task) GetHistory(ctx context.Context, filters dto.TaskHistoryFilter) ([]dto.TaskHistory, error) {
-	tasks, err := t.task.GetFiltered(ctx, model.TaskFilter(filters))
+func (t *Task) GetHistory(ctx context.Context, filter dto.TaskHistoryFilter) ([]dto.TaskHistory, error) {
+	tasks, err := t.task.GetFiltered(ctx, model.TaskFilter(filter))
 	if err != nil {
-		return nil, err
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
 	}
 	if tasks == nil {
 		return []dto.TaskHistory{}, nil
