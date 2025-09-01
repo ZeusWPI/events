@@ -6,7 +6,7 @@ import { CalendarDaysIcon, CalendarIcon, ChevronDownIcon, ChevronUpIcon, FireExt
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { TooltipText } from "../atoms/TooltipText";
-import { Table } from "../organisms/Table";
+import { VirtualTable } from "../organisms/VirtualTable";
 import { Button } from "../ui/button";
 
 interface Props {
@@ -64,7 +64,7 @@ export function TaskHistoryTable({ history = defaultHistory, emptyText = "No his
   }
 
   return (
-    <Table
+    <VirtualTable
       data={history}
       columns={columns}
       hasError={(item: TaskHistory) => item.error !== undefined}

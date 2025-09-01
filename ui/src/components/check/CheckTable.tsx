@@ -1,10 +1,11 @@
 import { useCheckCreate, useCheckDelete, useCheckToggle } from "@/lib/api/check";
-import { Check, CheckSource, CheckStatus, statusToIcon } from "@/lib/types/check";
-import { ColumnDef } from "@tanstack/react-table";
-import { ChevronDownIcon, ChevronUpIcon, ClipboardCheckIcon, ClipboardXIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { Check, CheckSource, CheckStatus } from "@/lib/types/check";
+import { ColumnDef, Row } from "@tanstack/react-table";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, CircleAlertIcon, ClipboardCheckIcon, ClipboardXIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { IconButton } from "../atoms/IconButton";
+import { TooltipText } from "../atoms/TooltipText";
 import { Table } from "../organisms/Table";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -72,10 +73,7 @@ export function CheckTable({ checks, eventId }: Props) {
     {
       accessorKey: "status",
       header: () => <span>{`${checks.filter(c => c.status === CheckStatus.Finished).length}/${checks.length}`}</span>,
-      cell: ({ cell }) => {
-        const status = cell.getValue<CheckStatus>()
-        return statusToIcon[status]
-      },
+      cell: CheckStatusIcon,
       meta: { small: true, horizontalAlign: "center" },
     },
     {
@@ -96,34 +94,7 @@ export function CheckTable({ checks, eventId }: Props) {
           </div>
         )
       },
-      cell: ({ row }) => {
-        if (!row.getCanExpand()) {
-          return null
-        }
-
-        const check: Check = row.original
-
-        if (check.source === CheckSource.Automatic) {
-          if (check.error) {
-            <IconButton onClick={row.getToggleExpandedHandler()}>
-              {row.getIsExpanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
-            </IconButton>
-          }
-
-          return null
-        }
-
-        return (
-          <div className="flex">
-            <Button onClick={() => toggleDone(check)} size="icon" variant="ghost" disabled={toggleStatus}>
-              {check.status === CheckStatus.Finished ? <ClipboardXIcon /> : <ClipboardCheckIcon />}
-            </Button>
-            <Button onClick={() => deleteCheck(check)} size="icon" variant="ghost" disabled={deleteStatus}>
-              <Trash2Icon className="text-red-500" />
-            </Button>
-          </div>
-        )
-      },
+      cell: ({ row }) => <CheckActions row={row} onToggle={toggleDone} toggleStatus={toggleStatus} onDelete={deleteCheck} deleteStatus={deleteStatus} />,
       meta: { small: true, horizontalAlign: "justify-end" },
     }
   ], [checks, toggleStatus]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -149,4 +120,58 @@ export function CheckTable({ checks, eventId }: Props) {
       />
     </div>
   );
+}
+function CheckStatusIcon({ row }: { row: Row<Check> }) {
+  switch (row.original.status) {
+    case CheckStatus.Finished:
+      return <CheckIcon className="text-green-500" />
+
+    case CheckStatus.Warning:
+      if (!row.original.warning) return <CircleAlertIcon className="text-orange-500" />
+
+      return (
+        <TooltipText text={row.original.warning}>
+          <CircleAlertIcon className="text-orange-500" />
+        </TooltipText>
+      )
+
+    default:
+      return <XIcon className="text-red-500" />
+  }
+}
+
+interface ActionProps {
+  row: Row<Check>;
+  onToggle: (check: Check) => void;
+  toggleStatus: boolean;
+  onDelete: (check: Check) => void;
+  deleteStatus: boolean;
+}
+function CheckActions({ row, onToggle, toggleStatus, onDelete, deleteStatus }: ActionProps) {
+  if (!row.getCanExpand()) {
+    return null
+  }
+
+  const check: Check = row.original
+
+  if (check.source === CheckSource.Automatic) {
+    if (check.error) {
+      <IconButton onClick={row.getToggleExpandedHandler()}>
+        {row.getIsExpanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
+      </IconButton>
+    }
+
+    return null
+  }
+
+  return (
+    <div className="flex">
+      <Button onClick={() => onToggle(check)} size="icon" variant="ghost" disabled={toggleStatus}>
+        {check.status === CheckStatus.Finished ? <ClipboardXIcon /> : <ClipboardCheckIcon />}
+      </Button>
+      <Button onClick={() => onDelete(check)} size="icon" variant="ghost" disabled={deleteStatus}>
+        <Trash2Icon className="text-red-500" />
+      </Button>
+    </div>
+  )
 }

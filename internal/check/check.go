@@ -23,6 +23,7 @@ const (
 type CheckResult struct {
 	EventID int
 	Status  Status
+	Warning string
 	Error   error
 }
 
@@ -39,6 +40,7 @@ type EventStatus struct {
 	ID          int // Only for tasks entered in the website
 	EventID     int
 	Description string
+	Warning     string // Clarification why the status == warning (if applicable)
 	Status      Status
 	Error       error
 	Source      Source

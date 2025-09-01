@@ -13,7 +13,9 @@ export function TooltipText({ text, children, ...props }: Props) {
         {children}
       </TooltipTrigger>
       <TooltipContent>
-        {text}
+        <p className="whitespace-pre">
+          {text}
+        </p>
       </TooltipContent>
     </Tooltip>
   )

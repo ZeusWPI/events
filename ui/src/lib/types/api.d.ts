@@ -24,6 +24,7 @@ export namespace API {
   export interface Check extends Base {
     event_id: number;
     description: string;
+    warning?: string;
     status: string;
     error: string;
     source: string;

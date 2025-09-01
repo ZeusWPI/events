@@ -24,6 +24,7 @@ type Check struct {
 	EventID     int         `json:"event_id" validate:"required"`
 	Description string      `json:"description" validate:"required"`
 	Status      CheckStatus `json:"status"`
+	Warning     string      `json:"warning,omitzero"`
 	Error       error       `json:"error"`
 	Source      CheckSource `json:"source"`
 }
@@ -33,6 +34,7 @@ func CheckDTO(check check.EventStatus) Check {
 		ID:          check.ID,
 		EventID:     check.EventID,
 		Description: check.Description,
+		Warning:     check.Warning,
 		Status:      CheckStatus(check.Status),
 		Error:       check.Error,
 		Source:      CheckSource(check.Source),

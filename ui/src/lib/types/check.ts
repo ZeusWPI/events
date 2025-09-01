@@ -24,6 +24,7 @@ export enum CheckSource {
 export interface Check extends Base {
   eventId: number;
   description: string;
+  warning?: string;
   status: CheckStatus;
   error?: string;
   source: CheckSource;
@@ -34,6 +35,7 @@ export function convertCheckToModel(check: API.Check): Check {
     id: check.source as CheckSource === CheckSource.Manual ? check.id : randomNumber(),
     eventId: check.event_id,
     description: check.description,
+    warning: check.warning,
     status: check.status as CheckStatus,
     error: check.error,
     source: check.source as CheckSource,

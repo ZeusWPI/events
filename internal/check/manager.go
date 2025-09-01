@@ -88,6 +88,7 @@ func (m *Manager) Status(ctx context.Context, yearID int) (map[int][]EventStatus
 				ID:          0,
 				EventID:     result.EventID,
 				Description: name,
+				Warning:     result.Warning,
 				Status:      result.Status,
 				Error:       result.Error,
 				Source:      Automatic,
