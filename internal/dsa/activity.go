@@ -283,10 +283,11 @@ func (d *DSA) UpdateActivities(ctx context.Context) error {
 	var toCreate []*model.DSA
 
 	for _, event := range upcomingEvents {
-		act, activityOk := utils.SliceFind(activities, func(a activity) bool { return a.StartTime.Equal(event.StartTime) }) //TODO do not match based on start time as this can change
+		act, activityOk := utils.SliceFind(activities, func(a activity) bool { return a.StartTime.Equal(event.StartTime) }) // TODO do not match based on start time as this can change
 		dsa, dsaOk := utils.SliceFind(dsas, func(d *model.DSA) bool { return d.EventID == event.ID })
 
-		if activityOk {
+		switch {
+		case activityOk:
 			// Event is on the dsa website
 			if !dsaOk {
 				// Event has not been created yet locally
@@ -309,16 +310,28 @@ func (d *DSA) UpdateActivities(ctx context.Context) error {
 
 				if (activityUpdate{}) != updateBody {
 					var response activity
-					d.updateActivity(ctx, dsa.DsaID, &updateBody, &response)
+					if err := d.updateActivity(ctx, dsa.DsaID, &updateBody, &response); err != nil {
+						return err
+					}
+				}
+
+				if dsa.Deleted {
+					// activity has been manually recreated on the dsa website
+					dsa.Deleted = false
+					if err := d.repoDSA.Update(ctx, dsa); err != nil {
+						return err
+					}
 				}
 			}
-		} else if !dsaOk {
+		case !dsaOk:
 			// Event is not on the dsa website yet and not created locally
 			toCreate = append(toCreate, &model.DSA{EventID: event.ID})
-		} else if dsa.DsaID != 0 && dsa.Deleted == false {
+		case dsa.DsaID != 0 && !dsa.Deleted:
 			// This activity has been deleted on the DSA website, mark it as manually deleted.
 			dsa.Deleted = true
-			d.repoDSA.Update(ctx, dsa)
+			if err := d.repoDSA.Update(ctx, dsa); err != nil {
+				return err
+			}
 		}
 	}
 
