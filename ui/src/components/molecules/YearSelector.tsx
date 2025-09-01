@@ -2,6 +2,8 @@ import { useYearGetAll } from "@/lib/api/year";
 import { useYear } from "@/lib/hooks/useYear";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { useSidebar } from "../ui/sidebar";
+import { ComponentProps } from "react";
+import { cn } from "@/lib/utils/utils";
 
 export function YearSelector() {
   const { state } = useSidebar()
@@ -22,12 +24,11 @@ export function YearSelector() {
 
   return (
     <div className="flex flex-col gap-2">
-      {isOpen && locked &&
-        <p className="text-sm">No switching on this page!</p>
-      }
-      {!isCurrentYear &&
-        <p className="font-bold text-red-500">Old academic year</p>
-      }
+      {isOpen && locked && <InfoMessage className="border-muted-foreground">Year locked on this page</InfoMessage>}
+      {!isCurrentYear && (isOpen
+        ? <InfoMessage className="border-red-500 text-red-500">Old academic year</InfoMessage>
+        : <InfoMessage className="border-red-500 text-red-500">!</InfoMessage>
+      )}
       <Select onValueChange={handleSelectChange} defaultValue={year?.id.toString()} disabled={locked}>
         <SelectTrigger className="w-full">
           {isOpen && <SelectValue />}
@@ -42,4 +43,8 @@ export function YearSelector() {
       </Select>
     </div>
   )
+}
+
+function InfoMessage({ className, ...props }: ComponentProps<'p'>) {
+  return <p className={cn("border rounded-md p-1 text-sm text-center", className)} {...props} />
 }

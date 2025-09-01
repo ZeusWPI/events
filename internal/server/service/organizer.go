@@ -40,7 +40,7 @@ func (o *Organizer) GetByMember(ctx context.Context, memberID int) (dto.Organize
 		return dto.Organizer{}, fiber.ErrInternalServerError
 	}
 	if member == nil {
-		return dto.Organizer{}, fiber.ErrBadRequest
+		return dto.Organizer{}, fiber.ErrNotFound
 	}
 
 	year, err := o.year.GetLast(ctx)
@@ -55,13 +55,11 @@ func (o *Organizer) GetByMember(ctx context.Context, memberID int) (dto.Organize
 		return dto.Organizer{}, fiber.ErrInternalServerError
 	}
 	if board == nil {
-		if o.development {
-			return dto.Organizer{ID: member.ID, Name: member.Name, Role: "Development", ZauthID: member.ZauthID}, nil
-		}
-
-		return dto.Organizer{}, fiber.ErrBadRequest
+		return dto.Organizer{}, fiber.ErrNotFound
 	}
 	board.Member = *member
+
+	zap.S().Debug(*board)
 
 	return dto.OrganizerDTO(board), nil
 }
@@ -118,6 +116,29 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 			YearID:      year.ID,
 			Role:        "Events Admin",
 			IsOrganizer: false,
+		}
+
+		if err := o.board.Create(ctx, &board); err != nil {
+			zap.S().Error(err)
+			return dto.Organizer{}, fiber.ErrInternalServerError
+		}
+	}
+
+	if o.development {
+		// Development environment
+		// Add user to the board to give permission
+		// to edit everything
+		year, err := o.year.GetLast(ctx)
+		if err != nil {
+			zap.S().Error(err)
+			return dto.Organizer{}, fiber.ErrInternalServerError
+		}
+
+		board := model.Board{
+			MemberID:    member.ID,
+			YearID:      year.ID,
+			Role:        "Developer",
+			IsOrganizer: true,
 		}
 
 		if err := o.board.Create(ctx, &board); err != nil {
