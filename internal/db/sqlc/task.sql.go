@@ -19,7 +19,7 @@ RETURNING id
 
 type TaskCreateParams struct {
 	Name      string
-	Result    pgtype.Text
+	Result    TaskResult
 	RunAt     pgtype.Timestamptz
 	Error     pgtype.Text
 	Recurring bool
@@ -40,42 +40,30 @@ func (q *Queries) TaskCreate(ctx context.Context, arg TaskCreateParams) (int32, 
 	return id, err
 }
 
-const taskGet = `-- name: TaskGet :many
-SELECT id, name, result, run_at, error, recurring, duration FROM task 
-WHERE name ILIKE $1
-ORDER BY run_at DESC
+const taskGet = `-- name: TaskGet :one
+SELECT id, name, run_at, error, recurring, duration, result
+FROM task
+WHERE id = $1
 `
 
-func (q *Queries) TaskGet(ctx context.Context, name string) ([]Task, error) {
-	rows, err := q.db.Query(ctx, taskGet, name)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Task
-	for rows.Next() {
-		var i Task
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Result,
-			&i.RunAt,
-			&i.Error,
-			&i.Recurring,
-			&i.Duration,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) TaskGet(ctx context.Context, id int32) (Task, error) {
+	row := q.db.QueryRow(ctx, taskGet, id)
+	var i Task
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.RunAt,
+		&i.Error,
+		&i.Recurring,
+		&i.Duration,
+		&i.Result,
+	)
+	return i, err
 }
 
 const taskGetAll = `-- name: TaskGetAll :many
-SELECT id, name, result, run_at, error, recurring, duration FROM task
+SELECT id, name, run_at, error, recurring, duration, result 
+FROM task
 ORDER BY run_at DESC
 `
 
@@ -91,11 +79,11 @@ func (q *Queries) TaskGetAll(ctx context.Context) ([]Task, error) {
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
-			&i.Result,
 			&i.RunAt,
 			&i.Error,
 			&i.Recurring,
 			&i.Duration,
+			&i.Result,
 		); err != nil {
 			return nil, err
 		}
@@ -105,4 +93,20 @@ func (q *Queries) TaskGetAll(ctx context.Context) ([]Task, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const taskUpdateResult = `-- name: TaskUpdateResult :exec
+UPDATE task
+SET result = $1
+WHERE id = $2
+`
+
+type TaskUpdateResultParams struct {
+	Result TaskResult
+	ID     int32
+}
+
+func (q *Queries) TaskUpdateResult(ctx context.Context, arg TaskUpdateResultParams) error {
+	_, err := q.db.Exec(ctx, taskUpdateResult, arg.Result, arg.ID)
+	return err
 }

@@ -22,7 +22,22 @@ func (r *Repository) NewTask() *Task {
 	}
 }
 
+func (t *Task) Get(ctx context.Context, taskID int) (*model.Task, error) {
+	task, err := t.repo.queries(ctx).TaskGet(ctx, int32(taskID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get task %d | %w", taskID, err)
+	}
+
+	return model.TaskModel(task), err
+}
+
 func (t *Task) GetFiltered(ctx context.Context, filters model.TaskFilter) ([]*model.Task, error) {
+	// TODO: Integrate filters in query
+	// If not move the filtering to the service level
+	// (At least integrate the pagination in the  query)
 	tasks, err := t.repo.queries(ctx).TaskGetAll(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -38,7 +53,7 @@ func (t *Task) GetFiltered(ctx context.Context, filters model.TaskFilter) ([]*mo
 		if filters.Name != "" && task.Name != filters.Name {
 			continue
 		}
-		if filters.OnlyErrored && !task.Error.Valid {
+		if filters.OnlyErrored && task.Result != sqlc.TaskResult(model.Failed) {
 			continue
 		}
 		if filters.Recurring != nil && task.Recurring != *filters.Recurring {
@@ -70,7 +85,7 @@ func (t *Task) Create(ctx context.Context, task *model.Task) error {
 
 	id, err := t.repo.queries(ctx).TaskCreate(ctx, sqlc.TaskCreateParams{
 		Name:      task.Name,
-		Result:    pgtype.Text{String: string(task.Result), Valid: true},
+		Result:    sqlc.TaskResult(task.Result),
 		RunAt:     pgtype.Timestamptz{Time: task.RunAt, Valid: true},
 		Error:     errTask,
 		Recurring: task.Recurring,
@@ -81,6 +96,17 @@ func (t *Task) Create(ctx context.Context, task *model.Task) error {
 	}
 
 	task.ID = int(id)
+
+	return nil
+}
+
+func (t *Task) UpdateResult(ctx context.Context, task model.Task) error {
+	if err := t.repo.queries(ctx).TaskUpdateResult(ctx, sqlc.TaskUpdateResultParams{
+		ID:     int32(task.ID),
+		Result: sqlc.TaskResult(task.Result),
+	}); err != nil {
+		return fmt.Errorf("task update result %+v | %w", task, err)
+	}
 
 	return nil
 }

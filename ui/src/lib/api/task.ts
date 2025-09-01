@@ -73,11 +73,23 @@ export function useTaskGetHistory(filters?: TaskHistoryFilter) {
   };
 }
 
+export function useTaskResolve() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: Pick<Task, "id">) => apiPost(`${ENDPOINT}/resolve/${id}`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["task"] });
+      void queryClient.invalidateQueries({ queryKey: ["task_history"] });
+    },
+  });
+}
+
 export function useTaskStart() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id }: Pick<Task, "id">) => apiPost(`${ENDPOINT}/${id}`),
+    mutationFn: async ({ id }: Pick<Task, "id">) => apiPost(`${ENDPOINT}/start/${id}`),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["task"] });
       void queryClient.invalidateQueries({ queryKey: ["task_history"] });

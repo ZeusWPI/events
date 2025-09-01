@@ -10,8 +10,9 @@ import (
 type TaskResult string
 
 const (
-	Success TaskResult = "success"
-	Failed  TaskResult = "failed"
+	Success  TaskResult = "success"
+	Failed   TaskResult = "failed"
+	Resolved TaskResult = "resolved"
 )
 
 type Task struct {
@@ -41,7 +42,7 @@ func TaskModel(task sqlc.Task) *Task {
 	return &Task{
 		ID:        int(task.ID),
 		Name:      task.Name,
-		Result:    TaskResult(task.Result.String),
+		Result:    TaskResult(task.Result),
 		RunAt:     task.RunAt.Time,
 		Error:     errTask,
 		Recurring: task.Recurring,

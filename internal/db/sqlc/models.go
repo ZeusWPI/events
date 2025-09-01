@@ -5,8 +5,54 @@
 package sqlc
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type TaskResult string
+
+const (
+	TaskResultSuccess  TaskResult = "success"
+	TaskResultFailed   TaskResult = "failed"
+	TaskResultResolved TaskResult = "resolved"
+)
+
+func (e *TaskResult) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TaskResult(s)
+	case string:
+		*e = TaskResult(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TaskResult: %T", src)
+	}
+	return nil
+}
+
+type NullTaskResult struct {
+	TaskResult TaskResult
+	Valid      bool // Valid is true if TaskResult is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTaskResult) Scan(value interface{}) error {
+	if value == nil {
+		ns.TaskResult, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.TaskResult.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTaskResult) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.TaskResult), nil
+}
 
 type Announcement struct {
 	ID       int32
@@ -97,11 +143,11 @@ type Poster struct {
 type Task struct {
 	ID        int32
 	Name      string
-	Result    pgtype.Text
 	RunAt     pgtype.Timestamptz
 	Error     pgtype.Text
 	Recurring bool
 	Duration  pgtype.Interval
+	Result    TaskResult
 }
 
 type Year struct {

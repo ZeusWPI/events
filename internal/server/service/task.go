@@ -7,6 +7,8 @@ import (
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/pkg/utils"
+	"github.com/gofiber/fiber/v2"
+	"go.uber.org/zap"
 )
 
 type Task struct {
@@ -48,4 +50,24 @@ func (t *Task) GetHistory(ctx context.Context, filters dto.TaskHistoryFilter) ([
 
 func (t *Task) Start(id int) error {
 	return t.service.task.Run(id)
+}
+
+func (t *Task) Resolve(ctx context.Context, taskID int) error {
+	task, err := t.task.Get(ctx, taskID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if task == nil {
+		return fiber.ErrNotFound
+	}
+
+	task.Result = model.Resolved
+
+	if err := t.task.UpdateResult(ctx, *task); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
 }

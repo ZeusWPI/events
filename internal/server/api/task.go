@@ -27,7 +27,8 @@ func NewTask(router fiber.Router, service *service.Service) *Task {
 
 func (r *Task) createRoutes() {
 	r.router.Get("/history", r.getHistory)
-	r.router.Post("/:id", r.start)
+	r.router.Post("/resolve/:id", r.resolve)
+	r.router.Post("/start/:id", r.start)
 	r.router.Get("/", r.getAll)
 }
 
@@ -69,6 +70,19 @@ func (r *Task) getHistory(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(tasks)
+}
+
+func (r *Task) resolve(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	if err := r.task.Resolve(c.Context(), id); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusOK)
 }
 
 func (r *Task) start(c *fiber.Ctx) error {

@@ -1,3 +1,4 @@
+// Package task provides an interface to schedule background delayed tasks
 package task
 
 import (
@@ -38,6 +39,7 @@ const (
 )
 
 // For one time tasks some fields are not used
+// TODO: Check to split in Stat and StatRecurring
 type Stat struct {
 	ID         int
 	Name       string

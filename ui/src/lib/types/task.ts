@@ -20,6 +20,7 @@ export interface Task extends Base {
 export enum TaskHistoryStatus {
   success = "success",
   failed = "failed",
+  resolved = "resolved",
 }
 
 export interface TaskHistory extends Base {
