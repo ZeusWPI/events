@@ -12,6 +12,7 @@ import (
 )
 
 type DSA struct {
+	development  bool
 	dsaURL       string
 	dsaKey       string
 	abbreviation string
@@ -37,6 +38,7 @@ func New(repo repository.Repository) (*DSA, error) {
 	}
 
 	return &DSA{
+		development:  config.GetDefaultString("app.env", "development") == "development",
 		dsaURL:       url,
 		dsaKey:       dsaKey,
 		abbreviation: abbreviation,
@@ -77,6 +79,7 @@ func (d *DSA) Status(ctx context.Context, events []model.Event) []check.CheckRes
 		if status, ok := statusses[dsa.EventID]; ok {
 			if dsa.Deleted {
 				status.Status = check.Warning
+				status.Warning = "DSA activity was manually deleted on the dsa website."
 			} else if dsa.DsaID != 0 {
 				status.Status = check.Finished
 			}

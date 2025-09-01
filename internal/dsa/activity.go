@@ -13,6 +13,7 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/pkg/utils"
+	"go.uber.org/zap"
 )
 
 const ActivitiesTask = "DSA activities update"
@@ -85,6 +86,12 @@ func (d *DSA) doRequest(ctx context.Context, method string, url string, body any
 	err := json.NewEncoder(&buf).Encode(body)
 	if err != nil {
 		return err
+	}
+
+	if d.development && method != "GET" {
+		// Do not do the actual request in development
+		zap.S().Infof("Mock request: %s %s\n\tBody: %+v", method, url, body)
+		return nil
 	}
 
 	req, err := http.NewRequestWithContext(ctx, method, url, &buf)
@@ -336,7 +343,7 @@ func (d *DSA) DeleteActivityByEvent(ctx context.Context, eventID int) error {
 		return err
 	}
 
-	if dsa.EventID != 0 {
+	if dsa.DsaID != 0 {
 		var response activity
 		if err := d.deleteActivity(ctx, dsa.DsaID, &response); err != nil {
 			return err
