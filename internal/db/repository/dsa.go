@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/ZeusWPI/events/internal/db/model"
@@ -32,6 +34,10 @@ func (d *DSA) GetByEvents(ctx context.Context, events []model.Event) ([]*model.D
 func (d *DSA) GetByEventID(ctx context.Context, eventID int) (*model.DSA, error) {
 	dsa, err := d.repo.queries(ctx).DsaGetByEvent(ctx, int32(eventID))
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+
 		return nil, fmt.Errorf("get event %+v | %w", eventID, err)
 	}
 
@@ -52,14 +58,14 @@ func (d *DSA) Create(ctx context.Context, dsa *model.DSA) error {
 	return nil
 }
 
-func (d *DSA) Update(ctx context.Context, dsa *model.DSA) error {
+func (d *DSA) Update(ctx context.Context, dsa model.DSA) error {
 	if err := d.repo.queries(ctx).DsaUpdate(ctx, sqlc.DsaUpdateParams{
 		ID:      int32(dsa.ID),
 		EventID: int32(dsa.EventID),
 		DsaID:   pgtype.Int4{Int32: int32(dsa.DsaID), Valid: dsa.DsaID != 0},
 		Deleted: dsa.Deleted,
 	}); err != nil {
-		return fmt.Errorf("update dsa %+v | %w", d, err)
+		return fmt.Errorf("update dsa %+v | %w", dsa, err)
 	}
 
 	return nil

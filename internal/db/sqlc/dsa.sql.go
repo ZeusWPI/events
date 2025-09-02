@@ -43,7 +43,6 @@ const dsaGetByEvent = `-- name: DsaGetByEvent :one
 SELECT id, event_id, dsa_id, deleted
 FROM dsa 
 WHERE event_id = $1
-LIMIT 1
 `
 
 func (q *Queries) DsaGetByEvent(ctx context.Context, eventID int32) (Dsa, error) {

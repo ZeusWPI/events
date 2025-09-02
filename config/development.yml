@@ -2,14 +2,14 @@ app:
   name: events
 
 db:
-  host: localhost
+  host: db
   port: 5432
   database: events
   user: postgres
   password: postgres
 
 storage:
-  provider: minio
+  provider: postgres
 
 minio:
   endpoint: minio:9000
@@ -20,7 +20,7 @@ auth:
   client: tomtest
   secret: blargh
   callback_url: http://localhost:4000/api/auth/callback/zauth
-  redirect_url: http://localhost:3000
+  redirect_url: http://localhost:9000
 
 mail:
   from: Events
@@ -35,7 +35,7 @@ website:
 dsa:
   url: "http://localhost:3000/api"
   assoc_abbrev: "weus" # local dsa instance
-  activities_s: 3600
+  get_activities_s: 3600
   create_activities_s: 7200
 
 

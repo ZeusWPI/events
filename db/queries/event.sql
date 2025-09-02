@@ -138,13 +138,12 @@ SELECT jsonb_build_object(
 FROM event e 
 WHERE e.year_id = $1;
 
--- name: EventGetNextWithYear :one
+-- name: EventGetAllNextWithYear :many
 SELECT *
 FROM event e
 INNER JOIN year y ON e.year_id = y.id
 WHERE e.start_time > NOW()
-ORDER BY e.start_time
-LIMIT 1;
+ORDER BY e.start_time;
 
 -- name: EventCreate :one 
 INSERT INTO event (file_name, name, description, start_time, end_time, year_id, location)

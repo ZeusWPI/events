@@ -3,6 +3,8 @@
 ALTER TABLE dsa
 ADD COLUMN dsa_id integer;
 ALTER TABLE dsa
+ADD UNIQUE (dsa_id);
+ALTER TABLE dsa
 DROP COLUMN entry;
 -- +goose StatementEnd
 

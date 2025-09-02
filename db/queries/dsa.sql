@@ -6,8 +6,7 @@ WHERE event_id = ANY($1::int[]);
 -- name: DsaGetByEvent :one
 SELECT *
 FROM dsa 
-WHERE event_id = $1
-LIMIT 1;
+WHERE event_id = $1;
 
 -- name: DsaCreate :one
 INSERT INTO dsa (event_id, dsa_id)

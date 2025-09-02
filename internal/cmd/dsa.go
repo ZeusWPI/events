@@ -12,7 +12,7 @@ import (
 func DSA(d *dsa.DSA, t *task.Manager, c *check.Manager) error {
 	if err := t.Add(task.NewTask(
 		dsa.ActivitiesTask,
-		time.Duration(config.GetDefaultInt("dsa.activities_s", 3600))*time.Second,
+		time.Duration(config.GetDefaultInt("dsa.get_activities_s", 3600))*time.Second,
 		d.UpdateActivities,
 	)); err != nil {
 		return err
