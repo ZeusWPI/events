@@ -296,14 +296,15 @@ func (q *Queries) MailSend(ctx context.Context, id int32) error {
 
 const mailUpdate = `-- name: MailUpdate :exec
 UPDATE mail
-SET title = $1, content = $2, send_time = $3
-WHERE id = $4 AND NOT send AND error IS NULL
+SET title = $1, content = $2, send_time = $3, error = $4
+WHERE id = $5 AND NOT send
 `
 
 type MailUpdateParams struct {
 	Title    string
 	Content  string
 	SendTime pgtype.Timestamptz
+	Error    pgtype.Text
 	ID       int32
 }
 
@@ -312,6 +313,7 @@ func (q *Queries) MailUpdate(ctx context.Context, arg MailUpdateParams) error {
 		arg.Title,
 		arg.Content,
 		arg.SendTime,
+		arg.Error,
 		arg.ID,
 	)
 	return err

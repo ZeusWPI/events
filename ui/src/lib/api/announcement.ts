@@ -51,3 +51,15 @@ export function useAnnouncementDelete() {
     }
   })
 }
+
+export function useAnnouncementResend() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id }: Pick<Announcement, "id">) => apiPost(`${ENDPOINT}/resend/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["announcement"] });
+      queryClient.invalidateQueries({ queryKey: ["event"] });
+    }
+  })
+}

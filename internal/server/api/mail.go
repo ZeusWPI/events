@@ -26,6 +26,7 @@ func NewMail(router fiber.Router, service *service.Service) *Mail {
 func (r *Mail) createRoutes() {
 	r.router.Get("/year/:id", r.getByYear)
 	r.router.Put("/", r.create)
+	r.router.Post("/resend/:id", r.resend)
 	r.router.Post("/:id", r.update)
 	r.router.Delete("/:id", r.delete)
 }
@@ -105,4 +106,22 @@ func (r *Mail) delete(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (r *Mail) resend(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	userID, ok := c.Locals("memberID").(int)
+	if !ok {
+		return fiber.ErrUnauthorized
+	}
+
+	if err := r.mail.Resend(c.Context(), id, userID); err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusOK)
 }

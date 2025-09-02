@@ -59,8 +59,6 @@ func (o *Organizer) GetByMember(ctx context.Context, memberID int) (dto.Organize
 	}
 	board.Member = *member
 
-	zap.S().Debug(*board)
-
 	return dto.OrganizerDTO(board), nil
 }
 

@@ -106,7 +106,8 @@ func (m *Mail) Update(ctx context.Context, mail model.Mail) error {
 			ID:       int32(mail.ID),
 			Title:    mail.Title,
 			Content:  mail.Content,
-			SendTime: pgtype.Timestamptz{Valid: true, Time: mail.SendTime},
+			SendTime: pgtype.Timestamptz{Time: mail.SendTime, Valid: true},
+			Error:    pgtype.Text{String: mail.Error, Valid: mail.Error != ""},
 		}); err != nil {
 			return fmt.Errorf("update mail %+v | %w", mail, err)
 		}

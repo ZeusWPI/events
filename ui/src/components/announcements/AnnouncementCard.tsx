@@ -1,40 +1,26 @@
-import { useAnnouncementDelete } from "@/lib/api/announcement";
+import { useAnnouncementDelete, useAnnouncementResend } from "@/lib/api/announcement";
 import { useEventByYear } from "@/lib/api/event";
 import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useYear } from "@/lib/hooks/useYear";
 import { Announcement } from "@/lib/types/announcement";
 import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { Trash2Icon } from "lucide-react";
+import { RotateCcwIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { toast } from "sonner";
+import { Copy } from "../atoms/Copy";
+import { IconButton } from "../atoms/IconButton";
 import { OrganizerIcon } from "../atoms/OrganizerIcon";
+import { TooltipText } from "../atoms/TooltipText";
 import { DeleteConfirm } from "../molecules/DeleteConfirm";
 import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
 
 interface Props {
   announcement: Announcement;
-}
-
-function AnnouncementBadge({ announcement, onDelete }: { announcement: Announcement, onDelete: React.MouseEventHandler<HTMLButtonElement> }) {
-  if (announcement.send) {
-    return <Badge variant="outline" className="text-green-500 border-green-500">Send</Badge>
-  }
-
-  if (announcement.error) {
-    return <Badge variant="outline" className="text-red-500 border-red-500">Error</Badge>
-  }
-
-  return (
-    <Button onClick={onDelete} size="icon" variant="secondary" className="size-6">
-      <Trash2Icon className="text-red-500" />
-    </Button>
-  )
 }
 
 export function AnnouncementCard({ announcement }: Props) {
@@ -81,17 +67,17 @@ export function AnnouncementCard({ announcement }: Props) {
         <CardHeader>
           <div className="flex justify-between">
             <div className="flex items-center space-x-2">
-              {organizer && <OrganizerIcon user={organizer} />}
+              {organizer && <OrganizerIcon user={organizer} tooltip />}
               <CardTitle>{formatDate(announcement.sendTime)}</CardTitle>
+              <AnnouncementBadge announcement={announcement} />
             </div>
-            <AnnouncementBadge announcement={announcement} onDelete={handleDelete} />
+            <ActionBar announcement={announcement} onDelete={handleDelete} />
           </div>
           <CardDescription>
             <div className="xs:flex md:grid md:grid-cols-[auto_1fr] md:space-x-2">
               {events.map(e => (
                 <Fragment key={e.id}>
-                  <span>{e.name}</span>
-                  <span>{` | ${formatDate(e.startTime)}`}</span>
+                  <span>{`${e.name} | ${formatDate(e.startTime)}`}</span>
                   <br className="md:hidden" />
                 </Fragment>
               ))}
@@ -113,4 +99,54 @@ export function AnnouncementCard({ announcement }: Props) {
       />
     </>
   )
+}
+
+interface ActionBarProps {
+  announcement: Announcement;
+  onDelete: React.MouseEventHandler<HTMLButtonElement>;
+}
+
+function ActionBar({ announcement, onDelete }: ActionBarProps) {
+  const resend = useAnnouncementResend()
+
+  const handleResend = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+
+    resend.mutate(announcement, {
+      onSuccess: () => toast.success("Resend", { description: "Scheduled for resending in one minute" }),
+      onError: (error: Error) => toast.error("Failed", { description: error.message }),
+    })
+  }
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Copy text={announcement.content} tooltip="Copy raw markdown" />
+      {announcement.error && (
+        <TooltipText text="Resend announcement">
+          <IconButton onClick={handleResend}>
+            <RotateCcwIcon />
+          </IconButton>
+        </TooltipText>
+      )}
+      {!announcement.send && !announcement.error && (
+        <TooltipText text="Delete">
+          <IconButton onClick={onDelete}>
+            <Trash2Icon className="text-red-500" />
+          </IconButton>
+        </TooltipText>
+      )}
+    </div>
+  )
+}
+
+function AnnouncementBadge({ announcement }: { announcement: Announcement }) {
+  if (announcement.send) {
+    return <Badge variant="outline" className="text-green-500 border-green-500">Send</Badge>
+  }
+
+  if (announcement.error) {
+    return <Badge variant="outline" className="text-red-500 border-red-500">Error</Badge>
+  }
+
+  return null
 }

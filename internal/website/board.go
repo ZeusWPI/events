@@ -164,7 +164,7 @@ func (c *Client) UpdateBoard(ctx context.Context) error {
 
 	// Delete old boards
 	for _, board := range oldBoards {
-		if !board.IsOrganizer {
+		if !board.IsOrganizer || board.Role == "Developer" {
 			// Don't delete manually created board members
 			// These entries will not be in boards
 			continue

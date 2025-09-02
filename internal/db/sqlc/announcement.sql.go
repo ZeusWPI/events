@@ -234,18 +234,24 @@ func (q *Queries) AnnouncementSend(ctx context.Context, id int32) error {
 
 const announcementUpdate = `-- name: AnnouncementUpdate :exec
 UPDATE announcement
-SET content = $1, send_time = $2
-WHERE id = $3 AND NOT send AND error IS NULL
+SET content = $1, send_time = $2, error = $3
+WHERE id = $4 AND NOT send
 `
 
 type AnnouncementUpdateParams struct {
 	Content  string
 	SendTime pgtype.Timestamptz
+	Error    pgtype.Text
 	ID       int32
 }
 
 func (q *Queries) AnnouncementUpdate(ctx context.Context, arg AnnouncementUpdateParams) error {
-	_, err := q.db.Exec(ctx, announcementUpdate, arg.Content, arg.SendTime, arg.ID)
+	_, err := q.db.Exec(ctx, announcementUpdate,
+		arg.Content,
+		arg.SendTime,
+		arg.Error,
+		arg.ID,
+	)
 	return err
 }
 

@@ -1,40 +1,26 @@
 import { useEventByYear } from "@/lib/api/event";
-import { useMailDelete } from "@/lib/api/mail";
+import { useMailDelete, useMailResend } from "@/lib/api/mail";
 import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useYear } from "@/lib/hooks/useYear";
 import { Mail } from "@/lib/types/mail";
 import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { Trash2Icon } from "lucide-react";
+import { RotateCcwIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { Fragment } from "react/jsx-runtime";
 import { toast } from "sonner";
+import { Copy } from "../atoms/Copy";
+import { IconButton } from "../atoms/IconButton";
 import { OrganizerIcon } from "../atoms/OrganizerIcon";
+import { TooltipText } from "../atoms/TooltipText";
 import { DeleteConfirm } from "../molecules/DeleteConfirm";
 import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
 
 interface Props {
   mail: Mail
-}
-
-function MailBadge({ mail, onDelete }: { mail: Mail, onDelete: React.MouseEventHandler<HTMLButtonElement> }) {
-  if (mail.send) {
-    return <Badge variant="outline" className="text-green-500 border-green-500">Send</Badge>
-  }
-
-  if (mail.error) {
-    return <Badge variant="outline" className="text-red-500 border-red-500">Error</Badge>
-  }
-
-  return (
-    <Button onClick={onDelete} size="icon" variant="secondary" className="size-6">
-      <Trash2Icon className="text-red-500" />
-    </Button>
-  )
 }
 
 export function MailCard({ mail }: Props) {
@@ -81,11 +67,12 @@ export function MailCard({ mail }: Props) {
         <CardHeader>
           <div className="flex justify-between">
             <CardTitle className="flex items-center space-x-2">
-              {organizer && <OrganizerIcon user={organizer} />}
+              {organizer && <OrganizerIcon user={organizer} tooltip />}
               <span>{mail.title}</span>
               <span className="font-normal text-muted-foreground text-sm">{` | ${formatDate(mail.sendTime)}`}</span>
+              <MailBadge mail={mail} />
             </CardTitle>
-            <MailBadge mail={mail} onDelete={handleDelete} />
+            <ActionBar mail={mail} onDelete={handleDelete} />
           </div>
           <CardDescription>
             <div className="xs:flex md:grid md:grid-cols-[auto_1fr] md:space-x-2">
@@ -114,4 +101,55 @@ export function MailCard({ mail }: Props) {
       />
     </>
   )
+}
+
+
+interface ActionBarProps {
+  mail: Mail;
+  onDelete: React.MouseEventHandler<HTMLButtonElement>;
+}
+
+function ActionBar({ mail, onDelete }: ActionBarProps) {
+  const resend = useMailResend()
+
+  const handleResend = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+
+    resend.mutate(mail, {
+      onSuccess: () => toast.success("Resend", { description: "Scheduled for resending in one minute" }),
+      onError: (error: Error) => toast.error("Failed", { description: error.message }),
+    })
+  }
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Copy text={mail.content} tooltip="Copy raw markdown" />
+      {mail.error && (
+        <TooltipText text="Resend announcement">
+          <IconButton onClick={handleResend}>
+            <RotateCcwIcon />
+          </IconButton>
+        </TooltipText>
+      )}
+      {!mail.send && !mail.error && (
+        <TooltipText text="Delete">
+          <IconButton onClick={onDelete}>
+            <Trash2Icon className="text-red-500" />
+          </IconButton>
+        </TooltipText>
+      )}
+    </div>
+  )
+}
+
+function MailBadge({ mail }: { mail: Mail }) {
+  if (mail.send) {
+    return <Badge variant="outline" className="text-green-500 border-green-500">Send</Badge>
+  }
+
+  if (mail.error) {
+    return <Badge variant="outline" className="text-red-500 border-red-500">Error</Badge>
+  }
+
+  return null
 }

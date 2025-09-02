@@ -66,7 +66,7 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail, memberID int) (dto.M
 		return dto.Mail{}, fiber.ErrInternalServerError
 	}
 	if board == nil {
-		return dto.Mail{}, fiber.ErrBadRequest
+		return dto.Mail{}, fiber.ErrForbidden
 	}
 
 	mail.AuthorID = board.ID
@@ -132,4 +132,45 @@ func (m *Mail) Delete(ctx context.Context, mailID int) error {
 	}
 
 	return nil
+}
+
+func (m *Mail) Resend(ctx context.Context, mailID int, memberID int) error {
+	mail, err := m.mail.GetByID(ctx, mailID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if mail == nil {
+		return fiber.ErrNotFound
+	}
+	if mail.Error == "" {
+		return fiber.ErrBadRequest
+	}
+
+	board, err := m.board.GetByMemberYear(ctx, memberID, mail.YearID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if board == nil {
+		return fiber.ErrForbidden
+	}
+
+	mail.AuthorID = board.ID
+	mail.Error = ""
+	mail.SendTime = time.Now().Add(1 * time.Minute) // Add some leanway
+
+	return m.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := m.mail.Update(ctx, *mail); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
+		if err := m.service.mail.ScheduleMailAll(ctx, *mail, false); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
+		return nil
+	})
 }

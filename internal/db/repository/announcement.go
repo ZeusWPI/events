@@ -110,7 +110,8 @@ func (a *Announcement) Update(ctx context.Context, announcement model.Announceme
 		if err := a.repo.queries(ctx).AnnouncementUpdate(ctx, sqlc.AnnouncementUpdateParams{
 			ID:       int32(announcement.ID),
 			Content:  announcement.Content,
-			SendTime: pgtype.Timestamptz{Valid: true, Time: announcement.SendTime},
+			SendTime: pgtype.Timestamptz{Time: announcement.SendTime, Valid: true},
+			Error:    pgtype.Text{String: announcement.Error, Valid: announcement.Error != ""},
 		}); err != nil {
 			return fmt.Errorf("update announcement %+v | %w", announcement, err)
 		}
