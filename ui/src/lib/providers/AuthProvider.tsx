@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import type { Organizer } from "../types/organizer";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { isResponseNot200Error } from "../api/query";
 import { useUser, useUserLogin, useUserLogout } from "../api/user";
 import { AuthContext } from "../contexts/authContext";
+import type { Organizer } from "../types/organizer";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Organizer | null>(null);

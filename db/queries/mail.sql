@@ -31,8 +31,8 @@ RETURNING id;
 
 -- name: MailUpdate :exec
 UPDATE mail
-SET title = $1, content = $2, send_time = $3
-WHERE id = $4 AND NOT send AND error IS NULL;
+SET title = $1, content = $2, send_time = $3, error = $4
+WHERE id = $5 AND NOT send;
 
 -- name: MailSend :exec
 UPDATE mail

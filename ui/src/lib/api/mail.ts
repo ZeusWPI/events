@@ -51,3 +51,15 @@ export function useMailDelete() {
     }
   })
 }
+
+export function useMailResend() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id }: Pick<Mail, "id">) => apiPost(`${ENDPOINT}/resend/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mail"] });
+      queryClient.invalidateQueries({ queryKey: ["event"] });
+    }
+  })
+}

@@ -1,12 +1,13 @@
+import { useTaskStart } from "@/lib/api/task";
 import type { Task } from "@/lib/types/task";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { TaskStatus } from "@/lib/types/task";
+import { cn, formatDate } from "@/lib/utils/utils";
+import { useNavigate } from "@tanstack/react-router";
 import { Calendar, CalendarDays, LoaderCircle, Play } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useTaskStart } from "@/lib/api/task";
-import { TaskStatus } from "@/lib/types/task";
-import { cn, formatDate } from "@/lib/utils/utils";
 import { Pill } from "../atoms/Pill";
+import { TooltipText } from "../atoms/TooltipText";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
@@ -55,9 +56,7 @@ export function TaskCard({ task }: Props) {
         </Tooltip>
         <div className="flex flex-col">
           <div className="flex align-center gap-2">
-            <Link to="/tasks/$id" params={{ id: task.id.toString() }}>
-              <span>{task.name}</span>
-            </Link>
+            <span>{task.name}</span>
             {task.lastError && (
               <Pill color="red">
                 Failed
@@ -74,16 +73,11 @@ export function TaskCard({ task }: Props) {
       </div>
       <div className="flex items-center gap-2">
         {task.recurring && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button onClick={handleRun} disabled={task.status === TaskStatus.RUNNING || updating} size="icon" className="rounded-full">
-                {task.status === TaskStatus.RUNNING ? <LoaderCircle className="animate-spin" /> : <Play />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <span>{task.status === TaskStatus.RUNNING ? "Running" : "Run"}</span>
-            </TooltipContent>
-          </Tooltip>
+          <TooltipText text={task.status === TaskStatus.RUNNING ? "Running" : "Run"}>
+            <Button onClick={handleRun} disabled={task.status === TaskStatus.RUNNING || updating} size="icon" className="rounded-full">
+              {task.status === TaskStatus.RUNNING ? <LoaderCircle className="animate-spin" /> : <Play />}
+            </Button>
+          </TooltipText>
         )}
       </div>
     </div>

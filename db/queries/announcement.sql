@@ -32,8 +32,8 @@ RETURNING id;
 
 -- name: AnnouncementUpdate :exec
 UPDATE announcement
-SET content = $1, send_time = $2
-WHERE id = $3 AND NOT send AND error IS NULL;
+SET content = $1, send_time = $2, error = $3
+WHERE id = $4 AND NOT send;
 
 -- name: AnnouncementSend :exec 
 UPDATE announcement

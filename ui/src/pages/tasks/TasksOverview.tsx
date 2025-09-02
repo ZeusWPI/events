@@ -9,10 +9,11 @@ import { TaskCard } from "@/components/tasks/TaskCard";
 import { TaskHistoryTable } from "@/components/tasks/TaskHistoryTable";
 import { Button } from "@/components/ui/button";
 import { useTaskGetAll, useTaskGetHistory } from "@/lib/api/task";
+import { TaskResult } from "@/lib/types/task";
 
 export function TasksOverview() {
   const { data: tasks = [], isLoading } = useTaskGetAll();
-  const { history, isFetchingNextPage, hasNextPage, fetchNextPage } = useTaskGetHistory({ onlyErrored: true });
+  const { history, isFetchingNextPage, hasNextPage, fetchNextPage } = useTaskGetHistory({ result: TaskResult.FAILED });
 
   const [sentryRef] = useInfiniteScroll({
     loading: isFetchingNextPage,

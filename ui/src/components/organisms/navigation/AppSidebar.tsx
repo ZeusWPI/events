@@ -1,11 +1,9 @@
 import EventsIcon from "@/components/icons/EventsIcon";
+import { YearSelector } from "@/components/molecules/YearSelector";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { useYearGetAll } from "@/lib/api/year";
 import { useBreadcrumbs } from "@/lib/hooks/useBreadcrumb";
-import { useYear } from "@/lib/hooks/useYear";
 import { formatDate, getBuildTime } from "@/lib/utils/utils";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
@@ -19,18 +17,6 @@ import { NavUser } from "./NavUser";
 
 function AppSidebar({ children }: { children: ReactNode }) {
   const { state: breadcrumbs } = useBreadcrumbs();
-
-  const { year, setYear, locked } = useYear()
-  const { data: years } = useYearGetAll()
-
-  const handleSelectChange = (value: string) => {
-    const newYear = years?.find(y => y.id === Number(value))
-    if (!newYear || newYear?.id === year?.id) {
-      return
-    }
-
-    setYear(newYear)
-  }
 
   return (
     <SidebarProvider>
@@ -63,18 +49,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
             <NavTasks />
           </SidebarGroup>
           <SidebarGroup className="mt-auto">
-            <Select onValueChange={handleSelectChange} defaultValue={year?.id.toString()} disabled={locked}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                {years?.map(y => (
-                  <SelectItem key={y.id} value={y.id.toString()}>
-                    {y?.formatted}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <YearSelector />
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>

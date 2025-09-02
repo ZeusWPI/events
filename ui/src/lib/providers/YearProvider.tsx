@@ -45,7 +45,8 @@ export function YearProvider({ children, storageKey = "events-ui-year" }: YearPr
       locked,
       setLocked,
     }),
-    [year, isLoading, locked, storageKey])
+    [year, isLoading, locked, storageKey]
+  )
 
   return <YearContext value={value}>{children}</YearContext>;
 }

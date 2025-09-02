@@ -66,7 +66,7 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 		return dto.Announcement{}, fiber.ErrInternalServerError
 	}
 	if board == nil {
-		return dto.Announcement{}, fiber.ErrBadRequest
+		return dto.Announcement{}, fiber.ErrForbidden
 	}
 
 	announcement.AuthorID = board.ID
@@ -132,4 +132,45 @@ func (a *Announcement) Delete(ctx context.Context, announcementID int) error {
 	}
 
 	return nil
+}
+
+func (a *Announcement) Resend(ctx context.Context, announcementID int, memberID int) error {
+	announcement, err := a.announcement.GetByID(ctx, announcementID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if announcement == nil {
+		return fiber.ErrNotFound
+	}
+	if announcement.Error == "" {
+		return fiber.ErrBadRequest
+	}
+
+	board, err := a.board.GetByMemberYear(ctx, memberID, announcement.YearID)
+	if err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+	if board == nil {
+		return fiber.ErrForbidden
+	}
+
+	announcement.AuthorID = board.ID
+	announcement.Error = ""
+	announcement.SendTime = time.Now().Add(1 * time.Minute) // Add some leanway
+
+	return a.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := a.announcement.Update(ctx, *announcement); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
+		if err := a.service.mattermost.ScheduleAnnouncement(ctx, *announcement, false); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
+		return nil
+	})
 }

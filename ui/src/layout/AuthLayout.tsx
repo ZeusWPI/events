@@ -18,5 +18,5 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
     return <Login />;
   }
 
-  return <>{children}</>;
+  return children;
 }
