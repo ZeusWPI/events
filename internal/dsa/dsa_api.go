@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type activityResponse struct {
