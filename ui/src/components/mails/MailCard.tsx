@@ -14,6 +14,7 @@ import { IconButton } from "../atoms/IconButton";
 import { OrganizerIcon } from "../atoms/OrganizerIcon";
 import { TooltipText } from "../atoms/TooltipText";
 import { DeleteConfirm } from "../molecules/DeleteConfirm";
+import { ResendConfirm } from "../molecules/ResendConfirm";
 import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
 import { Badge } from "../ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
@@ -36,6 +37,9 @@ export function MailCard({ mail }: Props) {
   const [openDelete, setOpenDelete] = useState(false)
   const mailDelete = useMailDelete()
 
+  const [openResend, setOpenResend] = useState(false)
+  const mailResend = useMailResend()
+
   if (isLoadingEvents || isLoadingOrganizers) {
     return
   }
@@ -46,6 +50,19 @@ export function MailCard({ mail }: Props) {
     }
 
     navigate({ to: "/mails/edit/$mailId", params: { mailId: mail.id.toString() } })
+  }
+
+  const handleResend = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    setOpenResend(true)
+  }
+
+  const handleResendConfirm = () => {
+    mailResend.mutate(mail, {
+      onSuccess: () => toast.success("Mail resend", { description: "Scheduled for resending in one minute" }),
+      onError: (err) => toast.error("Failed", { description: err.message }),
+      onSettled: () => setOpenResend(false),
+    })
   }
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -72,7 +89,7 @@ export function MailCard({ mail }: Props) {
               <span className="font-normal text-muted-foreground text-sm">{` | ${formatDate(mail.sendTime)}`}</span>
               <MailBadge mail={mail} />
             </CardTitle>
-            <ActionBar mail={mail} onDelete={handleDelete} />
+            <ActionBar mail={mail} onResend={handleResend} onDelete={handleDelete} />
           </div>
           <CardDescription>
             <div className="xs:flex md:grid md:grid-cols-[auto_1fr] md:space-x-2">
@@ -99,6 +116,11 @@ export function MailCard({ mail }: Props) {
         onOpenChange={setOpenDelete}
         onDelete={handleDeleteConfirm}
       />
+      <ResendConfirm
+        open={openResend}
+        onOpenChange={setOpenResend}
+        onResend={handleResendConfirm}
+      />
     </>
   )
 }
@@ -106,27 +128,17 @@ export function MailCard({ mail }: Props) {
 
 interface ActionBarProps {
   mail: Mail;
+  onResend: React.MouseEventHandler<HTMLButtonElement>;
   onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-function ActionBar({ mail, onDelete }: ActionBarProps) {
-  const resend = useMailResend()
-
-  const handleResend = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation()
-
-    resend.mutate(mail, {
-      onSuccess: () => toast.success("Resend", { description: "Scheduled for resending in one minute" }),
-      onError: (error: Error) => toast.error("Failed", { description: error.message }),
-    })
-  }
-
+function ActionBar({ mail, onResend, onDelete }: ActionBarProps) {
   return (
     <div className="flex items-center space-x-2">
       <Copy text={mail.content} tooltip="Copy raw markdown" />
       {mail.error && (
-        <TooltipText text="Resend announcement">
-          <IconButton onClick={handleResend}>
+        <TooltipText text="Resend mail">
+          <IconButton onClick={onResend}>
             <RotateCcwIcon />
           </IconButton>
         </TooltipText>

@@ -18,6 +18,7 @@ import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
 import { Badge } from "../ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
+import { ResendConfirm } from "../molecules/ResendConfirm";
 
 interface Props {
   announcement: Announcement;
@@ -36,6 +37,9 @@ export function AnnouncementCard({ announcement }: Props) {
   const [openDelete, setOpenDelete] = useState(false)
   const announcementDelete = useAnnouncementDelete()
 
+  const [openResend, setOpenResend] = useState(false)
+  const announcementResend = useAnnouncementResend()
+
   if (isLoadingEvents || isLoadingOrganizers) {
     return
   }
@@ -46,6 +50,19 @@ export function AnnouncementCard({ announcement }: Props) {
     }
 
     navigate({ to: "/announcements/edit/$announcementId", params: { announcementId: announcement.id.toString() } })
+  }
+
+  const handleResend = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation()
+    setOpenResend(true)
+  }
+
+  const handleResendConfirm = () => {
+    announcementResend.mutate(announcement, {
+      onSuccess: () => toast.success("Announcement resend", { description: "Scheduled for resending in one minute" }),
+      onError: (err) => toast.error("Failed", { description: err.message }),
+      onSettled: () => setOpenResend(false),
+    })
   }
 
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -71,7 +88,7 @@ export function AnnouncementCard({ announcement }: Props) {
               <CardTitle>{formatDate(announcement.sendTime)}</CardTitle>
               <AnnouncementBadge announcement={announcement} />
             </div>
-            <ActionBar announcement={announcement} onDelete={handleDelete} />
+            <ActionBar announcement={announcement} onResend={handleResend} onDelete={handleDelete} />
           </div>
           <CardDescription>
             <div className="xs:flex md:grid md:grid-cols-[auto_1fr] md:space-x-2">
@@ -97,33 +114,28 @@ export function AnnouncementCard({ announcement }: Props) {
         onOpenChange={setOpenDelete}
         onDelete={handleDeleteConfirm}
       />
+      <ResendConfirm
+        open={openResend}
+        onOpenChange={setOpenResend}
+        onResend={handleResendConfirm}
+      />
     </>
   )
 }
 
 interface ActionBarProps {
   announcement: Announcement;
+  onResend: React.MouseEventHandler<HTMLButtonElement>;
   onDelete: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-function ActionBar({ announcement, onDelete }: ActionBarProps) {
-  const resend = useAnnouncementResend()
-
-  const handleResend = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation()
-
-    resend.mutate(announcement, {
-      onSuccess: () => toast.success("Resend", { description: "Scheduled for resending in one minute" }),
-      onError: (error: Error) => toast.error("Failed", { description: error.message }),
-    })
-  }
-
+function ActionBar({ announcement, onResend, onDelete }: ActionBarProps) {
   return (
     <div className="flex items-center space-x-2">
       <Copy text={announcement.content} tooltip="Copy raw markdown" />
       {announcement.error && (
         <TooltipText text="Resend announcement">
-          <IconButton onClick={handleResend}>
+          <IconButton onClick={onResend}>
             <RotateCcwIcon />
           </IconButton>
         </TooltipText>
@@ -150,3 +162,5 @@ function AnnouncementBadge({ announcement }: { announcement: Announcement }) {
 
   return null
 }
+
+
