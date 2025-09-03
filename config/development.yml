@@ -9,7 +9,7 @@ db:
   password: postgres
 
 storage:
-  provider: postgres
+  provider: minio
 
 minio:
   endpoint: minio:9000
@@ -20,7 +20,7 @@ auth:
   client: tomtest
   secret: blargh
   callback_url: http://localhost:4000/api/auth/callback/zauth
-  redirect_url: http://localhost:9000
+  redirect_url: http://localhost:3000
 
 mail:
   from: Events
@@ -33,8 +33,8 @@ website:
   boards_s: 86400
 
 dsa:
-  url: "http://localhost:3000/api"
-  assoc_abbrev: "weus" # local dsa instance
+  url: "https://dsa.ugent.be/api"
+  assoc_abbrev: "zeus"
   get_activities_s: 3600
   create_activities_s: 7200
 

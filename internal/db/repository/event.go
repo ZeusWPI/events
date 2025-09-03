@@ -118,20 +118,34 @@ func (e *Event) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Ev
 }
 
 func (e *Event) GetNextWithYear(ctx context.Context) (*model.Event, error) {
-	events, err := e.GetNextAllWithYear(ctx)
+	event, err := e.repo.queries(ctx).EventGetNextWithYear(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("get next events with year %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get next event with year %w", err)
 	}
 
-	if len(events) == 0 {
-		return nil, errors.New("no next event found")
-	}
+	return &model.Event{
+		ID:          int(event.ID),
+		FileName:    event.FileName,
+		Name:        event.Name,
+		Description: event.Description.String,
+		StartTime:   event.StartTime.Time,
+		EndTime:     event.EndTime.Time,
+		YearID:      int(event.YearID),
+		Location:    event.Location.String,
+		Year: model.Year{
+			ID:    int(event.ID_2),
+			Start: int(event.YearStart),
+			End:   int(event.YearEnd),
+		},
+	}, nil
 
-	return events[0], nil
 }
 
-func (e *Event) GetNextAllWithYear(ctx context.Context) ([]*model.Event, error) {
-	events, err := e.repo.queries(ctx).EventGetAllNextWithYear(ctx)
+func (e *Event) GetFutureWithYear(ctx context.Context) ([]*model.Event, error) {
+	events, err := e.repo.queries(ctx).EventGetFutureWithYear(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -139,7 +153,7 @@ func (e *Event) GetNextAllWithYear(ctx context.Context) ([]*model.Event, error) 
 		return nil, fmt.Errorf("get next events with year %w", err)
 	}
 
-	models := utils.SliceMap(events, func(event sqlc.EventGetAllNextWithYearRow) *model.Event {
+	models := utils.SliceMap(events, func(event sqlc.EventGetFutureWithYearRow) *model.Event {
 		return &model.Event{
 			ID:          int(event.ID),
 			FileName:    event.FileName,

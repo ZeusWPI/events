@@ -19,7 +19,7 @@ func (d *DSA) CreateActivities(ctx context.Context) error {
 		return fmt.Errorf("get activities: %w", err)
 	}
 
-	events, err := d.repoEvent.GetNextAllWithYear(ctx)
+	events, err := d.repoEvent.GetFutureWithYear(ctx)
 	if err != nil {
 		return fmt.Errorf("get events by year: %w", err)
 	}
@@ -86,7 +86,7 @@ func (d *DSA) UpdateActivities(ctx context.Context) error {
 		return fmt.Errorf("get dsa activities: %w", err)
 	}
 
-	upcomingEvents, err := d.repoEvent.GetNextAllWithYear(ctx)
+	upcomingEvents, err := d.repoEvent.GetFutureWithYear(ctx)
 	if err != nil {
 		return fmt.Errorf("get next events: %w", err)
 	}
@@ -125,8 +125,7 @@ func (d *DSA) UpdateActivities(ctx context.Context) error {
 				}
 
 				if (activityUpdate{}) != updateBody {
-					_, err := d.updateActivity(ctx, dsa.DsaID, updateBody)
-					if err != nil {
+					if _, err := d.updateActivity(ctx, dsa.DsaID, updateBody); err != nil {
 						return fmt.Errorf("update dsa activity: %w", err)
 					}
 				}
@@ -177,8 +176,7 @@ func (d *DSA) DeleteActivityByEvent(ctx context.Context, eventID int) error {
 	}
 
 	if dsa.DsaID != 0 {
-		_, err := d.deleteActivity(ctx, dsa.DsaID)
-		if err != nil {
+		if _, err := d.deleteActivity(ctx, dsa.DsaID); err != nil {
 			return fmt.Errorf("delete dsa activity: %w", err)
 		}
 	}

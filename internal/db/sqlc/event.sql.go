@@ -52,60 +52,6 @@ func (q *Queries) EventDelete(ctx context.Context, id int32) error {
 	return err
 }
 
-const eventGetAllNextWithYear = `-- name: EventGetAllNextWithYear :many
-SELECT e.id, file_name, name, description, start_time, end_time, location, year_id, y.id, year_start, year_end
-FROM event e
-INNER JOIN year y ON e.year_id = y.id
-WHERE e.start_time > NOW()
-ORDER BY e.start_time
-`
-
-type EventGetAllNextWithYearRow struct {
-	ID          int32
-	FileName    string
-	Name        string
-	Description pgtype.Text
-	StartTime   pgtype.Timestamptz
-	EndTime     pgtype.Timestamptz
-	Location    pgtype.Text
-	YearID      int32
-	ID_2        int32
-	YearStart   int32
-	YearEnd     int32
-}
-
-func (q *Queries) EventGetAllNextWithYear(ctx context.Context) ([]EventGetAllNextWithYearRow, error) {
-	rows, err := q.db.Query(ctx, eventGetAllNextWithYear)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []EventGetAllNextWithYearRow
-	for rows.Next() {
-		var i EventGetAllNextWithYearRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.FileName,
-			&i.Name,
-			&i.Description,
-			&i.StartTime,
-			&i.EndTime,
-			&i.Location,
-			&i.YearID,
-			&i.ID_2,
-			&i.YearStart,
-			&i.YearEnd,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const eventGetAllWithYear = `-- name: EventGetAllWithYear :many
 SELECT event.id, file_name, name, description, start_time, end_time, location, year_id, year.id, year_start, year_end FROM event
 INNER JOIN year ON event.year_id = year.id
@@ -367,6 +313,102 @@ func (q *Queries) EventGetByYearPopulated(ctx context.Context, yearID int32) ([]
 		return nil, err
 	}
 	return items, nil
+}
+
+const eventGetFutureWithYear = `-- name: EventGetFutureWithYear :many
+SELECT e.id, file_name, name, description, start_time, end_time, location, year_id, y.id, year_start, year_end
+FROM event e
+INNER JOIN year y ON e.year_id = y.id
+WHERE e.start_time > NOW()
+ORDER BY e.start_time
+`
+
+type EventGetFutureWithYearRow struct {
+	ID          int32
+	FileName    string
+	Name        string
+	Description pgtype.Text
+	StartTime   pgtype.Timestamptz
+	EndTime     pgtype.Timestamptz
+	Location    pgtype.Text
+	YearID      int32
+	ID_2        int32
+	YearStart   int32
+	YearEnd     int32
+}
+
+func (q *Queries) EventGetFutureWithYear(ctx context.Context) ([]EventGetFutureWithYearRow, error) {
+	rows, err := q.db.Query(ctx, eventGetFutureWithYear)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []EventGetFutureWithYearRow
+	for rows.Next() {
+		var i EventGetFutureWithYearRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FileName,
+			&i.Name,
+			&i.Description,
+			&i.StartTime,
+			&i.EndTime,
+			&i.Location,
+			&i.YearID,
+			&i.ID_2,
+			&i.YearStart,
+			&i.YearEnd,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const eventGetNextWithYear = `-- name: EventGetNextWithYear :one
+SELECT e.id, file_name, name, description, start_time, end_time, location, year_id, y.id, year_start, year_end
+FROM event e
+INNER JOIN year y ON e.year_id = y.id
+WHERE e.end_time > NOW()
+ORDER BY e.start_time
+LIMIT 1
+`
+
+type EventGetNextWithYearRow struct {
+	ID          int32
+	FileName    string
+	Name        string
+	Description pgtype.Text
+	StartTime   pgtype.Timestamptz
+	EndTime     pgtype.Timestamptz
+	Location    pgtype.Text
+	YearID      int32
+	ID_2        int32
+	YearStart   int32
+	YearEnd     int32
+}
+
+func (q *Queries) EventGetNextWithYear(ctx context.Context) (EventGetNextWithYearRow, error) {
+	row := q.db.QueryRow(ctx, eventGetNextWithYear)
+	var i EventGetNextWithYearRow
+	err := row.Scan(
+		&i.ID,
+		&i.FileName,
+		&i.Name,
+		&i.Description,
+		&i.StartTime,
+		&i.EndTime,
+		&i.Location,
+		&i.YearID,
+		&i.ID_2,
+		&i.YearStart,
+		&i.YearEnd,
+	)
+	return i, err
 }
 
 const eventUpdate = `-- name: EventUpdate :exec
