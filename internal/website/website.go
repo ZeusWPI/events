@@ -3,6 +3,7 @@ package website
 
 import (
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/dsa"
 	"github.com/ZeusWPI/events/pkg/github"
 )
 
@@ -12,10 +13,16 @@ type Client struct {
 	yearRepo   repository.Year
 	boardRepo  repository.Board
 	memberRepo repository.Member
+	dsa        dsa.DSA
 }
 
 func New(repo repository.Repository) (*Client, error) {
 	github, err := github.New()
+	if err != nil {
+		return nil, err
+	}
+
+	dsa, err := dsa.New(repo)
 	if err != nil {
 		return nil, err
 	}
@@ -26,5 +33,6 @@ func New(repo repository.Repository) (*Client, error) {
 		yearRepo:   *repo.NewYear(),
 		boardRepo:  *repo.NewBoard(),
 		memberRepo: *repo.NewMember(),
+		dsa:        *dsa,
 	}, nil
 }

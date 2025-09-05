@@ -281,11 +281,19 @@ func (c *Client) UpdateEvent(ctx context.Context) error {
 	}
 
 	// Delete old events
-	for _, event := range oldEvents {
-		if ok := slices.ContainsFunc(newEvents, func(e *model.Event) bool { return e.EqualEntry(*event) }); !ok {
+	for _, event := range newEvents {
+		if ok := slices.ContainsFunc(events, func(e model.Event) bool { return e.EqualEntry(*event) }); !ok {
+
+			if time.Now().Before(event.StartTime) {
+				if err := c.dsa.DeleteActivityByEvent(ctx, event.ID); err != nil {
+					errs = append(errs, err)
+				}
+
+			}
 			if err := c.eventRepo.Delete(ctx, event.ID); err != nil {
 				errs = append(errs, err)
 			}
+
 		}
 	}
 

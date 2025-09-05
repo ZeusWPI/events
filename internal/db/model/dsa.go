@@ -5,13 +5,21 @@ import "github.com/ZeusWPI/events/internal/db/sqlc"
 type DSA struct {
 	ID      int
 	EventID int
-	Entry   bool
+	DsaID   int
+	Deleted bool // deleted on the DSA website
 }
 
 func DSAModel(dsa sqlc.Dsa) *DSA {
+	dsaID := 0
+
+	if dsa.DsaID.Valid {
+		dsaID = int(dsa.DsaID.Int32)
+	}
+
 	return &DSA{
 		ID:      int(dsa.ID),
 		EventID: int(dsa.EventID),
-		Entry:   dsa.Entry,
+		DsaID:   dsaID,
+		Deleted: dsa.Deleted,
 	}
 }

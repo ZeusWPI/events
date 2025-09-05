@@ -88,7 +88,8 @@ type Check struct {
 type Dsa struct {
 	ID      int32
 	EventID int32
-	Entry   bool
+	DsaID   pgtype.Int4
+	Deleted bool
 }
 
 type Event struct {

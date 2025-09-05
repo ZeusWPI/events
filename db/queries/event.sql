@@ -138,11 +138,18 @@ SELECT jsonb_build_object(
 FROM event e 
 WHERE e.year_id = $1;
 
--- name: EventGetNextWithYear :one
+-- name: EventGetFutureWithYear :many
 SELECT *
 FROM event e
 INNER JOIN year y ON e.year_id = y.id
 WHERE e.start_time > NOW()
+ORDER BY e.start_time;
+
+-- name: EventGetNextWithYear :one
+SELECT *
+FROM event e
+INNER JOIN year y ON e.year_id = y.id
+WHERE e.end_time > NOW()
 ORDER BY e.start_time
 LIMIT 1;
 

@@ -33,8 +33,11 @@ website:
   boards_s: 86400
 
 dsa:
-  url: "https://dsa.ugent.be/api/activiteiten?page_size=100&association=zeus"
-  activities_s: 3600
+  url: "https://dsa.ugent.be/api"
+  assoc_abbrev: "zeus"
+  get_activities_s: 3600
+  create_activities_s: 7200
+
 
 mattermost:
   url: https://mattermost.zeus.gent

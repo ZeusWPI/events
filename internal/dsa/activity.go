@@ -2,10 +2,8 @@ package dsa
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
@@ -13,69 +11,85 @@ import (
 )
 
 const ActivitiesTask = "DSA activities update"
+const CreateActivitesTask = "Create activites on DSA website"
 
-type activityResponse struct {
-	Page struct {
-		Entries []activity `json:"entries"`
-	} `json:"page"`
-}
-
-type activity struct {
-	Association string    `json:"association"`
-	StartTime   time.Time `json:"start_time"`
-}
-
-func (d *DSA) getActivities(ctx context.Context, target *activityResponse) error {
-	req, err := http.NewRequestWithContext(ctx, "GET", d.dsaURL, nil)
+func (d *DSA) CreateActivities(ctx context.Context) error {
+	activities, err := d.getActivities(ctx)
 	if err != nil {
-		return fmt.Errorf("new http request %w", err)
+		return fmt.Errorf("get activities: %w", err)
 	}
 
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", d.dsaKey)
-
-	resp, err := http.DefaultClient.Do(req)
+	events, err := d.repoEvent.GetFutureWithYear(ctx)
 	if err != nil {
-		return fmt.Errorf("do http request %w", err)
-	}
-	defer func() {
-		_ = resp.Body.Close()
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected http status code %s", resp.Status)
+		return fmt.Errorf("get events by year: %w", err)
 	}
 
-	if err = json.NewDecoder(resp.Body).Decode(target); err != nil {
-		return fmt.Errorf("decode body to json %w", err)
+	closeEvents := utils.SliceFilter(events, func(e *model.Event) bool { return e.StartTime.Before(time.Now().AddDate(0, 0, 14)) })
+
+	dsas, err := d.repoDSA.GetByEvents(ctx, utils.SliceDereference(closeEvents))
+	if err != nil {
+		return fmt.Errorf("get local dsa activities: %w", err)
+	}
+
+	uncreatedActivities := utils.SliceFilter(dsas, func(d *model.DSA) bool { return d.DsaID == 0 })
+
+	for _, dsa := range uncreatedActivities {
+		event, err := d.repoEvent.GetByID(ctx, dsa.EventID)
+		if err != nil {
+			return fmt.Errorf("get event: %w", err)
+		}
+
+		if event == nil {
+			return fmt.Errorf("no event with ID %d", dsa.EventID)
+		}
+
+		act, activityOk := utils.SliceFind(activities, func(a activity) bool { return a.StartTime.Equal(event.StartTime) })
+
+		if !activityOk {
+			// Event is not yet on the dsa website
+
+			activityCreate := activityCreate{
+				Title:       event.Name,
+				Association: d.abbreviation,
+				Description: event.Description,
+				EndTime:     event.EndTime,
+				StartTime:   event.StartTime,
+				Location:    event.Location,
+				Public:      true,
+				Type:        "Cultuur",
+				Terrain:     "ugent",
+			}
+
+			response, err := d.createActivity(ctx, activityCreate)
+			if err != nil {
+				return fmt.Errorf("create dsa activity: %w", err)
+			}
+
+			dsa.DsaID = response.ID
+
+		} else {
+			// Event is already on the dsa website, added manually
+			dsa.DsaID = act.ID
+		}
+
+		if err := d.repoDSA.Update(ctx, *dsa); err != nil {
+			return fmt.Errorf("update local dsa record: %w", err)
+		}
 	}
 
 	return nil
 }
 
 func (d *DSA) UpdateActivities(ctx context.Context) error {
-	var resp activityResponse
-	if err := d.getActivities(ctx, &resp); err != nil {
-		return err
-	}
-	activities := resp.Page.Entries
-
-	year, err := d.repoYear.GetLast(ctx)
+	activities, err := d.getActivities(ctx)
 	if err != nil {
-		return err
-	}
-	if year == nil {
-		return nil
+		return fmt.Errorf("get dsa activities: %w", err)
 	}
 
-	events, err := d.repoEvent.GetByYearPopulated(ctx, year.ID)
+	upcomingEvents, err := d.repoEvent.GetFutureWithYear(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("get next events: %w", err)
 	}
-
-	// DSA api only shows upcoming events
-	now := time.Now()
-	upcomingEvents := utils.SliceFilter(events, func(e *model.Event) bool { return e.StartTime.After(now) })
 
 	dsas, err := d.repoDSA.GetByEvents(ctx, utils.SliceDereference(upcomingEvents))
 	if err != nil {
@@ -83,21 +97,55 @@ func (d *DSA) UpdateActivities(ctx context.Context) error {
 	}
 
 	var toCreate []*model.DSA
-	var toDelete []int
 
 	for _, event := range upcomingEvents {
-		_, activityOk := utils.SliceFind(activities, func(a activity) bool { return a.StartTime.Equal(event.StartTime) })
+		act, activityOk := utils.SliceFind(activities, func(a activity) bool { return a.StartTime.Equal(event.StartTime) }) // TODO do not match based on start time as this can change
 		dsa, dsaOk := utils.SliceFind(dsas, func(d *model.DSA) bool { return d.EventID == event.ID })
 
-		if activityOk {
+		switch {
+		case activityOk:
 			// Event is on the dsa website
 			if !dsaOk {
-				toCreate = append(toCreate, &model.DSA{EventID: event.ID, Entry: true})
+				// Event has not been created yet locally
+				toCreate = append(toCreate, &model.DSA{EventID: event.ID, DsaID: act.ID})
+			} else if dsa.DsaID != 0 {
+				// Both on the DSA website and locally in events, check if there is an update.
+				updateBody := activityUpdate{}
+				if act.Description != event.Description {
+					updateBody.Description = event.Description
+				}
+				if !act.StartTime.Equal(event.StartTime) {
+					updateBody.StartTime = event.StartTime
+				}
+				if !act.EndTime.Equal(event.EndTime) {
+					updateBody.EndTime = event.EndTime
+				}
+				if act.Location != event.Location {
+					updateBody.Location = event.Location
+				}
+
+				if (activityUpdate{}) != updateBody {
+					if _, err := d.updateActivity(ctx, dsa.DsaID, updateBody); err != nil {
+						return fmt.Errorf("update dsa activity: %w", err)
+					}
+				}
+
+				if dsa.Deleted {
+					// activity has been manually recreated on the dsa website
+					dsa.Deleted = false
+					if err := d.repoDSA.Update(ctx, *dsa); err != nil {
+						return err
+					}
+				}
 			}
-		} else {
-			// Event is not on the dsa website yet (or has been removed)
-			if dsaOk {
-				toDelete = append(toDelete, dsa.ID)
+		case !dsaOk:
+			// Event is not on the dsa website yet and not created locally
+			toCreate = append(toCreate, &model.DSA{EventID: event.ID})
+		case dsa.DsaID != 0 && !dsa.Deleted:
+			// This activity has been deleted on the DSA website, mark it as manually deleted.
+			dsa.Deleted = true
+			if err := d.repoDSA.Update(ctx, *dsa); err != nil {
+				return fmt.Errorf("could not set dsa deleted to true: %w", err)
 			}
 		}
 	}
@@ -110,14 +158,27 @@ func (d *DSA) UpdateActivities(ctx context.Context) error {
 		}
 	}
 
-	for _, delete := range toDelete {
-		if err := d.repoDSA.Delete(ctx, delete); err != nil {
-			errs = append(errs, err)
-		}
-	}
-
 	if errs != nil {
 		return errors.Join(errs...)
+	}
+
+	return nil
+}
+
+func (d *DSA) DeleteActivityByEvent(ctx context.Context, eventID int) error {
+	dsa, err := d.repoDSA.GetByEventID(ctx, eventID)
+	if err != nil {
+		return fmt.Errorf("get dsa record by event: %w", err)
+	}
+
+	if dsa == nil {
+		return fmt.Errorf("no dsa record having event id %d", eventID)
+	}
+
+	if dsa.DsaID != 0 {
+		if _, err := d.deleteActivity(ctx, dsa.DsaID); err != nil {
+			return fmt.Errorf("delete dsa activity: %w", err)
+		}
 	}
 
 	return nil
