@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
+	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -23,31 +23,25 @@ func (s *Service) NewCheck() *Check {
 	}
 }
 
-func (c *Check) Create(ctx context.Context, checkSave dto.Check) error {
-	check := model.Check{
-		EventID:     checkSave.EventID,
-		Description: checkSave.Description,
-	}
+func (c *Check) Create(ctx context.Context, create dto.CheckCreate) error {
+	check := create.ToModel()
+}
 
-	if err := c.check.Create(ctx, &check); err != nil {
+func (c *Check) Update(ctx context.Context, update dto.CheckUpdate) error {
+	check := update.ToModel()
+
+	original, err := c.check.GetCustom(ctx, check.ID)
+	if err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}
-
-	return nil
-}
-
-func (c *Check) Toggle(ctx context.Context, checkID int) error {
-	if err := c.check.Toggle(ctx, checkID); err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
+	if original == nil {
+		return fiber.ErrNotFound
 	}
 
-	return nil
-}
+	utils.Merge(check, *original)
 
-func (c *Check) Delete(ctx context.Context, checkID int) error {
-	if err := c.check.Delete(ctx, checkID); err != nil {
+	if err := c.check.UpdateCustom(ctx, *check); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}

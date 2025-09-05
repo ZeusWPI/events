@@ -1,42 +1,56 @@
 package dto
 
 import (
-	"github.com/ZeusWPI/events/internal/check"
+	"time"
+
+	"github.com/ZeusWPI/events/internal/db/model"
 )
 
-type CheckStatus string
+type CheckType string
 
 const (
-	Finished   CheckStatus = "finished"
-	Unfinished CheckStatus = "unfinished"
-	Warning    CheckStatus = "warning"
-)
-
-type CheckSource string
-
-const (
-	Automatic CheckSource = "automatic"
-	Manual    CheckSource = "manual"
+	Automatic CheckType = "automatic"
+	Manual    CheckType = "manual"
 )
 
 type Check struct {
-	ID          int         `json:"id"`
-	EventID     int         `json:"event_id" validate:"required"`
-	Description string      `json:"description" validate:"required"`
-	Status      CheckStatus `json:"status"`
-	Warning     string      `json:"warning,omitzero"`
-	Error       error       `json:"error"`
-	Source      CheckSource `json:"source"`
+	ID          int                   `json:"id"`
+	Description string                `json:"description"`
+	Status      model.CheckStatusEnum `json:"status"`
+	Type        CheckType             `json:"type"`
+
+	// Automatic check fields
+	Deadline time.Duration `json:"duration,omitzero"`
+	Message  string        `json:"message,omitzero"`
+
+	// Manual check fields
+	Creator Organizer `json:"creator,omitzero"`
 }
 
-func CheckDTO(check check.EventStatus) Check {
-	return Check{
-		ID:          check.ID,
-		EventID:     check.EventID,
-		Description: check.Description,
-		Warning:     check.Warning,
-		Status:      CheckStatus(check.Status),
-		Error:       check.Error,
-		Source:      CheckSource(check.Source),
+type CheckCreate struct {
+	EventID     int    `json:"event_id" validate:"required"`
+	Description string `json:"description" validate:"required"`
+}
+
+func (c *CheckCreate) ToModel() *model.CheckCustom {
+	return &model.CheckCustom{
+		EventID:     c.EventID,
+		Description: c.Description,
+	}
+}
+
+type CheckUpdate struct {
+	ID          int                   `json:"id" validate:"required"`
+	EventID     int                   `json:"event_id"`
+	Description string                `json:"description"`
+	Status      model.CheckStatusEnum `json:"status"`
+}
+
+func (c *CheckUpdate) ToModel() *model.CheckCustom {
+	return &model.CheckCustom{
+		ID:          c.ID,
+		EventID:     c.EventID,
+		Description: c.Description,
+		Status:      c.Status,
 	}
 }
