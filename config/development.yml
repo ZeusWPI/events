@@ -1,5 +1,6 @@
 app:
   name: events
+  host: 0.0.0.0
 
 db:
   host: db
@@ -8,13 +9,15 @@ db:
   user: postgres
   password: postgres
 
-storage:
-  provider: minio
-
 minio:
   endpoint: minio:9000
   username: minio
   password: miniominio
+  bucket: events
+  secure: false
+
+storage:
+  provider: minio
 
 auth:
   client: tomtest
@@ -23,34 +26,24 @@ auth:
   redirect_url: http://localhost:3000
 
 mail:
-  from: Events
-  from_address: events@zeus.ugent.be
-  host: smtp.ugent.be
-  port: 25
+  deadline_s: 0
 
 website:
-  events_s: 86400
-  boards_s: 86400
+  events_s: 86400 # 1 day
+  boards_s: 86400 # 1 day
 
 dsa:
-  url: "https://dsa.ugent.be/api"
-  assoc_abbrev: "zeus"
-  get_activities_s: 3600
-  create_activities_s: 7200
+  deadline_s: 259200 # 3 days
+  syncronize_s: 86400 # 1 day
 
 announcement:
   channel: c48qqzyfp7dhjciniwbk7k8fgy # Test kanaal
-
-mattermost:
-  url: https://mattermost.zeus.gent
-
-gitmate:
-  url: "https://git.zeus.gent/api/v1/repos/ZeusWPI/visueel"
+  deadline_s: 259200 # 3 days
 
 check:
-  sync_s: 10800
+  sync_s: 10800 # 3 hours
 
 poster:
-  sync_s: 86400
+  sync_s: 86400 # 1 day
   big_deadline_s: 0
   scc_deadline_s: 0

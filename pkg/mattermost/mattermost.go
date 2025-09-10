@@ -12,11 +12,11 @@ import (
 	"github.com/ZeusWPI/events/pkg/config"
 )
 
-const apiURL = "api/v4"
+// Change this if you have a local mattermost instance
+const url = "https://mattermost.zeus.gent/api/v4"
 
 type Client struct {
 	token string
-	url   string
 }
 
 func New() (*Client, error) {
@@ -25,14 +25,8 @@ func New() (*Client, error) {
 		return nil, errors.New("no mattermost token set")
 	}
 
-	url := config.GetDefaultString("mattermost.url", "")
-	if url == "" {
-		return nil, errors.New("no mattermost url set")
-	}
-
 	return &Client{
 		token: token,
-		url:   url,
 	}, nil
 }
 
@@ -44,7 +38,7 @@ type query struct {
 }
 
 func (c *Client) query(ctx context.Context, q query) error {
-	req, err := http.NewRequestWithContext(ctx, q.method, fmt.Sprintf("%s/%s/%s", c.url, apiURL, q.url), q.body)
+	req, err := http.NewRequestWithContext(ctx, q.method, fmt.Sprintf("%s/%s", url, q.url), q.body)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)
 	}

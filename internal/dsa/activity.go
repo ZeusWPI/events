@@ -21,7 +21,7 @@ func (c *Client) createEvent(ctx context.Context, event model.Event) error {
 
 	create := activityCreate{
 		Title:       event.Name,
-		Association: c.abbreviation,
+		Association: abbreviation,
 		Description: event.Description,
 		EndTime:     event.EndTime,
 		StartTime:   event.StartTime,
@@ -65,7 +65,7 @@ func (c *Client) updateEvent(ctx context.Context, event model.Event) error {
 	public := true
 	update := activityUpdate{
 		Title:       event.Name,
-		Association: c.abbreviation,
+		Association: abbreviation,
 		Description: event.Description,
 		EndTime:     event.EndTime,
 		StartTime:   event.StartTime,
