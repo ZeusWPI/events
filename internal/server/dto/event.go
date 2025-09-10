@@ -20,11 +20,11 @@ type Event struct {
 	EndTime       *time.Time     `json:"end_time,omitempty"` // Pointer to support omitempty
 	Location      string         `json:"location"`
 	Year          Year           `json:"year"`
-	Organizers    []Organizer    `json:"organizers"`
-	Checks        []Check        `json:"checks"`
-	Announcements []Announcement `json:"announcements,omitzero"`
-	Mails         []Mail         `json:"mails,omitzero"`
-	Posters       []Poster       `json:"posters"`
+	Organizers    []Organizer    `json:"organizers,omitempty"`
+	Checks        []Check        `json:"checks,omitempty"`
+	Announcements []Announcement `json:"announcements,omitempty"`
+	Mails         []Mail         `json:"mails,omitempty"`
+	Posters       []Poster       `json:"posters,omitempty"`
 }
 
 func EventDTO(event *model.Event) Event {

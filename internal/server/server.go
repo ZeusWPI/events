@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/ZeusWPI/events/internal/server/api"
 	v1 "github.com/ZeusWPI/events/internal/server/api/v1"
@@ -38,10 +37,7 @@ func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 		Logger: zap.L(),
 	}))
 
-	env := config.GetDefaultString("app.env", "development")
-	env = strings.ToLower(env)
-
-	if env == "development" {
+	if config.IsDev() {
 		app.Use(cors.New(cors.Config{
 			AllowOrigins:     "http://localhost:3000",
 			AllowHeaders:     "Origin, Content-Type, Accept, Access-Control-Allow-Origin",
@@ -53,7 +49,7 @@ func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 		KeyLookup:      fmt.Sprintf("cookie:%s_session_id", config.GetDefaultString("app.name", "events")),
 		CookieHTTPOnly: true,
 		Storage:        postgres.New(postgres.Config{DB: pool}),
-		CookieSecure:   env != "development",
+		CookieSecure:   !config.IsDev(),
 	})
 
 	// Swagger
@@ -91,7 +87,7 @@ func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 	webhook.NewGithub(webhookRouter, service)
 	webhook.NewGitmate(webhookRouter, service)
 
-	if env != "development" {
+	if !config.IsDev() {
 		app.Static("/", "./public")
 		app.Static("*", "./public/index.html")
 	}

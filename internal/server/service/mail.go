@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/pkg/utils"
@@ -71,8 +72,9 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail, memberID int) (dto.M
 
 	mail.AuthorID = board.ID
 
-	if mail.ID != 0 {
-		oldMail, err := m.mail.GetByID(ctx, mail.ID)
+	var oldMail *model.Mail
+	if mailSave.ID != 0 {
+		oldMail, err = m.mail.GetByID(ctx, mail.ID)
 		if err != nil {
 			zap.S().Error(err)
 			return dto.Mail{}, fiber.ErrInternalServerError
@@ -87,19 +89,21 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail, memberID int) (dto.M
 	}
 
 	if err = m.service.withRollback(ctx, func(ctx context.Context) error {
-		update := false
-		if mail.ID == 0 {
+		if mailSave.ID == 0 {
 			err = m.mail.Create(ctx, mail)
 		} else {
 			err = m.mail.Update(ctx, *mail)
-			update = true
 		}
-
 		if err != nil {
 			return err
 		}
 
-		if err = m.service.mail.ScheduleMailAll(ctx, *mail, update); err != nil {
+		if mailSave.ID == 0 {
+			err = m.service.mail.Create(ctx, *mail)
+		} else {
+			err = m.service.mail.Update(ctx, *oldMail, *mail)
+		}
+		if err != nil {
 			return err
 		}
 
@@ -122,16 +126,23 @@ func (m *Mail) Delete(ctx context.Context, mailID int) error {
 		return fiber.ErrBadRequest
 	}
 
-	if mail.Send || mail.Error != "" {
+	if mail.SendTime.Before(time.Now()) || mail.Send || mail.Error != "" {
 		return fiber.ErrBadRequest
 	}
 
-	if err := m.mail.Delete(ctx, mailID); err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
-	}
+	return m.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := m.mail.Delete(ctx, mailID); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
 
-	return nil
+		if err := m.service.mail.Delete(ctx, *mail); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
+		return nil
+	})
 }
 
 func (m *Mail) Resend(ctx context.Context, mailID int, memberID int) error {
@@ -143,6 +154,7 @@ func (m *Mail) Resend(ctx context.Context, mailID int, memberID int) error {
 	if mail == nil {
 		return fiber.ErrNotFound
 	}
+	// Only reschedule mails that have failed
 	if mail.Error == "" {
 		return fiber.ErrBadRequest
 	}
@@ -166,7 +178,7 @@ func (m *Mail) Resend(ctx context.Context, mailID int, memberID int) error {
 			return fiber.ErrInternalServerError
 		}
 
-		if err := m.service.mail.ScheduleMailAll(ctx, *mail, false); err != nil {
+		if err := m.service.mail.ScheduleMailAll(ctx, *mail); err != nil {
 			zap.S().Error(err)
 			return fiber.ErrInternalServerError
 		}

@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/sqlc"
@@ -13,48 +12,53 @@ type TaskResult string
 const (
 	Success  TaskResult = "success"
 	Failed   TaskResult = "failed"
-	Resolved TaskResult = "resolved"
+	Resolved TaskResult = "resolved" // Task failed but has been marked as resolved by the user
 )
 
-func TaskResultModel(result string) (TaskResult, error) {
-	switch result {
-	case string(Success), string(Failed), string(Resolved):
-		return TaskResult(result), nil
-	default:
-		return "", fmt.Errorf("invalid task result %s", result)
-	}
-}
+type TaskType string
+
+const (
+	TaskRecurring TaskType = "recurring"
+	TaskOnce      TaskType = "once"
+)
 
 type Task struct {
-	ID        int
-	Name      string
-	Result    TaskResult
-	RunAt     time.Time
-	Error     error
-	Recurring bool
-	Duration  time.Duration
-}
+	// Task result
+	ID       int // ID of the task result
+	RunAt    time.Time
+	Result   TaskResult
+	Error    error
+	Duration time.Duration
 
-type TaskFilter struct {
+	// Task fields
+	UID    string // Identifier of the task
 	Name   string
-	Result *TaskResult
-	Limit  int
-	Offset int
+	Active bool
+	Type   TaskType
 }
 
-func TaskModel(task sqlc.Task) *Task {
-	var errTask error
-	if task.Error.Valid {
-		errTask = errors.New(task.Error.String)
+func TaskModel(task sqlc.Task, taskRun sqlc.TaskRun) *Task {
+	var err error
+	if taskRun.Error.Valid {
+		err = errors.New(taskRun.Error.String)
 	}
 
 	return &Task{
-		ID:        int(task.ID),
-		Name:      task.Name,
-		Result:    TaskResult(task.Result),
-		RunAt:     task.RunAt.Time,
-		Error:     errTask,
-		Recurring: task.Recurring,
-		Duration:  time.Duration(task.Duration.Microseconds * int64(time.Microsecond)),
+		ID:       int(taskRun.ID),
+		RunAt:    taskRun.RunAt.Time,
+		Result:   TaskResult(taskRun.Result),
+		Error:    err,
+		Duration: time.Duration(taskRun.Duration),
+		UID:      task.Uid,
+		Name:     task.Name,
+		Active:   task.Active,
+		Type:     TaskType(task.Type),
 	}
+}
+
+type TaskFilter struct {
+	TaskUID string
+	Result  *TaskResult
+	Limit   int
+	Offset  int
 }

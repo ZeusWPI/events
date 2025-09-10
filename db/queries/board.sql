@@ -1,32 +1,36 @@
--- name: BoardGetAllPopulated :many
-SELECT * 
-FROM board b
-INNER JOIN member m ON b.member_id = m.id 
-INNER JOIN year y ON b.year_id = y.id;
-
--- name: BoardGetByIds :many
-SELECT * 
-FROM board
-WHERE id = ANY($1::int[]);
-
--- name: BoardGetByYearPopulated :many 
-SELECT * 
-FROM board b 
-INNER JOIN member m ON b.member_id = m.id 
-INNER JOIN year y ON b.year_id = y.id
-WHERE b.year_id = $1;
-
 -- name: BoardGetByMemberYear :one 
-SELECT * 
-FROM board b 
-INNER JOIN member m ON b.member_id = m.id 
-INNER JOIN year y ON b.year_id = y.id
+SELECT sqlc.embed(b), sqlc.embed(m), sqlc.embed(y)
+FROM board b
+LEFT JOIN member m ON b.member_id = m.id
+LEFT JOIN year y ON b.year_id = y.id
 WHERE m.id = $1 AND y.id = $2;
 
--- name: BoardGetByMemberID :many 
-SELECT * 
-FROM board
-WHERE member_id = $1;
+-- name: BoardGetAll :many
+SELECT sqlc.embed(b), sqlc.embed(m), sqlc.embed(y)
+FROM board b
+LEFT JOIN member m ON b.member_id = m.id 
+LEFT JOIN year y ON b.year_id = y.id;
+
+-- name: BoardGetByIds :many
+SELECT sqlc.embed(b), sqlc.embed(m), sqlc.embed(y)
+FROM board b
+LEFT JOIN member m ON b.member_id = m.id 
+LEFT JOIN year y ON b.year_id = y.id
+WHERE b.id = ANY($1::INT[]);
+
+-- name: BoardGetByYear :many 
+SELECT sqlc.embed(b), sqlc.embed(m), sqlc.embed(y)
+FROM board b
+LEFT JOIN member m ON b.member_id = m.id
+LEFT JOIN year y ON b.year_id = y.id
+WHERE b.year_id = $1;
+
+-- name: BoardGetByMember :many 
+SELECT sqlc.embed(b), sqlc.embed(m), sqlc.embed(y)
+FROM board b
+LEFT JOIN member m ON b.member_id = m.id
+LEFT JOIN year y ON b.year_id = y.id
+WHERE m.id = $1;
 
 -- name: BoardCreate :one
 INSERT INTO board (role, member_id, year_id, is_organizer)

@@ -5,16 +5,38 @@ import (
 	"context"
 	"time"
 
+	"github.com/ZeusWPI/events/internal/db/model"
+	"github.com/ZeusWPI/events/internal/db/repository"
 	"go.uber.org/zap"
 )
+
+// Init intializes the global task manager instance
+func Init(repo repository.Repository) error {
+	manager, err := newManager(repo)
+	if err != nil {
+		return err
+	}
+
+	Manager = manager
+
+	return nil
+}
 
 // Now can be used if a one time task needs to be run immediately.
 // It shouldn't be used with a recurring task
 const Now = time.Duration(0)
 
-// It's recommended to create a task with the NewTask function for added features
+// Task is the interface to whcih a task should adhere to
+// You can manually implement all methods are make use of the `NewTask` function
+// which will automatically add some logging
 type Task interface {
-	// This has to be unique for recurring tasks
+	// UID is an unique identifier for a check
+	// History is kept by linking the UID's of tasks
+	// Changing the UID will make you lose all the task history
+	// Changing the frontend name can be done with the Name() function
+	UID() string
+	// Name is an user friendly task name
+	// You can change this as much as you like
 	Name() string
 	// Interval returns the time between executions.
 	// For one time tasks it represents the amount of time to wait before executing
@@ -31,28 +53,22 @@ const (
 	Running Status = "running"
 )
 
-type LastStatus string
-
-const (
-	Success LastStatus = "success"
-	Failed  LastStatus = "failed"
-)
-
-// For one time tasks some fields are not used
-// TODO: Check to split in Stat and StatRecurring
+// Stat contains the information about a current running or scheduled task
+// Some fields are populated depending on the type (recurring or one-time)
 type Stat struct {
-	ID         int
+	TaskUID    string
 	Name       string
 	Status     Status
 	NextRun    time.Time
-	Recurring  bool
-	LastStatus LastStatus    // Not used with one time tasks
-	LastRun    time.Time     // Not used with one time tasks
-	LastError  error         // Not used with one time tasks
-	Interval   time.Duration // Not used with one time tasks
+	Type       model.TaskType
+	LastStatus model.TaskResult // Not used with one time tasks
+	LastRun    time.Time        // Not used with one time tasks
+	LastError  error            // Not used with one time tasks
+	Interval   time.Duration    // Not used with one time tasks
 }
 
 type internalTask struct {
+	uid      string
 	name     string
 	interval time.Duration
 	fn       func(context.Context) error
@@ -65,18 +81,23 @@ var _ Task = (*internalTask)(nil)
 // It supports an optional context, if none is given the background context is used
 // Logs (info level) when a task starts
 // Logs (error level) any error that occurs during the task execution
-func NewTask(name string, interval time.Duration, fn func(context.Context) error, ctx ...context.Context) Task {
+func NewTask(uid string, name string, interval time.Duration, fn func(context.Context) error, ctx ...context.Context) Task {
 	c := context.Background()
 	if len(ctx) > 0 {
 		c = ctx[0]
 	}
 
 	return &internalTask{
+		uid:      uid,
 		name:     name,
 		interval: interval,
 		fn:       fn,
 		ctx:      c,
 	}
+}
+
+func (t *internalTask) UID() string {
+	return t.uid
 }
 
 func (t *internalTask) Name() string {
@@ -89,13 +110,14 @@ func (t *internalTask) Interval() time.Duration {
 
 func (t *internalTask) Func() func(context.Context) error {
 	return func(ctx context.Context) error {
-		zap.S().Infof("Running task %s", t.name)
+		zap.S().Infof("Task running %s", t.name)
 
 		if err := t.fn(ctx); err != nil {
 			zap.S().Errorf("Task %s failed | %v", t.name, err)
 			return err
 		}
 
+		zap.S().Infof("Task finished %s", t.name)
 		return nil
 	}
 }

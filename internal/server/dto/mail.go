@@ -15,7 +15,7 @@ type Mail struct {
 	Content  string    `json:"content" validate:"required"`
 	SendTime time.Time `json:"send_time" validate:"required"`
 	Send     bool      `json:"send"`
-	Error    string    `json:"error,omitzero"`
+	Error    string    `json:"error,omitempty"`
 }
 
 func MailDTO(mail *model.Mail) Mail {

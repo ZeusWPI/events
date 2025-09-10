@@ -40,7 +40,7 @@ func (c *Client) fetch(ctx context.Context) ([]model.Poster, error) {
 func (c *Client) fetchYear(ctx context.Context, year model.Year) ([]model.Poster, error) {
 	// For each year we fetch all files and directories
 	// Remember the file structure, we're only interested in directories as they represent events
-	events, err := c.event.GetByYearPopulated(ctx, year.ID)
+	events, err := c.event.GetByYear(ctx, year.ID)
 	if err != nil {
 		return nil, err
 	}

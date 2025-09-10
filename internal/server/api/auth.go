@@ -34,7 +34,7 @@ func NewAuth(router fiber.Router, service *service.Service) *Auth {
 		router:      router.Group("/auth"),
 		organizer:   *service.NewOrganizer(),
 		redirectURL: config.GetDefaultString("auth.redirect_url", "/"),
-		development: config.GetDefaultString("app.env", "development") == "development",
+		development: config.IsDev(),
 	}
 	api.createRoutes()
 

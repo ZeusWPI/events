@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"go.uber.org/zap"
@@ -52,9 +51,8 @@ type activityUpdate struct {
 	Terrain     string    `json:"terrain,omitzero"`
 }
 
-func (d *DSA) buildDsaURL(endpoint string, queries map[string]string) (string, error) {
-	u, err := url.Parse(d.dsaURL)
-
+func (c *Client) buildDsaURL(endpoint string, queries map[string]string) (string, error) {
+	u, err := url.Parse(c.url)
 	if err != nil {
 		return "", fmt.Errorf("dsaURL could not be parsed: %w", err)
 	}
@@ -75,14 +73,14 @@ func (d *DSA) buildDsaURL(endpoint string, queries map[string]string) (string, e
 	return u.String(), nil
 }
 
-func (d *DSA) doRequest(ctx context.Context, method string, url string, body any, target any) error {
+func (c *Client) doRequest(ctx context.Context, method string, url string, body any, target any) error {
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(body)
 	if err != nil {
-		return fmt.Errorf("could not encode the body struct: %w", err)
+		return fmt.Errorf("encode body struct %+v | %w", body, err)
 	}
 
-	if d.development && method != "GET" {
+	if c.development && method != http.MethodGet {
 		// Do not do the actual request in development
 		zap.S().Infof("Mock request: %s %s\n\tBody: %+v", method, url, body)
 		return nil
@@ -94,7 +92,7 @@ func (d *DSA) doRequest(ctx context.Context, method string, url string, body any
 	}
 
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", d.dsaKey)
+	req.Header.Set("Authorization", c.key)
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
@@ -116,60 +114,61 @@ func (d *DSA) doRequest(ctx context.Context, method string, url string, body any
 	return nil
 }
 
-func (d *DSA) getActivities(ctx context.Context) ([]activity, error) {
+func (c *Client) getActivities(ctx context.Context) ([]activity, error) {
 	var response activityResponse
-	dsaURL, err := d.buildDsaURL("activiteiten", map[string]string{
+	dsaURL, err := c.buildDsaURL("activiteiten", map[string]string{
 		"page_size":   "100",
-		"association": d.abbreviation,
+		"association": c.abbreviation,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("build dsa url: %w", err)
+		return nil, fmt.Errorf("build dsa url %w", err)
 	}
 
-	if err = d.doRequest(ctx, http.MethodGet, dsaURL, nil, &response); err != nil {
-		return nil, fmt.Errorf("do dsa request: %w", err)
+	if err = c.doRequest(ctx, http.MethodGet, dsaURL, nil, &response); err != nil {
+		return nil, fmt.Errorf("get dsa request %w", err)
 	}
 
 	return response.Page.Entries, nil
 }
 
-func (d *DSA) createActivity(ctx context.Context, body activityCreate) (activity, error) {
+func (c *Client) createActivity(ctx context.Context, body activityCreate) (activity, error) {
 	var response activity
-	dsaURL, err := d.buildDsaURL("activiteiten", map[string]string{})
+	dsaURL, err := c.buildDsaURL("activiteiten", nil)
 	if err != nil {
-		return response, fmt.Errorf("build dsa url: %w", err)
+		return response, fmt.Errorf("build dsa url %w", err)
 	}
 
-	if err = d.doRequest(ctx, http.MethodPost, dsaURL, body, &response); err != nil {
-		return response, fmt.Errorf("do dsa request: %w", err)
+	if err = c.doRequest(ctx, http.MethodPost, dsaURL, body, &response); err != nil {
+		return response, fmt.Errorf("create dsa request %w", err)
 	}
 
 	return response, nil
 }
 
-func (d *DSA) updateActivity(ctx context.Context, id int, body activityUpdate) (activity, error) {
+func (c *Client) updateActivity(ctx context.Context, id int, body activityUpdate) (activity, error) {
 	var response activity
-	dsaURL, err := d.buildDsaURL("activiteiten/"+strconv.Itoa(id), map[string]string{})
+	dsaURL, err := c.buildDsaURL(fmt.Sprintf("activiteiten/%d", id), nil)
 	if err != nil {
-		return response, fmt.Errorf("build dsa url: %w", err)
+		return response, fmt.Errorf("build dsa url %w", err)
 	}
 
-	if err = d.doRequest(ctx, http.MethodPatch, dsaURL, body, &response); err != nil {
-		return response, fmt.Errorf("do dsa request: %w", err)
+	if err = c.doRequest(ctx, http.MethodPatch, dsaURL, body, &response); err != nil {
+		return response, fmt.Errorf("update dsa request %w", err)
 	}
 
 	return response, nil
 }
 
-func (d *DSA) deleteActivity(ctx context.Context, id int) (activity, error) {
+func (c *Client) deleteActivity(ctx context.Context, id int) (activity, error) {
 	var response activity
-	dsaURL, err := d.buildDsaURL("activiteiten/"+strconv.Itoa(id), map[string]string{})
+	dsaURL, err := c.buildDsaURL(fmt.Sprintf("activiteiten/%d", id), nil)
 	if err != nil {
-		return response, fmt.Errorf("build dsa url: %w", err)
+		return response, fmt.Errorf("build dsa url %w", err)
 	}
 
-	if err = d.doRequest(ctx, http.MethodDelete, dsaURL, nil, &response); err != nil {
-		return response, fmt.Errorf("do dsa request: %w", err)
+	if err = c.doRequest(ctx, http.MethodDelete, dsaURL, nil, &response); err != nil {
+		return response, fmt.Errorf("do dsa request %w", err)
 	}
+
 	return response, nil
 }

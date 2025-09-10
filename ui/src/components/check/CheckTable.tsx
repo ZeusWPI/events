@@ -1,7 +1,7 @@
 import { useCheckCreate, useCheckDelete, useCheckToggle } from "@/lib/api/check";
-import { Check, CheckSource, CheckStatus } from "@/lib/types/check";
+import { Check, CheckStatus, CheckType, checkStatusToIcon } from "@/lib/types/check";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon, CircleAlertIcon, ClipboardCheckIcon, ClipboardXIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon, ClipboardCheckIcon, ClipboardXIcon, MessageSquareIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { IconButton } from "../atoms/IconButton";
@@ -72,8 +72,17 @@ export function CheckTable({ checks, eventId }: Props) {
   const columns: ColumnDef<Check>[] = useMemo(() => [
     {
       accessorKey: "status",
-      header: () => <span>{`${checks.filter(c => c.status === CheckStatus.Finished).length}/${checks.length}`}</span>,
-      cell: CheckStatusIcon,
+      header: () => <span>{`${checks.filter(c => c.status === CheckStatus.Done || c.status === CheckStatus.DoneLate).length}/${checks.length}`}</span>,
+      cell: ({ row }) => {
+        if (!row.original.message) return checkStatusToIcon[row.original.status]
+
+        return (
+          <TooltipText text={row.original.message}>
+            {checkStatusToIcon[row.original.status]}
+            <MessageSquareIcon />
+          </TooltipText>
+        )
+      },
       meta: { small: true, horizontalAlign: "center" },
     },
     {
@@ -115,29 +124,9 @@ export function CheckTable({ checks, eventId }: Props) {
       <Table
         data={checks}
         columns={columns}
-        hasError={(item: Check) => item.error !== undefined}
-        getError={(item: Check) => item.error ?? ""}
       />
     </div>
   );
-}
-function CheckStatusIcon({ row }: { row: Row<Check> }) {
-  switch (row.original.status) {
-    case CheckStatus.Finished:
-      return <CheckIcon className="text-green-500" />
-
-    case CheckStatus.Warning:
-      if (!row.original.warning) return <CircleAlertIcon className="text-orange-500" />
-
-      return (
-        <TooltipText text={row.original.warning}>
-          <CircleAlertIcon className="text-orange-500" />
-        </TooltipText>
-      )
-
-    default:
-      return <XIcon className="text-red-500" />
-  }
 }
 
 interface ActionProps {
@@ -154,7 +143,7 @@ function CheckActions({ row, onToggle, toggleStatus, onDelete, deleteStatus }: A
 
   const check: Check = row.original
 
-  if (check.source === CheckSource.Automatic) {
+  if (check.source === CheckType.Automatic) {
     if (check.error) {
       <IconButton onClick={row.getToggleExpandedHandler()}>
         {row.getIsExpanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
@@ -167,7 +156,7 @@ function CheckActions({ row, onToggle, toggleStatus, onDelete, deleteStatus }: A
   return (
     <div className="flex">
       <Button onClick={() => onToggle(check)} size="icon" variant="ghost" disabled={toggleStatus}>
-        {check.status === CheckStatus.Finished ? <ClipboardXIcon /> : <ClipboardCheckIcon />}
+        {check.status === CheckStatus.Done ? <ClipboardXIcon /> : <ClipboardCheckIcon />}
       </Button>
       <Button onClick={() => onDelete(check)} size="icon" variant="ghost" disabled={deleteStatus}>
         <Trash2Icon className="text-red-500" />

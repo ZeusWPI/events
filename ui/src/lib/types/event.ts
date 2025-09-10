@@ -34,11 +34,11 @@ export function convertEventToModel(event: API.Event): Event {
     endTime: event.end_time ? new Date(event.end_time) : undefined,
     location: event.location,
     year: convertYearToModel(event.year),
-    organizers: event.organizers.map(convertOrganizerToModel),
+    organizers: event.organizers?.map(convertOrganizerToModel) ?? [],
     checks: event.checks ? event.checks.map(convertCheckToModel).sort((a, b) => a.description.localeCompare(b.description)) : [],
     announcements: event.announcements?.map(convertAnnouncementToModel).sort((a, b) => a.sendTime.getTime() - b.sendTime.getTime()) ?? [],
     mails: event.mails?.map(convertMailToModel).sort((a, b) => a.sendTime.getTime() - b.sendTime.getTime()) ?? [],
-    posters: event.posters.map(convertPosterToModel),
+    posters: event.posters?.map(convertPosterToModel) ?? [],
   };
 }
 

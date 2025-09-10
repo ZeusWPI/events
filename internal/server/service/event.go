@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"slices"
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
@@ -17,9 +16,11 @@ type Event struct {
 
 	announcement repository.Announcement
 	board        repository.Board
+	check        repository.Check
 	event        repository.Event
 	mail         repository.Mail
 	organizer    repository.Organizer
+	poster       repository.Poster
 	year         repository.Year
 }
 
@@ -28,15 +29,17 @@ func (s *Service) NewEvent() *Event {
 		service:      *s,
 		announcement: *s.repo.NewAnnouncement(),
 		board:        *s.repo.NewBoard(),
+		check:        *s.repo.NewCheck(),
 		event:        *s.repo.NewEvent(),
 		mail:         *s.repo.NewMail(),
 		organizer:    *s.repo.NewOrganizer(),
+		poster:       *s.repo.NewPoster(),
 		year:         *s.repo.NewYear(),
 	}
 }
 
 func (e *Event) GetByID(ctx context.Context, eventID int) (dto.Event, error) {
-	eventDB, err := e.event.GetByIDPopulated(ctx, eventID)
+	eventDB, err := e.event.GetByID(ctx, eventID)
 	if err != nil {
 		zap.S().Error(err)
 		return dto.Event{}, fiber.ErrInternalServerError
@@ -46,17 +49,29 @@ func (e *Event) GetByID(ctx context.Context, eventID int) (dto.Event, error) {
 	}
 	event := dto.EventDTO(eventDB)
 
-	// Add checks
-
-	checks, err := e.service.check.Status(ctx, eventDB.YearID)
+	// Add organizers
+	organizers, err := e.organizer.GetByEvents(ctx, []model.Event{*eventDB})
 	if err != nil {
 		zap.S().Error(err)
 		return dto.Event{}, fiber.ErrInternalServerError
 	}
+	event.Organizers = utils.SliceMap(organizers, func(organizer *model.Organizer) dto.Organizer { return dto.OrganizerDTO(&organizer.Board) })
 
-	if check, ok := checks[event.ID]; ok {
-		event.Checks = utils.SliceMap(check, dto.CheckDTO)
+	// Add checks
+	checks, err := e.check.GetByEvents(ctx, []model.Event{*eventDB})
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Event{}, fiber.ErrInternalServerError
 	}
+	event.Checks = utils.SliceMap(checks, dto.CheckDTO)
+
+	// Add posters
+	posters, err := e.poster.GetByEvents(ctx, []model.Event{*eventDB})
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Event{}, fiber.ErrInternalServerError
+	}
+	event.Posters = utils.SliceMap(posters, dto.PosterDTO)
 
 	// Add announcements
 	announcements, err := e.announcement.GetByEvents(ctx, []model.Event{*eventDB})
@@ -64,7 +79,6 @@ func (e *Event) GetByID(ctx context.Context, eventID int) (dto.Event, error) {
 		zap.S().Error(err)
 		return dto.Event{}, fiber.ErrInternalServerError
 	}
-
 	event.Announcements = utils.SliceMap(announcements, dto.AnnouncementDTO)
 
 	// Add mails
@@ -73,14 +87,13 @@ func (e *Event) GetByID(ctx context.Context, eventID int) (dto.Event, error) {
 		zap.S().Error(err)
 		return dto.Event{}, fiber.ErrInternalServerError
 	}
-
 	event.Mails = utils.SliceMap(mails, dto.MailDTO)
 
 	return event, nil
 }
 
 func (e *Event) GetNext(ctx context.Context) (dto.Event, error) {
-	event, err := e.event.GetNextWithYear(ctx)
+	event, err := e.event.GetNext(ctx)
 	if err != nil {
 		zap.S().Error(err)
 		return dto.Event{}, fiber.ErrInternalServerError
@@ -93,7 +106,7 @@ func (e *Event) GetNext(ctx context.Context) (dto.Event, error) {
 }
 
 func (e *Event) GetByYear(ctx context.Context, yearID int) ([]dto.Event, error) {
-	eventsDB, err := e.event.GetByYearPopulated(ctx, yearID)
+	eventsDB, err := e.event.GetByYear(ctx, yearID)
 	if err != nil {
 		zap.S().Error(err)
 		return nil, fiber.ErrInternalServerError
@@ -101,52 +114,49 @@ func (e *Event) GetByYear(ctx context.Context, yearID int) ([]dto.Event, error) 
 	if eventsDB == nil {
 		return []dto.Event{}, nil
 	}
-	events := utils.SliceMap(eventsDB, dto.EventDTO)
+
+	events := make(map[int]dto.Event)
+	for _, event := range eventsDB {
+		events[event.ID] = dto.EventDTO(event)
+	}
+
+	// Add organizers
+	organizers, err := e.organizer.GetByEvents(ctx, utils.SliceDereference(eventsDB))
+	if err != nil {
+		zap.S().Error(err)
+		return nil, fiber.ErrInternalServerError
+	}
+
+	for _, organizer := range organizers {
+		event, ok := events[organizer.EventID]
+		if !ok {
+			// Should not be possible
+			zap.S().Error("Unknown error occurred\nOrganizer queried that has an unknown event %+v | %+v", events, utils.SliceDereference(organizers))
+			return nil, fiber.ErrInternalServerError
+		}
+		event.Organizers = append(event.Organizers, dto.OrganizerDTO(&organizer.Board))
+		events[organizer.EventID] = event
+	}
 
 	// Add checks
-	checks, err := e.service.check.Status(ctx, yearID)
+	checks, err := e.check.GetByEvents(ctx, utils.SliceDereference(eventsDB))
 	if err != nil {
 		zap.S().Error(err)
 		return nil, fiber.ErrInternalServerError
 	}
 
-	for idx, event := range events {
-		if check, ok := checks[event.ID]; ok {
-			events[idx].Checks = utils.SliceMap(check, dto.CheckDTO)
+	for _, check := range checks {
+		event, ok := events[check.EventID]
+		if !ok {
+			// Should not be possible
+			zap.S().Error("Unknown error occured\nCheck queried that has an unknown event %+v | %+v", events, utils.SliceDereference(checks))
+			return nil, fiber.ErrInternalServerError
 		}
+		event.Checks = append(event.Checks, dto.CheckDTO(check))
+		events[check.EventID] = event
 	}
 
-	// Add announcements
-	announcements, err := e.announcement.GetByEvents(ctx, utils.SliceDereference(eventsDB))
-	if err != nil {
-		zap.S().Error(err)
-		return nil, fiber.ErrInternalServerError
-	}
-
-	for _, announcement := range announcements {
-		for _, eventID := range announcement.EventIDs {
-			if idx := slices.IndexFunc(events, func(e dto.Event) bool { return e.ID == eventID }); idx != -1 {
-				events[idx].Announcements = append(events[idx].Announcements, dto.AnnouncementDTO(announcement))
-			}
-		}
-	}
-
-	// Add mails
-	mails, err := e.mail.GetByEvents(ctx, utils.SliceDereference(eventsDB))
-	if err != nil {
-		zap.S().Error(err)
-		return nil, fiber.ErrInternalServerError
-	}
-
-	for _, mail := range mails {
-		for _, eventID := range mail.EventIDs {
-			if idx := slices.IndexFunc(events, func(e dto.Event) bool { return e.ID == eventID }); idx != -1 {
-				events[idx].Mails = append(events[idx].Mails, dto.MailDTO(mail))
-			}
-		}
-	}
-
-	return events, nil
+	return utils.MapValues(events), nil
 }
 
 func (e *Event) GetByLastYear(ctx context.Context) ([]dto.Event, error) {

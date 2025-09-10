@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 ALTER TABLE dsa
-ADD COLUMN deleted boolean NOT NULL DEFAULT false;
+ADD COLUMN deleted BOOLEAN NOT NULL DEFAULT false;
 -- +goose StatementEnd
 
 -- +goose Down

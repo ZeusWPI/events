@@ -53,20 +53,56 @@ func (q *Queries) MailDelete(ctx context.Context, id int32) error {
 	return err
 }
 
-const mailError = `-- name: MailError :exec
-UPDATE mail
-SET error = $1
-WHERE id = $2
+const mailGetAll = `-- name: MailGetAll :many
+SELECT m.id, content, send_time, send, error, title, year_id, author_id, m_e.id, mail_id, event_id
+FROM mail m
+LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 `
 
-type MailErrorParams struct {
-	Error pgtype.Text
-	ID    int32
+type MailGetAllRow struct {
+	ID       int32
+	Content  string
+	SendTime pgtype.Timestamptz
+	Send     bool
+	Error    pgtype.Text
+	Title    string
+	YearID   int32
+	AuthorID int32
+	ID_2     pgtype.Int4
+	MailID   pgtype.Int4
+	EventID  pgtype.Int4
 }
 
-func (q *Queries) MailError(ctx context.Context, arg MailErrorParams) error {
-	_, err := q.db.Exec(ctx, mailError, arg.Error, arg.ID)
-	return err
+func (q *Queries) MailGetAll(ctx context.Context) ([]MailGetAllRow, error) {
+	rows, err := q.db.Query(ctx, mailGetAll)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MailGetAllRow
+	for rows.Next() {
+		var i MailGetAllRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Content,
+			&i.SendTime,
+			&i.Send,
+			&i.Error,
+			&i.Title,
+			&i.YearID,
+			&i.AuthorID,
+			&i.ID_2,
+			&i.MailID,
+			&i.EventID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const mailGetByEvents = `-- name: MailGetByEvents :many

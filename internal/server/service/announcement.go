@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/pkg/utils"
@@ -71,8 +72,9 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 
 	announcement.AuthorID = board.ID
 
-	if announcement.ID != 0 {
-		oldAnnouncement, err := a.announcement.GetByID(ctx, announcement.ID)
+	var oldAnnouncement *model.Announcement
+	if announcementSave.ID != 0 {
+		oldAnnouncement, err = a.announcement.GetByID(ctx, announcement.ID)
 		if err != nil {
 			zap.S().Error(err)
 			return dto.Announcement{}, fiber.ErrInternalServerError
@@ -87,19 +89,21 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 	}
 
 	if err = a.service.withRollback(ctx, func(ctx context.Context) error {
-		update := false
-		if announcement.ID == 0 {
+		if announcementSave.ID == 0 {
 			err = a.announcement.Create(ctx, announcement)
 		} else {
 			err = a.announcement.Update(ctx, *announcement)
-			update = true
 		}
-
 		if err != nil {
 			return err
 		}
 
-		if err = a.service.mattermost.ScheduleAnnouncement(ctx, *announcement, update); err != nil {
+		if announcementSave.ID == 0 {
+			err = a.service.announcements.Create(ctx, *announcement)
+		} else {
+			err = a.service.announcements.Update(ctx, *oldAnnouncement, *announcement)
+		}
+		if err != nil {
 			return err
 		}
 
@@ -126,12 +130,19 @@ func (a *Announcement) Delete(ctx context.Context, announcementID int) error {
 		return fiber.ErrBadRequest
 	}
 
-	if err := a.announcement.Delete(ctx, announcementID); err != nil {
-		zap.S().Error(err)
-		return fiber.ErrInternalServerError
-	}
+	return a.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := a.announcement.Delete(ctx, announcementID); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
 
-	return nil
+		if err := a.service.announcements.Delete(ctx, *announcement); err != nil {
+			zap.S().Error(err)
+			return fiber.ErrInternalServerError
+		}
+
+		return nil
+	})
 }
 
 func (a *Announcement) Resend(ctx context.Context, announcementID int, memberID int) error {
@@ -166,7 +177,7 @@ func (a *Announcement) Resend(ctx context.Context, announcementID int, memberID 
 			return fiber.ErrInternalServerError
 		}
 
-		if err := a.service.mattermost.ScheduleAnnouncement(ctx, *announcement, false); err != nil {
+		if err := a.service.announcements.ScheduleAnnouncement(ctx, *announcement); err != nil {
 			zap.S().Error(err)
 			return fiber.ErrInternalServerError
 		}

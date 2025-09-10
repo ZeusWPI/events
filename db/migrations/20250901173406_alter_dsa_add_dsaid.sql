@@ -1,9 +1,11 @@
 -- +goose Up
 -- +goose StatementBegin
 ALTER TABLE dsa
-ADD COLUMN dsa_id integer;
+ADD COLUMN dsa_id INTEGER;
+
 ALTER TABLE dsa
 ADD UNIQUE (dsa_id);
+
 ALTER TABLE dsa
 DROP COLUMN entry;
 -- +goose StatementEnd
@@ -12,6 +14,7 @@ DROP COLUMN entry;
 -- +goose StatementBegin
 ALTER TABLE dsa
 DROP COLUMN dsa_id;
+
 ALTER TABLE dsa
-ADD COLUMN entry boolean NOT NULL DEFAULT true;
+ADD COLUMN entry BOOLEAN NOT NULL DEFAULT true;
 -- +goose StatementEnd

@@ -39,42 +39,42 @@ export function TasksHistory() {
       </PageHeader>
       <div className="grid grid-cols-3 gap-4">
         <Card
-          onClick={() => setFilter(val => ({ ...val, result: TaskResult.FAILED }))}
+          onClick={() => setFilter(val => ({ ...val, result: TaskResult.Failed }))}
           className="cursor-pointer"
         >
           <CardContent>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between">
                 <FlameIcon />
-                <Checkbox checked={filter.result === TaskResult.FAILED} />
+                <Checkbox checked={filter.result === TaskResult.Failed} />
               </div>
               <span>Failed</span>
             </div>
           </CardContent>
         </Card>
         <Card
-          onClick={() => setFilter(val => ({ ...val, result: TaskResult.RESOLVED }))}
+          onClick={() => setFilter(val => ({ ...val, result: TaskResult.Resolved }))}
           className="cursor-pointer"
         >
           <CardContent>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between">
                 <FireExtinguisherIcon />
-                <Checkbox checked={filter.result === TaskResult.RESOLVED} />
+                <Checkbox checked={filter.result === TaskResult.Resolved} />
               </div>
               <span>Resolved</span>
             </div>
           </CardContent>
         </Card>
         <Card
-          onClick={() => setFilter(val => ({ ...val, result: TaskResult.SUCCESS }))}
+          onClick={() => setFilter(val => ({ ...val, result: TaskResult.Succes }))}
           className="cursor-pointer"
         >
           <CardContent>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between">
                 <CheckIcon />
-                <Checkbox checked={filter.result === TaskResult.SUCCESS} />
+                <Checkbox checked={filter.result === TaskResult.Succes} />
               </div>
               <span>Success</span>
             </div>

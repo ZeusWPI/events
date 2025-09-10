@@ -12,8 +12,8 @@ import (
 )
 
 const eventCreate = `-- name: EventCreate :one
-INSERT INTO event (file_name, name, description, start_time, end_time, year_id, location)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO event (file_name, name, description, start_time, end_time, year_id, location, deleted)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING id
 `
 
@@ -25,6 +25,7 @@ type EventCreateParams struct {
 	EndTime     pgtype.Timestamptz
 	YearID      int32
 	Location    pgtype.Text
+	Deleted     bool
 }
 
 func (q *Queries) EventCreate(ctx context.Context, arg EventCreateParams) (int32, error) {
@@ -36,6 +37,7 @@ func (q *Queries) EventCreate(ctx context.Context, arg EventCreateParams) (int32
 		arg.EndTime,
 		arg.YearID,
 		arg.Location,
+		arg.Deleted,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -43,7 +45,8 @@ func (q *Queries) EventCreate(ctx context.Context, arg EventCreateParams) (int32
 }
 
 const eventDelete = `-- name: EventDelete :exec
-DELETE FROM event 
+UPDATE event
+SET deleted = true
 WHERE id = $1
 `
 
@@ -52,46 +55,73 @@ func (q *Queries) EventDelete(ctx context.Context, id int32) error {
 	return err
 }
 
-const eventGetAllWithYear = `-- name: EventGetAllWithYear :many
-SELECT event.id, file_name, name, description, start_time, end_time, location, year_id, year.id, year_start, year_end FROM event
-INNER JOIN year ON event.year_id = year.id
+const eventGet = `-- name: EventGet :one
+SELECT e.id, e.file_name, e.name, e.description, e.start_time, e.end_time, e.location, e.year_id, e.deleted, y.id, y.year_start, y.year_end
+FROM event e
+LEFT JOIN year y ON y.id = e.year_id
+WHERE e.id = $1
 `
 
-type EventGetAllWithYearRow struct {
-	ID          int32
-	FileName    string
-	Name        string
-	Description pgtype.Text
-	StartTime   pgtype.Timestamptz
-	EndTime     pgtype.Timestamptz
-	Location    pgtype.Text
-	YearID      int32
-	ID_2        int32
-	YearStart   int32
-	YearEnd     int32
+type EventGetRow struct {
+	Event Event
+	Year  Year
 }
 
-func (q *Queries) EventGetAllWithYear(ctx context.Context) ([]EventGetAllWithYearRow, error) {
-	rows, err := q.db.Query(ctx, eventGetAllWithYear)
+func (q *Queries) EventGet(ctx context.Context, id int32) (EventGetRow, error) {
+	row := q.db.QueryRow(ctx, eventGet, id)
+	var i EventGetRow
+	err := row.Scan(
+		&i.Event.ID,
+		&i.Event.FileName,
+		&i.Event.Name,
+		&i.Event.Description,
+		&i.Event.StartTime,
+		&i.Event.EndTime,
+		&i.Event.Location,
+		&i.Event.YearID,
+		&i.Event.Deleted,
+		&i.Year.ID,
+		&i.Year.YearStart,
+		&i.Year.YearEnd,
+	)
+	return i, err
+}
+
+const eventGetAll = `-- name: EventGetAll :many
+SELECT e.id, e.file_name, e.name, e.description, e.start_time, e.end_time, e.location, e.year_id, e.deleted, y.id, y.year_start, y.year_end
+FROM event e
+LEFT JOIN year y ON y.id = e.year_id
+WHERE NOT deleted
+ORDER BY e.start_time
+`
+
+type EventGetAllRow struct {
+	Event Event
+	Year  Year
+}
+
+func (q *Queries) EventGetAll(ctx context.Context) ([]EventGetAllRow, error) {
+	rows, err := q.db.Query(ctx, eventGetAll)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []EventGetAllWithYearRow
+	var items []EventGetAllRow
 	for rows.Next() {
-		var i EventGetAllWithYearRow
+		var i EventGetAllRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.FileName,
-			&i.Name,
-			&i.Description,
-			&i.StartTime,
-			&i.EndTime,
-			&i.Location,
-			&i.YearID,
-			&i.ID_2,
-			&i.YearStart,
-			&i.YearEnd,
+			&i.Event.ID,
+			&i.Event.FileName,
+			&i.Event.Name,
+			&i.Event.Description,
+			&i.Event.StartTime,
+			&i.Event.EndTime,
+			&i.Event.Location,
+			&i.Event.YearID,
+			&i.Event.Deleted,
+			&i.Year.ID,
+			&i.Year.YearStart,
+			&i.Year.YearEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -103,123 +133,41 @@ func (q *Queries) EventGetAllWithYear(ctx context.Context) ([]EventGetAllWithYea
 	return items, nil
 }
 
-const eventGetById = `-- name: EventGetById :one
-SELECT id, file_name, name, description, start_time, end_time, location, year_id 
-FROM event 
-WHERE id = $1
-`
-
-func (q *Queries) EventGetById(ctx context.Context, id int32) (Event, error) {
-	row := q.db.QueryRow(ctx, eventGetById, id)
-	var i Event
-	err := row.Scan(
-		&i.ID,
-		&i.FileName,
-		&i.Name,
-		&i.Description,
-		&i.StartTime,
-		&i.EndTime,
-		&i.Location,
-		&i.YearID,
-	)
-	return i, err
-}
-
-const eventGetByIdPopulated = `-- name: EventGetByIdPopulated :one
-SELECT jsonb_build_object(
-  'id', e.id,
-  'file_name', e.file_name,
-  'name', e.name,
-  'description', e.description,
-  'start_time', e.start_time,
-  'end_time', e.end_time,
-  'year_id', e.year_id,
-  'location', e.location,
-  'year', (
-    SELECT jsonb_build_object(
-      'id', y.id,
-      'year_start', y.year_start,
-      'year_end', y.year_end
-    )
-    FROM year y
-    WHERE y.id = e.year_id
-  ),
-  'organizers', (
-    SELECT coalesce(json_agg(jsonb_build_object(
-      'id', b.id,
-      'member_id', b.member_id,
-      'year_id', b.year_id,
-      'role', b.role,
-      'member', (
-        SELECT jsonb_build_object(
-          'id', m.id,
-          'name', m.name,
-          'username', m.username,
-          'zauth_id', m.zauth_id
-        )
-        FROM member m 
-        WHERE m.id = b.member_id
-      ),
-      'year', (
-        SELECT jsonb_build_object(
-          'id', y.id,
-          'year_start', y.year_start,
-          'year_end', y.year_end
-        )
-        FROM year y
-        WHERE y.id = b.year_id
-      )
-    )), '[]')
-    FROM board b 
-    INNER JOIN organizer o ON o.board_id = b.id
-    WHERE o.event_id = e.id
-  ),
-  'posters', (
-    SELECT coalesce(json_agg(jsonb_build_object(
-      'id', p.id,
-      'event_id', p.event_id,
-      'file_id', p.file_id,
-      'scc', p.scc
-    )), '[]')
-    FROM poster p 
-    WHERE p.event_id = e.id
-  )
-)
-FROM event e 
-WHERE e.id = $1
-`
-
-func (q *Queries) EventGetByIdPopulated(ctx context.Context, id int32) ([]byte, error) {
-	row := q.db.QueryRow(ctx, eventGetByIdPopulated, id)
-	var jsonb_build_object []byte
-	err := row.Scan(&jsonb_build_object)
-	return jsonb_build_object, err
-}
-
 const eventGetByIds = `-- name: EventGetByIds :many
-SELECT id, file_name, name, description, start_time, end_time, location, year_id
-FROM event
-WHERE id = ANY($1::int[])
+SELECT e.id, e.file_name, e.name, e.description, e.start_time, e.end_time, e.location, e.year_id, e.deleted, y.id, y.year_start, y.year_end
+FROM event e
+LEFT JOIN year y ON y.id = e.year_id
+WHERE e.id = ANY($1::int[])
+ORDER BY e.start_time
 `
 
-func (q *Queries) EventGetByIds(ctx context.Context, dollar_1 []int32) ([]Event, error) {
+type EventGetByIdsRow struct {
+	Event Event
+	Year  Year
+}
+
+func (q *Queries) EventGetByIds(ctx context.Context, dollar_1 []int32) ([]EventGetByIdsRow, error) {
 	rows, err := q.db.Query(ctx, eventGetByIds, dollar_1)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Event
+	var items []EventGetByIdsRow
 	for rows.Next() {
-		var i Event
+		var i EventGetByIdsRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.FileName,
-			&i.Name,
-			&i.Description,
-			&i.StartTime,
-			&i.EndTime,
-			&i.Location,
-			&i.YearID,
+			&i.Event.ID,
+			&i.Event.FileName,
+			&i.Event.Name,
+			&i.Event.Description,
+			&i.Event.StartTime,
+			&i.Event.EndTime,
+			&i.Event.Location,
+			&i.Event.YearID,
+			&i.Event.Deleted,
+			&i.Year.ID,
+			&i.Year.YearStart,
+			&i.Year.YearEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -231,133 +179,41 @@ func (q *Queries) EventGetByIds(ctx context.Context, dollar_1 []int32) ([]Event,
 	return items, nil
 }
 
-const eventGetByYearPopulated = `-- name: EventGetByYearPopulated :many
-SELECT jsonb_build_object(
-  'id', e.id,
-  'file_name', e.file_name,
-  'name', e.name,
-  'description', e.description,
-  'start_time', e.start_time,
-  'end_time', e.end_time,
-  'year_id', e.year_id,
-  'location', e.location,
-  'year', (
-    SELECT jsonb_build_object(
-      'id', y.id,
-      'year_start', y.year_start,
-      'year_end', y.year_end
-    )
-    FROM year y
-    WHERE y.id = e.year_id
-  ),
-  'organizers', (
-    SELECT coalesce(json_agg(jsonb_build_object(
-      'id', b.id,
-      'member_id', b.member_id,
-      'year_id', b.year_id,
-      'role', b.role,
-      'member', (
-        SELECT jsonb_build_object(
-          'id', m.id,
-          'name', m.name,
-          'username', m.username,
-          'zauth_id', m.zauth_id
-        )
-        FROM member m 
-        WHERE m.id = b.member_id
-      ),
-      'year', (
-        SELECT jsonb_build_object(
-          'id', y.id,
-          'year_start', y.year_start,
-          'year_end', y.year_end
-        )
-        FROM year y
-        WHERE y.id = b.year_id
-      )
-    )), '[]')
-    FROM board b 
-    INNER JOIN organizer o ON o.board_id = b.id
-    WHERE o.event_id = e.id
-  ),
-  'posters', (
-    SELECT coalesce(json_agg(jsonb_build_object(
-      'id', p.id,
-      'event_id', p.event_id,
-      'file_id', p.file_id,
-      'scc', p.scc
-    )), '[]')
-    FROM poster p 
-    WHERE p.event_id = e.id
-  )
-)
-FROM event e 
-WHERE e.year_id = $1
-`
-
-func (q *Queries) EventGetByYearPopulated(ctx context.Context, yearID int32) ([][]byte, error) {
-	rows, err := q.db.Query(ctx, eventGetByYearPopulated, yearID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items [][]byte
-	for rows.Next() {
-		var jsonb_build_object []byte
-		if err := rows.Scan(&jsonb_build_object); err != nil {
-			return nil, err
-		}
-		items = append(items, jsonb_build_object)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const eventGetFutureWithYear = `-- name: EventGetFutureWithYear :many
-SELECT e.id, file_name, name, description, start_time, end_time, location, year_id, y.id, year_start, year_end
+const eventGetByYear = `-- name: EventGetByYear :many
+SELECT e.id, e.file_name, e.name, e.description, e.start_time, e.end_time, e.location, e.year_id, e.deleted, y.id, y.year_start, y.year_end
 FROM event e
-INNER JOIN year y ON e.year_id = y.id
-WHERE e.start_time > NOW()
+LEFT JOIN year y ON y.id = e.year_id
+WHERE e.year_id = $1 AND NOT deleted
 ORDER BY e.start_time
 `
 
-type EventGetFutureWithYearRow struct {
-	ID          int32
-	FileName    string
-	Name        string
-	Description pgtype.Text
-	StartTime   pgtype.Timestamptz
-	EndTime     pgtype.Timestamptz
-	Location    pgtype.Text
-	YearID      int32
-	ID_2        int32
-	YearStart   int32
-	YearEnd     int32
+type EventGetByYearRow struct {
+	Event Event
+	Year  Year
 }
 
-func (q *Queries) EventGetFutureWithYear(ctx context.Context) ([]EventGetFutureWithYearRow, error) {
-	rows, err := q.db.Query(ctx, eventGetFutureWithYear)
+func (q *Queries) EventGetByYear(ctx context.Context, yearID int32) ([]EventGetByYearRow, error) {
+	rows, err := q.db.Query(ctx, eventGetByYear, yearID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []EventGetFutureWithYearRow
+	var items []EventGetByYearRow
 	for rows.Next() {
-		var i EventGetFutureWithYearRow
+		var i EventGetByYearRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.FileName,
-			&i.Name,
-			&i.Description,
-			&i.StartTime,
-			&i.EndTime,
-			&i.Location,
-			&i.YearID,
-			&i.ID_2,
-			&i.YearStart,
-			&i.YearEnd,
+			&i.Event.ID,
+			&i.Event.FileName,
+			&i.Event.Name,
+			&i.Event.Description,
+			&i.Event.StartTime,
+			&i.Event.EndTime,
+			&i.Event.Location,
+			&i.Event.YearID,
+			&i.Event.Deleted,
+			&i.Year.ID,
+			&i.Year.YearStart,
+			&i.Year.YearEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -369,73 +225,113 @@ func (q *Queries) EventGetFutureWithYear(ctx context.Context) ([]EventGetFutureW
 	return items, nil
 }
 
-const eventGetNextWithYear = `-- name: EventGetNextWithYear :one
-SELECT e.id, file_name, name, description, start_time, end_time, location, year_id, y.id, year_start, year_end
+const eventGetFuture = `-- name: EventGetFuture :many
+SELECT e.id, e.file_name, e.name, e.description, e.start_time, e.end_time, e.location, e.year_id, e.deleted, y.id, y.year_start, y.year_end
+FROM event e
+LEFT JOIN year y ON e.year_id = y.id
+WHERE e.start_time > NOW() AND NOT deleted
+ORDER BY e.start_time
+`
+
+type EventGetFutureRow struct {
+	Event Event
+	Year  Year
+}
+
+func (q *Queries) EventGetFuture(ctx context.Context) ([]EventGetFutureRow, error) {
+	rows, err := q.db.Query(ctx, eventGetFuture)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []EventGetFutureRow
+	for rows.Next() {
+		var i EventGetFutureRow
+		if err := rows.Scan(
+			&i.Event.ID,
+			&i.Event.FileName,
+			&i.Event.Name,
+			&i.Event.Description,
+			&i.Event.StartTime,
+			&i.Event.EndTime,
+			&i.Event.Location,
+			&i.Event.YearID,
+			&i.Event.Deleted,
+			&i.Year.ID,
+			&i.Year.YearStart,
+			&i.Year.YearEnd,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const eventGetNext = `-- name: EventGetNext :one
+SELECT e.id, e.file_name, e.name, e.description, e.start_time, e.end_time, e.location, e.year_id, e.deleted, y.id, y.year_start, y.year_end
 FROM event e
 INNER JOIN year y ON e.year_id = y.id
-WHERE e.end_time > NOW()
+WHERE e.end_time > NOW() AND NOT deleted
 ORDER BY e.start_time
 LIMIT 1
 `
 
-type EventGetNextWithYearRow struct {
-	ID          int32
-	FileName    string
-	Name        string
-	Description pgtype.Text
-	StartTime   pgtype.Timestamptz
-	EndTime     pgtype.Timestamptz
-	Location    pgtype.Text
-	YearID      int32
-	ID_2        int32
-	YearStart   int32
-	YearEnd     int32
+type EventGetNextRow struct {
+	Event Event
+	Year  Year
 }
 
-func (q *Queries) EventGetNextWithYear(ctx context.Context) (EventGetNextWithYearRow, error) {
-	row := q.db.QueryRow(ctx, eventGetNextWithYear)
-	var i EventGetNextWithYearRow
+func (q *Queries) EventGetNext(ctx context.Context) (EventGetNextRow, error) {
+	row := q.db.QueryRow(ctx, eventGetNext)
+	var i EventGetNextRow
 	err := row.Scan(
-		&i.ID,
-		&i.FileName,
-		&i.Name,
-		&i.Description,
-		&i.StartTime,
-		&i.EndTime,
-		&i.Location,
-		&i.YearID,
-		&i.ID_2,
-		&i.YearStart,
-		&i.YearEnd,
+		&i.Event.ID,
+		&i.Event.FileName,
+		&i.Event.Name,
+		&i.Event.Description,
+		&i.Event.StartTime,
+		&i.Event.EndTime,
+		&i.Event.Location,
+		&i.Event.YearID,
+		&i.Event.Deleted,
+		&i.Year.ID,
+		&i.Year.YearStart,
+		&i.Year.YearEnd,
 	)
 	return i, err
 }
 
 const eventUpdate = `-- name: EventUpdate :exec
 UPDATE event 
-SET name = $1, description = $2, start_time = $3, end_time = $4, year_id = $5, location = $6
-WHERE id = $7
+SET name = $2, description = $3, start_time = $4, end_time = $5, year_id = $6, location = $7, deleted = $8
+WHERE id = $1
 `
 
 type EventUpdateParams struct {
+	ID          int32
 	Name        string
 	Description pgtype.Text
 	StartTime   pgtype.Timestamptz
 	EndTime     pgtype.Timestamptz
 	YearID      int32
 	Location    pgtype.Text
-	ID          int32
+	Deleted     bool
 }
 
 func (q *Queries) EventUpdate(ctx context.Context, arg EventUpdateParams) error {
 	_, err := q.db.Exec(ctx, eventUpdate,
+		arg.ID,
 		arg.Name,
 		arg.Description,
 		arg.StartTime,
 		arg.EndTime,
 		arg.YearID,
 		arg.Location,
-		arg.ID,
+		arg.Deleted,
 	)
 	return err
 }

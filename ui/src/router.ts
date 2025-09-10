@@ -145,7 +145,7 @@ const tasksOverviewRoute = createRoute({
 
 const tasksDetailRoute = createRoute({
   getParentRoute: () => tasksRoute,
-  path: "/$id",
+  path: "/$uid",
   component: TasksDetail,
 });
 

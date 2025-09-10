@@ -1,42 +1,37 @@
 package dto
 
 import (
-	"github.com/ZeusWPI/events/internal/check"
-)
+	"time"
 
-type CheckStatus string
-
-const (
-	Finished   CheckStatus = "finished"
-	Unfinished CheckStatus = "unfinished"
-	Warning    CheckStatus = "warning"
-)
-
-type CheckSource string
-
-const (
-	Automatic CheckSource = "automatic"
-	Manual    CheckSource = "manual"
+	"github.com/ZeusWPI/events/internal/db/model"
 )
 
 type Check struct {
-	ID          int         `json:"id"`
-	EventID     int         `json:"event_id" validate:"required"`
-	Description string      `json:"description" validate:"required"`
-	Status      CheckStatus `json:"status"`
-	Warning     string      `json:"warning,omitzero"`
-	Error       error       `json:"error"`
-	Source      CheckSource `json:"source"`
+	ID          int               `json:"id"`
+	EventID     int               `json:"event_id" validate:"required"`
+	Status      model.CheckStatus `json:"status"`
+	Message     string            `json:"message,omitzero"`
+	Description string            `json:"description" validate:"required"`
+	Deadline    time.Duration     `json:"deadline,omitempty"`
+	Type        model.CheckType   `json:"type"`
+	CreatorID   int               `json:"creator_id,omitzero"`
 }
 
-func CheckDTO(check check.EventStatus) Check {
+func CheckDTO(check *model.Check) Check {
 	return Check{
 		ID:          check.ID,
 		EventID:     check.EventID,
+		Status:      check.Status,
+		Message:     check.Message,
 		Description: check.Description,
-		Warning:     check.Warning,
-		Status:      CheckStatus(check.Status),
-		Error:       check.Error,
-		Source:      CheckSource(check.Source),
+		Deadline:    check.Deadline,
+		Type:        check.Type,
+		CreatorID:   check.CreatorID,
 	}
+}
+
+type CheckUpdate struct {
+	ID      int               `json:"id" validate:"required"`
+	Status  model.CheckStatus `json:"status" validate:"required"`
+	Message string            `json:"message"`
 }

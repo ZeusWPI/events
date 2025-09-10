@@ -1,44 +1,49 @@
-import { CheckIcon, XIcon, CircleAlertIcon } from "lucide-react";
+import { FlameIcon, SquareCheckIcon, SquareXIcon, TriangleAlertIcon } from "lucide-react";
 import { createElement } from "react";
-import { randomNumber } from "../utils/utils";
 import { API } from "./api";
 import { Base } from "./general";
 
 export enum CheckStatus {
-  Finished = "finished",
-  Unfinished = "unfinished",
+  Done = "done",
+  DoneLate = "done_late",
+  Todo = "todo",
+  TodoLate = "todo_late",
   Warning = "warning",
 }
 
-export const statusToIcon: Record<CheckStatus, React.ReactNode> = {
-  [CheckStatus.Finished]: createElement(CheckIcon, { className: 'text-green-500' }),
-  [CheckStatus.Unfinished]: createElement(XIcon, { className: 'text-red-500' }),
-  [CheckStatus.Warning]: createElement(CircleAlertIcon, { className: 'text-orange-500' }),
+export const checkStatusToIcon: Record<CheckStatus, React.ReactNode> = {
+  [CheckStatus.Done]: createElement(SquareCheckIcon, { className: 'text-green-500' }),
+  [CheckStatus.DoneLate]: createElement(SquareCheckIcon, { className: 'text-orange-500' }),
+  [CheckStatus.Todo]: createElement(SquareXIcon, { className: 'text-red-500' }),
+  [CheckStatus.TodoLate]: createElement(FlameIcon, { className: 'text-red-500' }),
+  [CheckStatus.Warning]: createElement(TriangleAlertIcon, { className: 'text-orange-500' }),
 }
 
-export enum CheckSource {
-  Automatic = "automatic",
+export enum CheckType {
   Manual = "manual",
+  Automatic = "automatic",
 }
 
 export interface Check extends Base {
   eventId: number;
-  description: string;
-  warning?: string;
   status: CheckStatus;
-  error?: string;
-  source: CheckSource;
+  message?: string;
+  description: string;
+  deadline?: number;
+  type: CheckType;
+  creator_id?: number;
 }
 
 export function convertCheckToModel(check: API.Check): Check {
   return {
-    id: check.source as CheckSource === CheckSource.Manual ? check.id : randomNumber(),
+    id: check.id,
     eventId: check.event_id,
-    description: check.description,
-    warning: check.warning,
     status: check.status as CheckStatus,
-    error: check.error,
-    source: check.source as CheckSource,
+    message: check.message,
+    description: check.description,
+    deadline: check.deadline,
+    type: check.type as CheckType,
+    creator_id: check.creator_id,
   };
 }
 

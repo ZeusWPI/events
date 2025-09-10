@@ -1,5 +1,5 @@
 import { useAuth } from "@/lib/hooks/useAuth";
-import { Check, CheckStatus, statusToIcon } from "@/lib/types/check";
+import { Check, CheckStatus, checkStatusToIcon } from "@/lib/types/check";
 import type { Event } from "@/lib/types/event";
 import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
@@ -30,7 +30,7 @@ export function EventCard({ event, ...props }: Props) {
   const handleOnClick = () =>
     void navigate({ to: "/events/$id", params: { id: event.id.toString() } });
 
-  const finishedChecks = event.checks.filter(check => check.status === CheckStatus.Finished)
+  const finishedChecks = event.checks.filter(check => check.status === CheckStatus.Done || check.status === CheckStatus.DoneLate)
 
   return (
     <Card onClick={handleOnClick} className={`transition-transform duration-300 hover:scale-102 hover:cursor-pointer ${isOrganizer && "border-primary"}`} {...props}>
@@ -72,7 +72,7 @@ export function EventCard({ event, ...props }: Props) {
                   {event.checks.map(check => (
                     <div key={check.id} className="flex items-center gap-1">
                       <div className="size-3 flex items-center">
-                        {statusToIcon[check.status]}
+                        {checkStatusToIcon[check.status]}
                       </div>
                       <span>{check.description}</span>
                     </div>

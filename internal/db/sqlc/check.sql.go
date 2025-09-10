@@ -7,57 +7,170 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const checkCreate = `-- name: CheckCreate :one
-INSERT INTO "check" (event_id, description, done)
-VALUES ($1, $2, $3)
-RETURNING Id
+const checkCreate = `-- name: CheckCreate :exec
+INSERT INTO "check" (uid, description, deadline, active, "type", creator_id)
+VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type CheckCreateParams struct {
-	EventID     int32
+	Uid         string
 	Description string
-	Done        bool
+	Deadline    pgtype.Int8
+	Active      bool
+	Type        CheckType
+	CreatorID   pgtype.Int4
 }
 
-func (q *Queries) CheckCreate(ctx context.Context, arg CheckCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, checkCreate, arg.EventID, arg.Description, arg.Done)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) CheckCreate(ctx context.Context, arg CheckCreateParams) error {
+	_, err := q.db.Exec(ctx, checkCreate,
+		arg.Uid,
+		arg.Description,
+		arg.Deadline,
+		arg.Active,
+		arg.Type,
+		arg.CreatorID,
+	)
+	return err
 }
 
 const checkDelete = `-- name: CheckDelete :exec
 DELETE FROM "check"
-WHERE id = $1
+WHERE uid = $1
 `
 
-func (q *Queries) CheckDelete(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, checkDelete, id)
+func (q *Queries) CheckDelete(ctx context.Context, uid string) error {
+	_, err := q.db.Exec(ctx, checkDelete, uid)
 	return err
 }
 
-const checkGetByEvents = `-- name: CheckGetByEvents :many
-SELECT id, event_id, description, done
-FROM "check"
-WHERE event_id = ANY($1::int[])
+const checkGetByCheckEvent = `-- name: CheckGetByCheckEvent :one
+SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
+FROM check_event e
+LEFT JOIN "check" c ON c.uid = e.check_uid
+WHERE c.uid = $1 AND e.event_id = $2
 `
 
-func (q *Queries) CheckGetByEvents(ctx context.Context, dollar_1 []int32) ([]Check, error) {
-	rows, err := q.db.Query(ctx, checkGetByEvents, dollar_1)
+type CheckGetByCheckEventParams struct {
+	Uid     string
+	EventID int32
+}
+
+type CheckGetByCheckEventRow struct {
+	CheckEvent CheckEvent
+	Check      Check
+}
+
+func (q *Queries) CheckGetByCheckEvent(ctx context.Context, arg CheckGetByCheckEventParams) (CheckGetByCheckEventRow, error) {
+	row := q.db.QueryRow(ctx, checkGetByCheckEvent, arg.Uid, arg.EventID)
+	var i CheckGetByCheckEventRow
+	err := row.Scan(
+		&i.CheckEvent.ID,
+		&i.CheckEvent.CheckUid,
+		&i.CheckEvent.EventID,
+		&i.CheckEvent.Status,
+		&i.CheckEvent.Message,
+		&i.CheckEvent.UpdatedAt,
+		&i.Check.Uid,
+		&i.Check.Description,
+		&i.Check.Deadline,
+		&i.Check.Active,
+		&i.Check.Type,
+		&i.Check.CreatorID,
+	)
+	return i, err
+}
+
+const checkGetByCheckEventID = `-- name: CheckGetByCheckEventID :one
+SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
+FROM check_event e
+LEFT JOIN "check" c ON c.uid = e.check_uid
+WHERE e.id = $1
+LIMIT 1
+`
+
+type CheckGetByCheckEventIDRow struct {
+	CheckEvent CheckEvent
+	Check      Check
+}
+
+func (q *Queries) CheckGetByCheckEventID(ctx context.Context, id int32) (CheckGetByCheckEventIDRow, error) {
+	row := q.db.QueryRow(ctx, checkGetByCheckEventID, id)
+	var i CheckGetByCheckEventIDRow
+	err := row.Scan(
+		&i.CheckEvent.ID,
+		&i.CheckEvent.CheckUid,
+		&i.CheckEvent.EventID,
+		&i.CheckEvent.Status,
+		&i.CheckEvent.Message,
+		&i.CheckEvent.UpdatedAt,
+		&i.Check.Uid,
+		&i.Check.Description,
+		&i.Check.Deadline,
+		&i.Check.Active,
+		&i.Check.Type,
+		&i.Check.CreatorID,
+	)
+	return i, err
+}
+
+const checkGetByCheckUID = `-- name: CheckGetByCheckUID :one
+SELECT uid, description, deadline, active, type, creator_id
+FROM "check"
+WHERE uid = $1
+`
+
+func (q *Queries) CheckGetByCheckUID(ctx context.Context, uid string) (Check, error) {
+	row := q.db.QueryRow(ctx, checkGetByCheckUID, uid)
+	var i Check
+	err := row.Scan(
+		&i.Uid,
+		&i.Description,
+		&i.Deadline,
+		&i.Active,
+		&i.Type,
+		&i.CreatorID,
+	)
+	return i, err
+}
+
+const checkGetByCheckUIDAll = `-- name: CheckGetByCheckUIDAll :many
+SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
+FROM check_event e
+LEFT JOIN "check" c ON c.uid = e.check_uid
+WHERE c.uid = $1
+`
+
+type CheckGetByCheckUIDAllRow struct {
+	CheckEvent CheckEvent
+	Check      Check
+}
+
+func (q *Queries) CheckGetByCheckUIDAll(ctx context.Context, uid string) ([]CheckGetByCheckUIDAllRow, error) {
+	rows, err := q.db.Query(ctx, checkGetByCheckUIDAll, uid)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Check
+	var items []CheckGetByCheckUIDAllRow
 	for rows.Next() {
-		var i Check
+		var i CheckGetByCheckUIDAllRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.EventID,
-			&i.Description,
-			&i.Done,
+			&i.CheckEvent.ID,
+			&i.CheckEvent.CheckUid,
+			&i.CheckEvent.EventID,
+			&i.CheckEvent.Status,
+			&i.CheckEvent.Message,
+			&i.CheckEvent.UpdatedAt,
+			&i.Check.Uid,
+			&i.Check.Description,
+			&i.Check.Deadline,
+			&i.Check.Active,
+			&i.Check.Type,
+			&i.Check.CreatorID,
 		); err != nil {
 			return nil, err
 		}
@@ -69,13 +182,83 @@ func (q *Queries) CheckGetByEvents(ctx context.Context, dollar_1 []int32) ([]Che
 	return items, nil
 }
 
-const checkToggle = `-- name: CheckToggle :exec
-UPDATE "check"
-SET done = NOT done
-WHERE id = $1
+const checkGetByEvents = `-- name: CheckGetByEvents :many
+SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
+FROM check_event e
+LEFT JOIN "check" c ON c.uid = e.check_uid
+WHERE c.active AND event_id = ANY($1::int[])
 `
 
-func (q *Queries) CheckToggle(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, checkToggle, id)
+type CheckGetByEventsRow struct {
+	CheckEvent CheckEvent
+	Check      Check
+}
+
+func (q *Queries) CheckGetByEvents(ctx context.Context, dollar_1 []int32) ([]CheckGetByEventsRow, error) {
+	rows, err := q.db.Query(ctx, checkGetByEvents, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CheckGetByEventsRow
+	for rows.Next() {
+		var i CheckGetByEventsRow
+		if err := rows.Scan(
+			&i.CheckEvent.ID,
+			&i.CheckEvent.CheckUid,
+			&i.CheckEvent.EventID,
+			&i.CheckEvent.Status,
+			&i.CheckEvent.Message,
+			&i.CheckEvent.UpdatedAt,
+			&i.Check.Uid,
+			&i.Check.Description,
+			&i.Check.Deadline,
+			&i.Check.Active,
+			&i.Check.Type,
+			&i.Check.CreatorID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const checkSetInactiveAutomatic = `-- name: CheckSetInactiveAutomatic :exec
+UPDATE "check"
+SET active = false
+WHERE "type" = 'automatic'
+`
+
+func (q *Queries) CheckSetInactiveAutomatic(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, checkSetInactiveAutomatic)
+	return err
+}
+
+const checkUpdate = `-- name: CheckUpdate :exec
+UPDATE "check"
+SET description = $2, deadline = $3, active = $4, "type" = $5
+WHERE uid = $1
+`
+
+type CheckUpdateParams struct {
+	Uid         string
+	Description string
+	Deadline    pgtype.Int8
+	Active      bool
+	Type        CheckType
+}
+
+func (q *Queries) CheckUpdate(ctx context.Context, arg CheckUpdateParams) error {
+	_, err := q.db.Exec(ctx, checkUpdate,
+		arg.Uid,
+		arg.Description,
+		arg.Deadline,
+		arg.Active,
+		arg.Type,
+	)
 	return err
 }

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -27,7 +26,7 @@ func (r *Repository) NewEvent() *Event {
 }
 
 func (e *Event) GetByID(ctx context.Context, eventID int) (*model.Event, error) {
-	event, err := e.repo.queries(ctx).EventGetById(ctx, int32(eventID))
+	event, err := e.repo.queries(ctx).EventGet(ctx, int32(eventID))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -35,24 +34,7 @@ func (e *Event) GetByID(ctx context.Context, eventID int) (*model.Event, error) 
 		return nil, fmt.Errorf("get event by id %d | %w", eventID, err)
 	}
 
-	return model.EventModel(event), nil
-}
-
-func (e *Event) GetByIDPopulated(ctx context.Context, eventID int) (*model.Event, error) {
-	eventDB, err := e.repo.queries(ctx).EventGetByIdPopulated(ctx, int32(eventID))
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("get event by id populated %d | %w", eventID, err)
-	}
-
-	var event model.Event
-	if err := json.Unmarshal(eventDB, &event); err != nil {
-		return nil, fmt.Errorf("unmarshal event json %w", err)
-	}
-
-	return &event, nil
+	return model.EventModel(event.Event, event.Year), nil
 }
 
 func (e *Event) GetByIDs(ctx context.Context, eventIDs []int) ([]*model.Event, error) {
@@ -64,114 +46,63 @@ func (e *Event) GetByIDs(ctx context.Context, eventIDs []int) ([]*model.Event, e
 		return nil, fmt.Errorf("get event by ids %+v | %w", eventIDs, err)
 	}
 
-	return utils.SliceMap(events, model.EventModel), nil
-}
-
-func (e *Event) GetAllWithYear(ctx context.Context) ([]*model.Event, error) {
-	events, err := e.repo.queries(ctx).EventGetAllWithYear(ctx)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("get all events with year %w", err)
-	}
-
-	return utils.SliceMap(events, func(e sqlc.EventGetAllWithYearRow) *model.Event {
-		return &model.Event{
-			ID:          int(e.ID),
-			FileName:    e.FileName,
-			Name:        e.Name,
-			Description: e.Description.String,
-			StartTime:   e.StartTime.Time,
-			EndTime:     e.EndTime.Time,
-			YearID:      int(e.YearID),
-			Location:    e.Location.String,
-			Year: model.Year{
-				ID:    int(e.ID_2),
-				Start: int(e.YearStart),
-				End:   int(e.YearEnd),
-			},
-			Organizers: make([]model.Board, 0),
-		}
+	return utils.SliceMap(events, func(event sqlc.EventGetByIdsRow) *model.Event {
+		return model.EventModel(event.Event, event.Year)
 	}), nil
 }
 
-func (e *Event) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Event, error) {
-	eventsDB, err := e.repo.queries(ctx).EventGetByYearPopulated(ctx, int32(yearID))
+func (e *Event) GetAll(ctx context.Context) ([]*model.Event, error) {
+	events, err := e.repo.queries(ctx).EventGetAll(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get all populated events by year %d | %w", yearID, err)
+		return nil, fmt.Errorf("get events %w", err)
 	}
 
-	events := make([]*model.Event, 0, len(eventsDB))
-	for _, bytes := range eventsDB {
-		var event model.Event
-		if err := json.Unmarshal(bytes, &event); err != nil {
-			return nil, fmt.Errorf("unmarshal event json %w", err)
-		}
-		events = append(events, &event)
-	}
-
-	return events, nil
+	return utils.SliceMap(events, func(event sqlc.EventGetAllRow) *model.Event {
+		return model.EventModel(event.Event, event.Year)
+	}), nil
 }
 
-func (e *Event) GetNextWithYear(ctx context.Context) (*model.Event, error) {
-	event, err := e.repo.queries(ctx).EventGetNextWithYear(ctx)
+func (e *Event) GetByYear(ctx context.Context, yearID int) ([]*model.Event, error) {
+	events, err := e.repo.queries(ctx).EventGetByYear(ctx, int32(yearID))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get next event with year %w", err)
+		return nil, fmt.Errorf("get events by year %d | %w", yearID, err)
 	}
 
-	return &model.Event{
-		ID:          int(event.ID),
-		FileName:    event.FileName,
-		Name:        event.Name,
-		Description: event.Description.String,
-		StartTime:   event.StartTime.Time,
-		EndTime:     event.EndTime.Time,
-		YearID:      int(event.YearID),
-		Location:    event.Location.String,
-		Year: model.Year{
-			ID:    int(event.ID_2),
-			Start: int(event.YearStart),
-			End:   int(event.YearEnd),
-		},
-	}, nil
-
+	return utils.SliceMap(events, func(event sqlc.EventGetByYearRow) *model.Event {
+		return model.EventModel(event.Event, event.Year)
+	}), nil
 }
 
-func (e *Event) GetFutureWithYear(ctx context.Context) ([]*model.Event, error) {
-	events, err := e.repo.queries(ctx).EventGetFutureWithYear(ctx)
+func (e *Event) GetFuture(ctx context.Context) ([]*model.Event, error) {
+	events, err := e.repo.queries(ctx).EventGetFuture(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get next events with year %w", err)
+		return nil, fmt.Errorf("get future events %w", err)
 	}
 
-	models := utils.SliceMap(events, func(event sqlc.EventGetFutureWithYearRow) *model.Event {
-		return &model.Event{
-			ID:          int(event.ID),
-			FileName:    event.FileName,
-			Name:        event.Name,
-			Description: event.Description.String,
-			StartTime:   event.StartTime.Time,
-			EndTime:     event.EndTime.Time,
-			YearID:      int(event.YearID),
-			Location:    event.Location.String,
-			Year: model.Year{
-				ID:    int(event.ID_2),
-				Start: int(event.YearStart),
-				End:   int(event.YearEnd),
-			},
-		}
-	})
+	return utils.SliceMap(events, func(event sqlc.EventGetFutureRow) *model.Event {
+		return model.EventModel(event.Event, event.Year)
+	}), nil
+}
 
-	return models, nil
+func (e *Event) GetNext(ctx context.Context) (*model.Event, error) {
+	event, err := e.repo.queries(ctx).EventGetNext(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get next event %w", err)
+	}
+
+	return model.EventModel(event.Event, event.Year), nil
 }
 
 func (e *Event) Create(ctx context.Context, event *model.Event) error {
@@ -183,6 +114,7 @@ func (e *Event) Create(ctx context.Context, event *model.Event) error {
 		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: !event.EndTime.IsZero()},
 		YearID:      int32(event.YearID),
 		Location:    pgtype.Text{String: event.Location, Valid: true},
+		Deleted:     event.Deleted,
 	})
 	if err != nil {
 		return fmt.Errorf("create event %+v | %w", *event, err)
@@ -202,6 +134,7 @@ func (e *Event) Update(ctx context.Context, event model.Event) error {
 		EndTime:     pgtype.Timestamptz{Time: event.EndTime, Valid: !event.EndTime.IsZero()},
 		YearID:      int32(event.YearID),
 		Location:    pgtype.Text{String: event.Location, Valid: event.Location != ""},
+		Deleted:     event.Deleted,
 	}); err != nil {
 		return fmt.Errorf("update event %+v | %w", e, err)
 	}

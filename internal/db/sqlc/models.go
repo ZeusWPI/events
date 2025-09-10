@@ -11,6 +11,93 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CheckStatus string
+
+const (
+	CheckStatusDone     CheckStatus = "done"
+	CheckStatusDoneLate CheckStatus = "done_late"
+	CheckStatusTodo     CheckStatus = "todo"
+	CheckStatusTodoLate CheckStatus = "todo_late"
+	CheckStatusWarning  CheckStatus = "warning"
+)
+
+func (e *CheckStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CheckStatus(s)
+	case string:
+		*e = CheckStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CheckStatus: %T", src)
+	}
+	return nil
+}
+
+type NullCheckStatus struct {
+	CheckStatus CheckStatus
+	Valid       bool // Valid is true if CheckStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCheckStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.CheckStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CheckStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCheckStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CheckStatus), nil
+}
+
+type CheckType string
+
+const (
+	CheckTypeManual    CheckType = "manual"
+	CheckTypeAutomatic CheckType = "automatic"
+)
+
+func (e *CheckType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CheckType(s)
+	case string:
+		*e = CheckType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CheckType: %T", src)
+	}
+	return nil
+}
+
+type NullCheckType struct {
+	CheckType CheckType
+	Valid     bool // Valid is true if CheckType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCheckType) Scan(value interface{}) error {
+	if value == nil {
+		ns.CheckType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CheckType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCheckType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CheckType), nil
+}
+
 type TaskResult string
 
 const (
@@ -54,6 +141,48 @@ func (ns NullTaskResult) Value() (driver.Value, error) {
 	return string(ns.TaskResult), nil
 }
 
+type TaskType string
+
+const (
+	TaskTypeRecurring TaskType = "recurring"
+	TaskTypeOnce      TaskType = "once"
+)
+
+func (e *TaskType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TaskType(s)
+	case string:
+		*e = TaskType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TaskType: %T", src)
+	}
+	return nil
+}
+
+type NullTaskType struct {
+	TaskType TaskType
+	Valid    bool // Valid is true if TaskType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTaskType) Scan(value interface{}) error {
+	if value == nil {
+		ns.TaskType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.TaskType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTaskType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.TaskType), nil
+}
+
 type Announcement struct {
 	ID       int32
 	Content  string
@@ -79,10 +208,21 @@ type Board struct {
 }
 
 type Check struct {
-	ID          int32
-	EventID     int32
+	Uid         string
 	Description string
-	Done        bool
+	Deadline    pgtype.Int8
+	Active      bool
+	Type        CheckType
+	CreatorID   pgtype.Int4
+}
+
+type CheckEvent struct {
+	ID        int32
+	CheckUid  string
+	EventID   int32
+	Status    CheckStatus
+	Message   pgtype.Text
+	UpdatedAt pgtype.Timestamptz
 }
 
 type Dsa struct {
@@ -101,6 +241,7 @@ type Event struct {
 	EndTime     pgtype.Timestamptz
 	Location    pgtype.Text
 	YearID      int32
+	Deleted     bool
 }
 
 type Mail struct {
@@ -142,13 +283,19 @@ type Poster struct {
 }
 
 type Task struct {
-	ID        int32
-	Name      string
-	RunAt     pgtype.Timestamptz
-	Error     pgtype.Text
-	Recurring bool
-	Duration  pgtype.Interval
-	Result    TaskResult
+	Uid    string
+	Name   string
+	Active bool
+	Type   TaskType
+}
+
+type TaskRun struct {
+	ID       int32
+	TaskUid  string
+	RunAt    pgtype.Timestamptz
+	Result   TaskResult
+	Error    pgtype.Text
+	Duration int64
 }
 
 type Year struct {

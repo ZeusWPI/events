@@ -35,7 +35,7 @@ func (c *Client) Sync(ctx context.Context) error {
 	for _, poster := range dbPosters {
 		if exists := slices.ContainsFunc(gitmatePosters, func(p model.Poster) bool { return p.EqualEntry(*poster) }); exists {
 			// Both the db and gitmate have a poster entry
-			// Let's compare the contents of the posters and use gitmate as the source of thruth
+			// Let's compare the contents of the posters and use gitmate as the source of truth
 			if err := c.checkContent(ctx, *poster); err != nil {
 				return err
 			}
@@ -45,7 +45,7 @@ func (c *Client) Sync(ctx context.Context) error {
 
 		// Poster not yet in the visueel repo
 		// Add it if the event is finished
-		event, err := c.event.GetByIDPopulated(ctx, poster.EventID)
+		event, err := c.event.GetByID(ctx, poster.EventID)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func (c *Client) Sync(ctx context.Context) error {
 
 		// Poster is not yet in our db
 		// Do we have the associated event?
-		event, err := c.event.GetByIDPopulated(ctx, poster.EventID)
+		event, err := c.event.GetByID(ctx, poster.EventID)
 		if err != nil {
 			return err
 		}
@@ -84,6 +84,10 @@ func (c *Client) Sync(ctx context.Context) error {
 		// We have the event but the poster is not in our database yet
 		// Let's add it
 		if err := c.toDB(ctx, poster, *event); err != nil {
+			return err
+		}
+
+		if err := c.Create(ctx, poster); err != nil {
 			return err
 		}
 	}
@@ -98,7 +102,7 @@ func (c *Client) checkContent(ctx context.Context, poster model.Poster) error {
 		return fmt.Errorf("retrieve file for poster %+v | %w", poster, err)
 	}
 
-	event, err := c.event.GetByIDPopulated(ctx, poster.EventID)
+	event, err := c.event.GetByID(ctx, poster.EventID)
 	if err != nil {
 		return err
 	}

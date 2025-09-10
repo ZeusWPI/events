@@ -9,24 +9,6 @@ import (
 	"context"
 )
 
-const organizerCreate = `-- name: OrganizerCreate :one
-INSERT INTO organizer (event_id, board_id)
-VALUES ($1, $2)
-RETURNING id
-`
-
-type OrganizerCreateParams struct {
-	EventID int32
-	BoardID int32
-}
-
-func (q *Queries) OrganizerCreate(ctx context.Context, arg OrganizerCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, organizerCreate, arg.EventID, arg.BoardID)
-	var id int32
-	err := row.Scan(&id)
-	return id, err
-}
-
 const organizerCreateBatch = `-- name: OrganizerCreateBatch :exec
 INSERT INTO organizer (event_id, board_id)
 VALUES (
@@ -45,21 +27,6 @@ func (q *Queries) OrganizerCreateBatch(ctx context.Context, arg OrganizerCreateB
 	return err
 }
 
-const organizerDeleteByBoardEvent = `-- name: OrganizerDeleteByBoardEvent :exec
-DELETE FROM organizer 
-WHERE board_id = $1 AND event_id = $2
-`
-
-type OrganizerDeleteByBoardEventParams struct {
-	BoardID int32
-	EventID int32
-}
-
-func (q *Queries) OrganizerDeleteByBoardEvent(ctx context.Context, arg OrganizerDeleteByBoardEventParams) error {
-	_, err := q.db.Exec(ctx, organizerDeleteByBoardEvent, arg.BoardID, arg.EventID)
-	return err
-}
-
 const organizerDeleteByEvent = `-- name: OrganizerDeleteByEvent :exec
 DELETE FROM organizer
 WHERE event_id = $1
@@ -68,4 +35,67 @@ WHERE event_id = $1
 func (q *Queries) OrganizerDeleteByEvent(ctx context.Context, eventID int32) error {
 	_, err := q.db.Exec(ctx, organizerDeleteByEvent, eventID)
 	return err
+}
+
+const organizerGetByEvents = `-- name: OrganizerGetByEvents :many
+SELECT o.id, o.event_id, o.board_id, b.id, b.member_id, b.year_id, b.role, b.is_organizer, e.id, e.file_name, e.name, e.description, e.start_time, e.end_time, e.location, e.year_id, e.deleted, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+FROM organizer o
+LEFT JOIN event e ON e.id = o.event_id
+LEFT JOIN year y ON y.id = e.year_id
+LEFT JOIN board b ON b.id = o.board_id
+LEFT JOIN member m ON m.id = b.member_id
+WHERE e.id = ANY($1::int[])
+`
+
+type OrganizerGetByEventsRow struct {
+	Organizer Organizer
+	Board     Board
+	Event     Event
+	Member    Member
+	Year      Year
+}
+
+func (q *Queries) OrganizerGetByEvents(ctx context.Context, dollar_1 []int32) ([]OrganizerGetByEventsRow, error) {
+	rows, err := q.db.Query(ctx, organizerGetByEvents, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []OrganizerGetByEventsRow
+	for rows.Next() {
+		var i OrganizerGetByEventsRow
+		if err := rows.Scan(
+			&i.Organizer.ID,
+			&i.Organizer.EventID,
+			&i.Organizer.BoardID,
+			&i.Board.ID,
+			&i.Board.MemberID,
+			&i.Board.YearID,
+			&i.Board.Role,
+			&i.Board.IsOrganizer,
+			&i.Event.ID,
+			&i.Event.FileName,
+			&i.Event.Name,
+			&i.Event.Description,
+			&i.Event.StartTime,
+			&i.Event.EndTime,
+			&i.Event.Location,
+			&i.Event.YearID,
+			&i.Event.Deleted,
+			&i.Member.ID,
+			&i.Member.Name,
+			&i.Member.Username,
+			&i.Member.ZauthID,
+			&i.Year.ID,
+			&i.Year.YearStart,
+			&i.Year.YearEnd,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
