@@ -45,7 +45,7 @@ func (e *Event) GetByID(ctx context.Context, eventID int) (dto.Event, error) {
 		return dto.Event{}, fiber.ErrInternalServerError
 	}
 	if eventDB == nil {
-		return dto.Event{}, fiber.ErrBadRequest
+		return dto.Event{}, fiber.ErrNotFound
 	}
 	event := dto.EventDTO(eventDB)
 

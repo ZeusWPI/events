@@ -28,7 +28,22 @@ func NewEvent(router fiber.Router, service *service.Service) *Event {
 
 func (r *Event) createRoutes() {
 	r.router.Get("/year/:id", r.getByYear)
+	r.router.Get("/:id", r.get)
 	r.router.Post("/organizers", r.updateOrganizers)
+}
+
+func (r *Event) get(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	event, err := r.event.GetByID(c.Context(), id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(event)
 }
 
 func (r *Event) getByYear(c *fiber.Ctx) error {

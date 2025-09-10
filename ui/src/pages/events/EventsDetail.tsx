@@ -3,32 +3,31 @@ import { ButtonGroup } from "@/components/atoms/ButtonGroup";
 import { IconButton } from "@/components/atoms/IconButton";
 import { Indeterminate } from "@/components/atoms/Indeterminate";
 import { Title } from "@/components/atoms/Title";
+import { TooltipText } from "@/components/atoms/TooltipText";
 import { CheckTable } from "@/components/check/CheckTable";
 import { EventPoster } from "@/components/events/EventPoster";
 import { MailList } from "@/components/mails/MailList";
 import { Datalist, DatalistItem, DatalistItemContent, DatalistItemTitle } from "@/components/molecules/Datalist";
 import { HeadlessCard } from "@/components/molecules/HeadlessCard";
 import { PageHeader } from "@/components/molecules/PageHeader";
+import { Button } from "@/components/ui/button";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useEventByYear } from "@/lib/api/event";
+import { useEvent } from "@/lib/api/event";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
-import { useYear, useYearLock } from "@/lib/hooks/useYear";
+import { useYear } from "@/lib/hooks/useYear";
 import { weightSubcategory } from "@/lib/types/general";
 import { formatDate } from "@/lib/utils/utils";
 import { Link, useParams } from "@tanstack/react-router";
 import { ChevronDownIcon, ChevronUpIcon, LinkIcon, MailIcon, MegaphoneIcon, UserRound } from "lucide-react";
 import { useState } from "react";
 import Error404 from "../404";
-import { Button } from "@/components/ui/button";
-import { TooltipText } from "@/components/atoms/TooltipText";
 
 export function EventsDetail() {
   const { id: eventID } = useParams({ from: "/events/$id" });
   const { year } = useYear()
 
-  const { data: events, isLoading } = useEventByYear(year);
-  const event = events?.find(event => event.id.toString() === eventID);
+  const { data: event, isLoading } = useEvent({ id: Number(eventID) });
 
   const big = event?.posters.find(p => !p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: false }
   const scc = event?.posters.find(p => p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: true }
@@ -37,7 +36,6 @@ export function EventsDetail() {
   const [showMails, setShowMails] = useState(false)
 
   useBreadcrumb({ title: event?.name ?? "", weight: weightSubcategory, link: { to: "/events/$id", params: { id: eventID } } });
-  useYearLock()
 
   if (isLoading) {
     return <Indeterminate />

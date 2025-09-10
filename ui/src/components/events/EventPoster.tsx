@@ -71,15 +71,19 @@ export const EventPoster = ({ title, description, poster, year }: Props) => {
               </Button>
             </TooltipText>
           )}
-          <Button onClick={() => setOpenEdit(true)} size="icon" variant="ghost" disabled={isLoading} className="size-6">
-            {file
-              ? <PencilIcon />
-              : <PlusIcon />
-            }
-          </Button>
-          <Button onClick={() => setOpenDelete(true)} size="icon" variant="secondary" disabled={!file || isLoading} className="size-6">
-            <Trash2Icon className="text-red-500" />
-          </Button>
+          <TooltipText text={file ? "Edit" : "Create"}>
+            <Button onClick={() => setOpenEdit(true)} size="icon" variant="ghost" disabled={isLoading} className="size-6">
+              {file
+                ? <PencilIcon />
+                : <PlusIcon />
+              }
+            </Button>
+          </TooltipText>
+          <TooltipText text="Delete poster">
+            <Button onClick={() => setOpenDelete(true)} size="icon" variant="secondary" disabled={!file || isLoading} className="size-6">
+              <Trash2Icon className="text-red-500" />
+            </Button>
+          </TooltipText>
         </div>
       </div>
       <EventPosterDialog
