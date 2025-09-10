@@ -14,11 +14,11 @@ import { IconButton } from "../atoms/IconButton";
 import { OrganizerIcon } from "../atoms/OrganizerIcon";
 import { TooltipText } from "../atoms/TooltipText";
 import { DeleteConfirm } from "../molecules/DeleteConfirm";
+import { ResendConfirm } from "../molecules/ResendConfirm";
 import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
 import { Badge } from "../ui/badge";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Separator } from "../ui/separator";
-import { ResendConfirm } from "../molecules/ResendConfirm";
 
 interface Props {
   announcement: Announcement;
@@ -90,6 +90,7 @@ export function AnnouncementCard({ announcement }: Props) {
             </div>
             <ActionBar announcement={announcement} onResend={handleResend} onDelete={handleDelete} />
           </div>
+          {announcement.error && <span className="text-sm text-red-500">{announcement.error}</span>}
           <CardDescription>
             <div className="xs:flex md:grid md:grid-cols-[auto_1fr] md:space-x-2">
               {events.map(e => (
@@ -105,9 +106,6 @@ export function AnnouncementCard({ announcement }: Props) {
         <CardContent>
           <MarkdownViewer value={announcement.content} />
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4 items-start">
-          {announcement.error && <span className="text-sm text-red-500">{announcement.error}</span>}
-        </CardFooter>
       </Card>
       <DeleteConfirm
         open={openDelete}
