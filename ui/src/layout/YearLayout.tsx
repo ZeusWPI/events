@@ -1,9 +1,9 @@
 import { useYear } from "@/lib/hooks/useYear";
 
 export function YearLayout({ children }: { children: React.ReactNode }) {
-  const { year } = useYear()
+  const { year, isLoading } = useYear()
 
-  if (!year) {
+  if (isLoading || !year) {
     return null
   }
 
