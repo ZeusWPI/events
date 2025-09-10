@@ -22,14 +22,22 @@ export function YearSelector() {
     setYear(newYear)
   }
 
+  const handleReset = () => {
+    if (!years || !years.length) {
+      return
+    }
+
+    setYear(years[0]!)
+  }
+
   return (
     <div className="flex flex-col gap-2">
       {isOpen && locked && <InfoMessage className="border-muted-foreground">Year locked on this page</InfoMessage>}
       {!isCurrentYear && (isOpen
-        ? <InfoMessage className="border-red-500 text-red-500">Old academic year</InfoMessage>
-        : <InfoMessage className="border-red-500 text-red-500">!</InfoMessage>
+        ? <InfoMessage onClick={handleReset} className="border-red-500 text-red-500">Old academic year</InfoMessage>
+        : <InfoMessage onClick={handleReset} className="border-red-500 text-red-500">!</InfoMessage>
       )}
-      <Select onValueChange={handleSelectChange} defaultValue={year?.id.toString()} disabled={locked}>
+      <Select onValueChange={handleSelectChange} value={year?.id.toString()} disabled={locked}>
         <SelectTrigger className="w-full">
           {isOpen && <SelectValue />}
         </SelectTrigger>
@@ -45,6 +53,6 @@ export function YearSelector() {
   )
 }
 
-function InfoMessage({ className, ...props }: ComponentProps<'p'>) {
-  return <p className={cn("border rounded-md p-1 text-sm text-center", className)} {...props} />
+function InfoMessage({ onClick, className, ...props }: ComponentProps<'p'>) {
+  return <p onClick={onClick} className={cn("border rounded-md p-1 text-sm text-center cursor-pointer", className)} {...props} />
 }
