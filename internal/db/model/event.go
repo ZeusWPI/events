@@ -16,13 +16,14 @@ type Event struct {
 	EndTime     time.Time `json:"end_time"`
 	YearID      int       `json:"year_id"`
 	Location    string    `json:"location"`
+	Deleted     bool      `json:"deleted"`
 	// Non db fields
 	Year       Year     `json:"year"`
 	Organizers []Board  `json:"organizers"`
 	Posters    []Poster `json:"posters"`
 }
 
-func EventModel(event sqlc.Event) *Event {
+func EventModel(event sqlc.Event, year sqlc.Year) *Event {
 	description := event.Description.String
 	if !event.Description.Valid {
 		description = ""
@@ -45,6 +46,8 @@ func EventModel(event sqlc.Event) *Event {
 		EndTime:     endTime,
 		YearID:      int(event.YearID),
 		Location:    location,
+		Deleted:     event.Deleted,
+		Year:        *YearModel(year),
 	}
 }
 

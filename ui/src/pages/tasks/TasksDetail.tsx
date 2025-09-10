@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useTaskGetAll, useTaskGetHistory, useTaskStart } from "@/lib/api/task";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
-import { TaskStatus } from "@/lib/types/task";
+import { TaskStatus, TaskType } from "@/lib/types/task";
 import { formatDate } from "@/lib/utils/utils";
 import Error404 from "../404";
 import { weightSubcategory } from "@/lib/types/general";
@@ -34,15 +34,15 @@ function convertNanoToInterval(nanoseconds: number): Interval {
 }
 
 export function TasksDetail() {
-  const { id: taskID } = useParams({ from: "/tasks/$id" });
+  const { uid: taskUID } = useParams({ from: "/tasks/$uid" });
 
   const { data: tasks = [], isLoading } = useTaskGetAll();
-  const task = tasks.find(task => task.id.toString() === taskID);
-  const { history, isLoading: isHistoryLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useTaskGetHistory(task ? { name: task.name } : undefined);
+  const task = tasks.find(task => task.uid === taskUID);
+  const { history, isLoading: isHistoryLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useTaskGetHistory(task ? { uid: task.uid } : undefined);
 
   const startTask = useTaskStart();
 
-  useBreadcrumb({ title: task?.name ?? "", weight: weightSubcategory, link: { to: "/tasks/$id", params: { id: task?.id.toString() ?? "" } } });
+  useBreadcrumb({ title: task?.name ?? "", weight: weightSubcategory, link: { to: "/tasks/$uid", params: { uid: task?.uid ?? "" } } });
 
   const [updating, setUpdating] = useState(false);
 
@@ -59,7 +59,7 @@ export function TasksDetail() {
     return <Indeterminate />;
   }
 
-  if (!task || !task.recurring) {
+  if (!task || task.type !== TaskType.Recurring) {
     return <Error404 />;
   }
 
@@ -81,7 +81,7 @@ export function TasksDetail() {
         <div className="flex flex-col gap-1.5">
           <div className="flex align-center space-x-2">
             <Title>{task.name}</Title>
-            {task.status === TaskStatus.RUNNING && (
+            {task.status === TaskStatus.Running && (
               <Pill color="green">
                 Running
               </Pill>
@@ -97,8 +97,8 @@ export function TasksDetail() {
             )}
           </div>
         </div>
-        <Button onClick={handleRun} disabled={task.status === TaskStatus.RUNNING || updating} size="icon" className="rounded-full">
-          {task.status === TaskStatus.RUNNING ? <LoaderCircle className="animate-spin" /> : <Play />}
+        <Button onClick={handleRun} disabled={task.status === TaskStatus.Running || updating} size="icon" className="rounded-full">
+          {task.status === TaskStatus.Running ? <LoaderCircle className="animate-spin" /> : <Play />}
         </Button>
       </PageHeader>
       <div className="flex justify-between align-center p-6 w-full border rounded-md gap-4">

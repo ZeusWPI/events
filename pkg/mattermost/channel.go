@@ -13,7 +13,7 @@ type Message struct {
 }
 
 type messageResponse struct {
-	// Don't care about the response at this time
+	// We don't care about the response at this time
 }
 
 func (c *Client) SendMessage(ctx context.Context, message Message) error {

@@ -4,6 +4,11 @@ FROM mail m
 LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 WHERE m.id = $1;
 
+-- name: MailGetAll :many
+SELECT *
+FROM mail m
+LEFT JOIN mail_event m_e ON m_e.mail_id = m.id;
+
 -- name: MailGetByYear :many
 SELECT *
 FROM mail m
@@ -38,11 +43,6 @@ WHERE id = $5 AND NOT send;
 UPDATE mail
 SET send = true
 WHERE id = $1;
-
--- name: MailError :exec
-UPDATE mail
-SET error = $1
-WHERE id = $2;
 
 -- name: MailDelete :exec
 DELETE FROM mail

@@ -51,20 +51,54 @@ func (q *Queries) AnnouncementDelete(ctx context.Context, id int32) error {
 	return err
 }
 
-const announcementError = `-- name: AnnouncementError :exec
-UPDATE announcement
-SET error = $1
-WHERE id = $2
+const announcementGetAll = `-- name: AnnouncementGetAll :many
+SELECT a.id, content, send_time, send, error, year_id, author_id, a_e.id, event_id, announcement_id
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 `
 
-type AnnouncementErrorParams struct {
-	Error pgtype.Text
-	ID    int32
+type AnnouncementGetAllRow struct {
+	ID             int32
+	Content        string
+	SendTime       pgtype.Timestamptz
+	Send           bool
+	Error          pgtype.Text
+	YearID         int32
+	AuthorID       int32
+	ID_2           pgtype.Int4
+	EventID        pgtype.Int4
+	AnnouncementID pgtype.Int4
 }
 
-func (q *Queries) AnnouncementError(ctx context.Context, arg AnnouncementErrorParams) error {
-	_, err := q.db.Exec(ctx, announcementError, arg.Error, arg.ID)
-	return err
+func (q *Queries) AnnouncementGetAll(ctx context.Context) ([]AnnouncementGetAllRow, error) {
+	rows, err := q.db.Query(ctx, announcementGetAll)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AnnouncementGetAllRow
+	for rows.Next() {
+		var i AnnouncementGetAllRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Content,
+			&i.SendTime,
+			&i.Send,
+			&i.Error,
+			&i.YearID,
+			&i.AuthorID,
+			&i.ID_2,
+			&i.EventID,
+			&i.AnnouncementID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const announcementGetByEvents = `-- name: AnnouncementGetByEvents :many

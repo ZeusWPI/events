@@ -34,6 +34,18 @@ func (m *Mail) GetByID(ctx context.Context, mailID int) (*model.Mail, error) {
 	return model.MailEventsModel(mails)[0], nil
 }
 
+func (m *Mail) GetAll(ctx context.Context) ([]*model.Mail, error) {
+	mails, err := m.repo.queries(ctx).MailGetAll(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all mail %w", err)
+	}
+
+	return model.MailEventsModel(utils.SliceMap(mails, func(m sqlc.MailGetAllRow) sqlc.MailGetByIDRow { return sqlc.MailGetByIDRow(m) })), nil
+}
+
 func (m *Mail) GetByYear(ctx context.Context, yearID int) ([]*model.Mail, error) {
 	mails, err := m.repo.queries(ctx).MailGetByYear(ctx, int32(yearID))
 	if err != nil {
@@ -132,17 +144,6 @@ func (m *Mail) Update(ctx context.Context, mail model.Mail) error {
 func (m *Mail) Send(ctx context.Context, mailID int) error {
 	if err := m.repo.queries(ctx).MailSend(ctx, int32(mailID)); err != nil {
 		return fmt.Errorf("send mail %d | %w", mailID, err)
-	}
-
-	return nil
-}
-
-func (m *Mail) Error(ctx context.Context, mail model.Mail) error {
-	if err := m.repo.queries(ctx).MailError(ctx, sqlc.MailErrorParams{
-		ID:    int32(mail.ID),
-		Error: pgtype.Text{Valid: true, String: mail.Error},
-	}); err != nil {
-		return fmt.Errorf("error mail %+v | %w", mail, err)
 	}
 
 	return nil

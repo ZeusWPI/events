@@ -4,6 +4,10 @@ FROM announcement a
 LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 WHERE a.id = $1;
 
+-- name: AnnouncementGetAll :many
+SELECT *
+FROM announcement a
+LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id;
 
 -- name: AnnouncmentGetByYear :many
 SELECT *
@@ -39,11 +43,6 @@ WHERE id = $4 AND NOT send;
 UPDATE announcement
 SET send = true
 WHERE id = $1;
-
--- name: AnnouncementError :exec
-UPDATE announcement
-SET error = $1
-WHERE id = $2;
 
 -- name: AnnouncementDelete :exec
 DELETE FROM announcement

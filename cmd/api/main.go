@@ -2,13 +2,13 @@
 package main
 
 import (
+	"github.com/ZeusWPI/events/internal/announcement"
 	"github.com/ZeusWPI/events/internal/check"
-	"github.com/ZeusWPI/events/internal/cmd"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/dsa"
 	"github.com/ZeusWPI/events/internal/mail"
-	"github.com/ZeusWPI/events/internal/mattermost"
 	"github.com/ZeusWPI/events/internal/poster"
+	"github.com/ZeusWPI/events/internal/server"
 	"github.com/ZeusWPI/events/internal/server/service"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/internal/website"
@@ -46,20 +46,12 @@ func main() {
 
 	repo := repository.New(db)
 
-	checkManager := check.NewManager(*repo)
-
-	taskManager, err := task.NewManager(*repo)
-	if err != nil {
-		zap.S().Fatalf("Unable to create task manager %v", err)
+	if err := task.Init(*repo); err != nil {
+		zap.S().Fatalf("Unable to initialize the task manager %v", err)
 	}
 
-	// Start website
-	website, err := website.New(*repo)
-	if err != nil {
-		zap.S().Fatalf("Unable to create website %v", err)
-	}
-	if err := cmd.Website(website, taskManager); err != nil {
-		zap.S().Fatalf("Unable to start website command %v", err)
+	if err := check.Init(*repo); err != nil {
+		zap.S().Fatalf("Unable to initialize the check manager %v", err)
 	}
 
 	// Start dsa
@@ -67,26 +59,23 @@ func main() {
 	if err != nil {
 		zap.S().Fatalf("Unable to create dsa %v", err)
 	}
-	if err := cmd.DSA(dsa, taskManager, checkManager); err != nil {
-		zap.S().Fatalf("Unable to start dsa command %v", err)
+
+	// Start website
+	website, err := website.New(*repo, *dsa)
+	if err != nil {
+		zap.S().Fatalf("Unable to create website %v", err)
 	}
 
-	// Start mattermost
-	mattermost, err := mattermost.New(*repo, taskManager)
+	// Start announcement
+	announcement, err := announcement.New(*repo)
 	if err != nil {
 		zap.S().Fatalf("Unable to create mattermost %v", err)
 	}
-	if err := cmd.Mattermost(mattermost, checkManager); err != nil {
-		zap.S().Fatalf("Unable to start mattermost command %v", err)
-	}
 
 	// Start mail
-	mail, err := mail.New(*repo, taskManager)
+	mail, err := mail.New(*repo)
 	if err != nil {
 		zap.S().Fatalf("Unable to create mail %v", err)
-	}
-	if err := cmd.Mail(mail, checkManager); err != nil {
-		zap.S().Fatalf("Unable to start mail command %v", err)
 	}
 
 	// Start poster
@@ -94,13 +83,12 @@ func main() {
 	if err != nil {
 		zap.S().Fatalf("Unable to create poster %v", err)
 	}
-	if err := cmd.Poster(*poster, taskManager, checkManager); err != nil {
-		zap.S().Fatalf("Unable to start poster command %v", err)
-	}
 
 	// Start API
-	service := service.New(*repo, checkManager, taskManager, *mail, website, *mattermost, *poster)
-	if err := cmd.API(service, db.Pool()); err != nil {
-		zap.S().Error(err)
+	service := service.New(*repo, *mail, website, *announcement, *poster)
+	server := server.NewServer(service, db.Pool())
+
+	if err := server.App.Listen(server.Addr); err != nil {
+		zap.S().Errorf("API unknown error %w", err)
 	}
 }

@@ -1,4 +1,4 @@
-import type { Task, TaskHistoryFilter } from "../types/task";
+import type { Task, TaskHistory, TaskHistoryFilter } from "../types/task";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { convertTaskHistoryToModel, convertTasksToModel } from "../types/task";
 import { apiGet, apiPost } from "./query";
@@ -35,8 +35,8 @@ export function useTaskGetHistory(filter?: TaskHistoryFilter) {
         limit: PAGE_LIMIT.toString(),
       });
 
-      if (filter?.name !== undefined) {
-        queryParams.append("name", filter.name);
+      if (filter?.uid !== undefined) {
+        queryParams.append("uid", filter.uid);
       }
 
       if (filter?.result !== undefined) {
@@ -73,7 +73,7 @@ export function useTaskResolve() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id }: Pick<Task, "id">) => apiPost(`${ENDPOINT}/resolve/${id}`),
+    mutationFn: async ({ id }: Pick<TaskHistory, "id">) => apiPost(`${ENDPOINT}/resolve/${id}`),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["task"] });
       void queryClient.invalidateQueries({ queryKey: ["task_history"] });
@@ -85,7 +85,7 @@ export function useTaskStart() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id }: Pick<Task, "id">) => apiPost(`${ENDPOINT}/start/${id}`),
+    mutationFn: async ({ uid }: Pick<Task, "uid">) => apiPost(`${ENDPOINT}/start/${uid}`),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["task"] });
       void queryClient.invalidateQueries({ queryKey: ["task_history"] });

@@ -34,6 +34,20 @@ func (a *Announcement) GetByID(ctx context.Context, announcementID int) (*model.
 	return model.AnnouncementEventsModel(announcements)[0], nil
 }
 
+func (a *Announcement) GetAll(ctx context.Context) ([]*model.Announcement, error) {
+	announcements, err := a.repo.queries(ctx).AnnouncementGetAll(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all announcement %w", err)
+	}
+
+	return model.AnnouncementEventsModel(utils.SliceMap(announcements, func(a sqlc.AnnouncementGetAllRow) sqlc.AnnouncementGetByIDRow {
+		return sqlc.AnnouncementGetByIDRow(a)
+	})), nil
+}
+
 func (a *Announcement) GetByYear(ctx context.Context, yearID int) ([]*model.Announcement, error) {
 	announcements, err := a.repo.queries(ctx).AnnouncmentGetByYear(ctx, int32(yearID))
 	if err != nil {
@@ -136,17 +150,6 @@ func (a *Announcement) Update(ctx context.Context, announcement model.Announceme
 func (a *Announcement) Send(ctx context.Context, announcementID int) error {
 	if err := a.repo.queries(ctx).AnnouncementSend(ctx, int32(announcementID)); err != nil {
 		return fmt.Errorf("send announcement %d | %w", announcementID, err)
-	}
-
-	return nil
-}
-
-func (a *Announcement) Error(ctx context.Context, announcement model.Announcement) error {
-	if err := a.repo.queries(ctx).AnnouncementError(ctx, sqlc.AnnouncementErrorParams{
-		ID:    int32(announcement.ID),
-		Error: pgtype.Text{Valid: true, String: announcement.Error},
-	}); err != nil {
-		return fmt.Errorf("error announcement %+v | %w", announcement, err)
 	}
 
 	return nil

@@ -41,7 +41,7 @@ func (r *Task) getAll(c *fiber.Ctx) error {
 }
 
 func (r *Task) getHistory(c *fiber.Ctx) error {
-	name := c.Query("name")
+	uid := c.Query("uid")
 	resultStr := c.Query("result")
 
 	var result *model.TaskResult
@@ -57,11 +57,11 @@ func (r *Task) getHistory(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	tasks, err := r.task.GetHistory(c.Context(), dto.TaskHistoryFilter{
-		Name:   name,
-		Result: result,
-		Limit:  limit,
-		Offset: page * limit,
+	tasks, err := r.task.GetHistory(c.Context(), dto.TaskFilter{
+		TaskUID: uid,
+		Result:  result,
+		Limit:   limit,
+		Offset:  page * limit,
 	})
 	if err != nil {
 		return err
@@ -84,12 +84,8 @@ func (r *Task) resolve(c *fiber.Ctx) error {
 }
 
 func (r *Task) start(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-	if err != nil {
-		return fiber.ErrBadRequest
-	}
-
-	if err := r.task.Start(id); err != nil {
+	uid := c.Params("uid")
+	if err := r.task.Start(uid); err != nil {
 		return err
 	}
 

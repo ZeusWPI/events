@@ -2,25 +2,31 @@ import type { API } from "./api";
 import { Base } from "./general";
 
 export enum TaskStatus {
-  RUNNING = "running",
-  WAITING = "waiting",
+  Waiting = "waiting",
+  Running = "running",
 }
 
-export interface Task extends Base {
+export enum TaskResult {
+  Succes = "success",
+  Failed = "failed",
+  Resolved = "resolved",
+}
+
+export enum TaskType {
+  Recurring = "recurring",
+  Once = "once",
+}
+
+export interface Task {
+  uid: string;
   name: string;
   status: TaskStatus;
   nextRun: Date;
-  recurring: boolean;
+  type: TaskType;
   lastStatus?: TaskResult;
   lastRun?: Date;
   lastError?: string;
   interval?: number;
-}
-
-export enum TaskResult {
-  SUCCESS = "success",
-  FAILED = "failed",
-  RESOLVED = "resolved",
 }
 
 export interface TaskHistory extends Base {
@@ -28,22 +34,22 @@ export interface TaskHistory extends Base {
   result: TaskResult;
   runAt: Date;
   error?: string;
-  recurring: boolean;
+  type: TaskType;
   duration: number;
 }
 
 export interface TaskHistoryFilter {
-  name?: string;
+  uid?: string;
   result?: TaskResult;
 }
 
 export function convertTaskToModel(task: API.Task): Task {
   return {
-    id: task.id,
+    uid: task.uid,
     name: task.name,
     status: task.status as TaskStatus,
     nextRun: new Date(task.next_run),
-    recurring: task.recurring,
+    type: task.type as TaskType,
     lastStatus: task.last_status ? task.last_status as TaskResult : undefined,
     lastRun: task.last_run ? new Date(task.last_run) : undefined,
     lastError: task.last_error,
@@ -62,7 +68,7 @@ export function convertTaskHistoryToModel(history: API.TaskHistory[]): TaskHisto
     result: history.result as TaskResult,
     runAt: new Date(history.run_at),
     error: history.error,
-    recurring: history.recurring,
+    type: history.type as TaskType,
     duration: history.duration,
   }));
 }

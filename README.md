@@ -4,12 +4,12 @@ A tool to help you plan and manage a Zeus WPI event!
 
 ## Features
 
-The app automatically fetches all event and board data by listening to a GitHub webhook installed in the [Zeus website repository](https://github.com/ZeusWPI/zeus.ugent.be).  
+The app automatically fetches all event and board data by listening to a GitHub webhook installed in the [Zeus website repository](https://github.com/ZeusWPI/zeus.ugent.be).
 As a fallback, it periodically refetches the data.
 
 ### Organizers
 
-You can assign organizers to each event.  
+You can assign organizers to each event.
 Organizers are grouped by academic year and an organizer corresponds to a board member for that academic year.
 
 ### Checks
@@ -66,12 +66,14 @@ Click [here](https://events.zeus.gent/api/v1/docs) to go to the swagger.
 
 ## Development
 
-In development, no roles or permissions are required to access the application.  
+In development, no roles or permissions are required to access the application.
 However, only board members will be visible as organizers.
 
 Some modules require external API keys. The will fail to launch without them and by result the application will fail to start
 You can find each API key in the [example env file](./.env.example).
 If you don't have an API key you should remove the startup of the relevant module inside the [main file](./cmd/api/main.go).
+
+A more in depth explanation of `Events` can be found in the [internal README.md](/internal/README.md).
 
 ### Quickstart
 

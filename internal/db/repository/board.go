@@ -26,32 +26,6 @@ func (r *Repository) NewBoard() *Board {
 	}
 }
 
-func (b *Board) GetAllPopulated(ctx context.Context) ([]*model.Board, error) {
-	boards, err := b.repo.queries(ctx).BoardGetAllPopulated(ctx)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("get all boards %w", err)
-	}
-
-	return utils.SliceMap(boards, model.BoardModelPopulated), nil
-}
-
-func (b *Board) GetByYearPopulated(ctx context.Context, yearID int) ([]*model.Board, error) {
-	boards, err := b.repo.queries(ctx).BoardGetByYearPopulated(ctx, int32(yearID))
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("get all populated boards by year %w", err)
-	}
-
-	return utils.SliceMap(boards, func(b sqlc.BoardGetByYearPopulatedRow) *model.Board {
-		return model.BoardModelPopulated(sqlc.BoardGetAllPopulatedRow(b))
-	}), nil
-}
-
 func (b *Board) GetByMemberYear(ctx context.Context, memberID int, yearID int) (*model.Board, error) {
 	board, err := b.repo.queries(ctx).BoardGetByMemberYear(ctx, sqlc.BoardGetByMemberYearParams{
 		ID:   int32(memberID),
@@ -61,10 +35,24 @@ func (b *Board) GetByMemberYear(ctx context.Context, memberID int, yearID int) (
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("get board by member and year %+d | %+d | %w", memberID, yearID, err)
+		return nil, fmt.Errorf("get board by member and year %d | %d | %w", memberID, yearID, err)
 	}
 
-	return model.BoardModelPopulated(sqlc.BoardGetAllPopulatedRow(board)), nil
+	return model.BoardModel(board.Board, board.Member, board.Year), nil
+}
+
+func (b *Board) GetAll(ctx context.Context) ([]*model.Board, error) {
+	boards, err := b.repo.queries(ctx).BoardGetAll(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all boards %w", err)
+	}
+
+	return utils.SliceMap(boards, func(b sqlc.BoardGetAllRow) *model.Board {
+		return model.BoardModel(b.Board, b.Member, b.Year)
+	}), nil
 }
 
 func (b *Board) GetByIDs(ctx context.Context, boardIDs []int) ([]*model.Board, error) {
@@ -76,7 +64,23 @@ func (b *Board) GetByIDs(ctx context.Context, boardIDs []int) ([]*model.Board, e
 		return nil, fmt.Errorf("get board by ids %+v | %w", boardIDs, err)
 	}
 
-	return utils.SliceMap(boards, model.BoardModel), nil
+	return utils.SliceMap(boards, func(b sqlc.BoardGetByIdsRow) *model.Board {
+		return model.BoardModel(b.Board, b.Member, b.Year)
+	}), nil
+}
+
+func (b *Board) GetByYear(ctx context.Context, yearID int) ([]*model.Board, error) {
+	boards, err := b.repo.queries(ctx).BoardGetByYear(ctx, int32(yearID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get all populated boards by year %w", err)
+	}
+
+	return utils.SliceMap(boards, func(b sqlc.BoardGetByYearRow) *model.Board {
+		return model.BoardModel(b.Board, b.Member, b.Year)
+	}), nil
 }
 
 func (b *Board) Create(ctx context.Context, board *model.Board) error {
@@ -115,7 +119,7 @@ func (b *Board) Delete(ctx context.Context, board model.Board) error {
 			return fmt.Errorf("Delete board %+v | %w", board, err)
 		}
 
-		boards, err := b.repo.queries(ctx).BoardGetByMemberID(ctx, int32(board.MemberID))
+		boards, err := b.repo.queries(ctx).BoardGetByMember(ctx, int32(board.MemberID))
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("get board by member id %+v | %w", board, err)
 		}

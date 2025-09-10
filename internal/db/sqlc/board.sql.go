@@ -7,8 +7,6 @@ package sqlc
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const boardCreate = `-- name: BoardCreate :one
@@ -46,50 +44,41 @@ func (q *Queries) BoardDelete(ctx context.Context, id int32) error {
 	return err
 }
 
-const boardGetAllPopulated = `-- name: BoardGetAllPopulated :many
-SELECT b.id, member_id, year_id, role, is_organizer, m.id, name, username, zauth_id, y.id, year_start, year_end 
+const boardGetAll = `-- name: BoardGetAll :many
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
 FROM board b
-INNER JOIN member m ON b.member_id = m.id 
-INNER JOIN year y ON b.year_id = y.id
+LEFT JOIN member m ON b.member_id = m.id 
+LEFT JOIN year y ON b.year_id = y.id
 `
 
-type BoardGetAllPopulatedRow struct {
-	ID          int32
-	MemberID    int32
-	YearID      int32
-	Role        string
-	IsOrganizer bool
-	ID_2        int32
-	Name        string
-	Username    pgtype.Text
-	ZauthID     pgtype.Int4
-	ID_3        int32
-	YearStart   int32
-	YearEnd     int32
+type BoardGetAllRow struct {
+	Board  Board
+	Member Member
+	Year   Year
 }
 
-func (q *Queries) BoardGetAllPopulated(ctx context.Context) ([]BoardGetAllPopulatedRow, error) {
-	rows, err := q.db.Query(ctx, boardGetAllPopulated)
+func (q *Queries) BoardGetAll(ctx context.Context) ([]BoardGetAllRow, error) {
+	rows, err := q.db.Query(ctx, boardGetAll)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []BoardGetAllPopulatedRow
+	var items []BoardGetAllRow
 	for rows.Next() {
-		var i BoardGetAllPopulatedRow
+		var i BoardGetAllRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.MemberID,
-			&i.YearID,
-			&i.Role,
-			&i.IsOrganizer,
-			&i.ID_2,
-			&i.Name,
-			&i.Username,
-			&i.ZauthID,
-			&i.ID_3,
-			&i.YearStart,
-			&i.YearEnd,
+			&i.Board.ID,
+			&i.Board.MemberID,
+			&i.Board.YearID,
+			&i.Board.Role,
+			&i.Board.IsOrganizer,
+			&i.Member.ID,
+			&i.Member.Name,
+			&i.Member.Username,
+			&i.Member.ZauthID,
+			&i.Year.ID,
+			&i.Year.YearStart,
+			&i.Year.YearEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -102,26 +91,41 @@ func (q *Queries) BoardGetAllPopulated(ctx context.Context) ([]BoardGetAllPopula
 }
 
 const boardGetByIds = `-- name: BoardGetByIds :many
-SELECT id, member_id, year_id, role, is_organizer 
-FROM board
-WHERE id = ANY($1::int[])
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+FROM board b
+LEFT JOIN member m ON b.member_id = m.id 
+LEFT JOIN year y ON b.year_id = y.id
+WHERE b.id = ANY($1::INT[])
 `
 
-func (q *Queries) BoardGetByIds(ctx context.Context, dollar_1 []int32) ([]Board, error) {
+type BoardGetByIdsRow struct {
+	Board  Board
+	Member Member
+	Year   Year
+}
+
+func (q *Queries) BoardGetByIds(ctx context.Context, dollar_1 []int32) ([]BoardGetByIdsRow, error) {
 	rows, err := q.db.Query(ctx, boardGetByIds, dollar_1)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Board
+	var items []BoardGetByIdsRow
 	for rows.Next() {
-		var i Board
+		var i BoardGetByIdsRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.MemberID,
-			&i.YearID,
-			&i.Role,
-			&i.IsOrganizer,
+			&i.Board.ID,
+			&i.Board.MemberID,
+			&i.Board.YearID,
+			&i.Board.Role,
+			&i.Board.IsOrganizer,
+			&i.Member.ID,
+			&i.Member.Name,
+			&i.Member.Username,
+			&i.Member.ZauthID,
+			&i.Year.ID,
+			&i.Year.YearStart,
+			&i.Year.YearEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -133,27 +137,42 @@ func (q *Queries) BoardGetByIds(ctx context.Context, dollar_1 []int32) ([]Board,
 	return items, nil
 }
 
-const boardGetByMemberID = `-- name: BoardGetByMemberID :many
-SELECT id, member_id, year_id, role, is_organizer 
-FROM board
-WHERE member_id = $1
+const boardGetByMember = `-- name: BoardGetByMember :many
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+FROM board b
+LEFT JOIN member m ON b.member_id = m.id
+LEFT JOIN year y ON b.year_id = y.id
+WHERE m.id = $1
 `
 
-func (q *Queries) BoardGetByMemberID(ctx context.Context, memberID int32) ([]Board, error) {
-	rows, err := q.db.Query(ctx, boardGetByMemberID, memberID)
+type BoardGetByMemberRow struct {
+	Board  Board
+	Member Member
+	Year   Year
+}
+
+func (q *Queries) BoardGetByMember(ctx context.Context, id int32) ([]BoardGetByMemberRow, error) {
+	rows, err := q.db.Query(ctx, boardGetByMember, id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Board
+	var items []BoardGetByMemberRow
 	for rows.Next() {
-		var i Board
+		var i BoardGetByMemberRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.MemberID,
-			&i.YearID,
-			&i.Role,
-			&i.IsOrganizer,
+			&i.Board.ID,
+			&i.Board.MemberID,
+			&i.Board.YearID,
+			&i.Board.Role,
+			&i.Board.IsOrganizer,
+			&i.Member.ID,
+			&i.Member.Name,
+			&i.Member.Username,
+			&i.Member.ZauthID,
+			&i.Year.ID,
+			&i.Year.YearStart,
+			&i.Year.YearEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -166,10 +185,10 @@ func (q *Queries) BoardGetByMemberID(ctx context.Context, memberID int32) ([]Boa
 }
 
 const boardGetByMemberYear = `-- name: BoardGetByMemberYear :one
-SELECT b.id, member_id, year_id, role, is_organizer, m.id, name, username, zauth_id, y.id, year_start, year_end 
-FROM board b 
-INNER JOIN member m ON b.member_id = m.id 
-INNER JOIN year y ON b.year_id = y.id
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+FROM board b
+LEFT JOIN member m ON b.member_id = m.id
+LEFT JOIN year y ON b.year_id = y.id
 WHERE m.id = $1 AND y.id = $2
 `
 
@@ -179,85 +198,67 @@ type BoardGetByMemberYearParams struct {
 }
 
 type BoardGetByMemberYearRow struct {
-	ID          int32
-	MemberID    int32
-	YearID      int32
-	Role        string
-	IsOrganizer bool
-	ID_2        int32
-	Name        string
-	Username    pgtype.Text
-	ZauthID     pgtype.Int4
-	ID_3        int32
-	YearStart   int32
-	YearEnd     int32
+	Board  Board
+	Member Member
+	Year   Year
 }
 
 func (q *Queries) BoardGetByMemberYear(ctx context.Context, arg BoardGetByMemberYearParams) (BoardGetByMemberYearRow, error) {
 	row := q.db.QueryRow(ctx, boardGetByMemberYear, arg.ID, arg.ID_2)
 	var i BoardGetByMemberYearRow
 	err := row.Scan(
-		&i.ID,
-		&i.MemberID,
-		&i.YearID,
-		&i.Role,
-		&i.IsOrganizer,
-		&i.ID_2,
-		&i.Name,
-		&i.Username,
-		&i.ZauthID,
-		&i.ID_3,
-		&i.YearStart,
-		&i.YearEnd,
+		&i.Board.ID,
+		&i.Board.MemberID,
+		&i.Board.YearID,
+		&i.Board.Role,
+		&i.Board.IsOrganizer,
+		&i.Member.ID,
+		&i.Member.Name,
+		&i.Member.Username,
+		&i.Member.ZauthID,
+		&i.Year.ID,
+		&i.Year.YearStart,
+		&i.Year.YearEnd,
 	)
 	return i, err
 }
 
-const boardGetByYearPopulated = `-- name: BoardGetByYearPopulated :many
-SELECT b.id, member_id, year_id, role, is_organizer, m.id, name, username, zauth_id, y.id, year_start, year_end 
-FROM board b 
-INNER JOIN member m ON b.member_id = m.id 
-INNER JOIN year y ON b.year_id = y.id
+const boardGetByYear = `-- name: BoardGetByYear :many
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+FROM board b
+LEFT JOIN member m ON b.member_id = m.id
+LEFT JOIN year y ON b.year_id = y.id
 WHERE b.year_id = $1
 `
 
-type BoardGetByYearPopulatedRow struct {
-	ID          int32
-	MemberID    int32
-	YearID      int32
-	Role        string
-	IsOrganizer bool
-	ID_2        int32
-	Name        string
-	Username    pgtype.Text
-	ZauthID     pgtype.Int4
-	ID_3        int32
-	YearStart   int32
-	YearEnd     int32
+type BoardGetByYearRow struct {
+	Board  Board
+	Member Member
+	Year   Year
 }
 
-func (q *Queries) BoardGetByYearPopulated(ctx context.Context, yearID int32) ([]BoardGetByYearPopulatedRow, error) {
-	rows, err := q.db.Query(ctx, boardGetByYearPopulated, yearID)
+func (q *Queries) BoardGetByYear(ctx context.Context, yearID int32) ([]BoardGetByYearRow, error) {
+	rows, err := q.db.Query(ctx, boardGetByYear, yearID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []BoardGetByYearPopulatedRow
+	var items []BoardGetByYearRow
 	for rows.Next() {
-		var i BoardGetByYearPopulatedRow
+		var i BoardGetByYearRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.MemberID,
-			&i.YearID,
-			&i.Role,
-			&i.IsOrganizer,
-			&i.ID_2,
-			&i.Name,
-			&i.Username,
-			&i.ZauthID,
-			&i.ID_3,
-			&i.YearStart,
-			&i.YearEnd,
+			&i.Board.ID,
+			&i.Board.MemberID,
+			&i.Board.YearID,
+			&i.Board.Role,
+			&i.Board.IsOrganizer,
+			&i.Member.ID,
+			&i.Member.Name,
+			&i.Member.Username,
+			&i.Member.ZauthID,
+			&i.Year.ID,
+			&i.Year.YearStart,
+			&i.Year.YearEnd,
 		); err != nil {
 			return nil, err
 		}

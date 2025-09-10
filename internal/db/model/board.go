@@ -13,44 +13,15 @@ type Board struct {
 	Year   Year   `json:"year"`
 }
 
-func BoardModel(board sqlc.Board) *Board {
+func BoardModel(board sqlc.Board, member sqlc.Member, year sqlc.Year) *Board {
 	return &Board{
 		ID:          int(board.ID),
 		MemberID:    int(board.MemberID),
 		YearID:      int(board.YearID),
 		Role:        board.Role,
 		IsOrganizer: board.IsOrganizer,
-	}
-}
-
-func BoardModelPopulated(board sqlc.BoardGetAllPopulatedRow) *Board {
-	username := ""
-	if board.Username.Valid {
-		username = board.Username.String
-	}
-
-	zauthID := 0
-	if board.ZauthID.Valid {
-		zauthID = int(board.ZauthID.Int32)
-	}
-
-	return &Board{
-		ID:       int(board.ID),
-		MemberID: int(board.ID_2),
-		Member: Member{
-			ID:       int(board.ID_2),
-			Name:     board.Name,
-			Username: username,
-			ZauthID:  zauthID,
-		},
-		YearID: int(board.ID_3),
-		Year: Year{
-			ID:    int(board.ID_3),
-			Start: int(board.YearStart),
-			End:   int(board.YearEnd),
-		},
-		Role:        board.Role,
-		IsOrganizer: board.IsOrganizer,
+		Member:      *MemberModel(member),
+		Year:        *YearModel(year),
 	}
 }
 

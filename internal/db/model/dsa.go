@@ -11,7 +11,6 @@ type DSA struct {
 
 func DSAModel(dsa sqlc.Dsa) *DSA {
 	dsaID := 0
-
 	if dsa.DsaID.Valid {
 		dsaID = int(dsa.DsaID.Int32)
 	}

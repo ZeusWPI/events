@@ -8,13 +8,13 @@ import (
 )
 
 type TaskHistory struct {
-	ID        int              `json:"id"`
-	Name      string           `json:"name"`
-	Result    model.TaskResult `json:"result"`
-	RunAt     time.Time        `json:"run_at"`
-	Error     string           `json:"error,omitempty"`
-	Recurring bool             `json:"recurring"`
-	Duration  time.Duration    `json:"duration"`
+	ID       int              `json:"id"`
+	Name     string           `json:"name"`
+	Result   model.TaskResult `json:"result"`
+	RunAt    time.Time        `json:"run_at"`
+	Error    string           `json:"error,omitempty"`
+	Type     model.TaskType   `json:"type"`
+	Duration time.Duration    `json:"duration"`
 }
 
 func TaskHistoryDTO(task *model.Task) TaskHistory {
@@ -24,53 +24,39 @@ func TaskHistoryDTO(task *model.Task) TaskHistory {
 	}
 
 	return TaskHistory{
-		ID:        task.ID,
-		Name:      task.Name,
-		Result:    task.Result,
-		RunAt:     task.RunAt,
-		Error:     taskError,
-		Recurring: task.Recurring,
-		Duration:  task.Duration,
+		ID:       task.ID,
+		Name:     task.Name,
+		Result:   task.Result,
+		RunAt:    task.RunAt,
+		Error:    taskError,
+		Type:     task.Type,
+		Duration: task.Duration,
 	}
 }
 
-type TaskHistoryFilter struct {
-	Name   string
-	Result *model.TaskResult
-	Limit  int
-	Offset int
-}
-
-type TaskStatus string
-
-const (
-	Running TaskStatus = "running"
-	Waiting TaskStatus = "waiting"
-)
-
 type Task struct {
-	ID         int              `json:"id"`
+	TaskUID    string           `json:"uid"`
 	Name       string           `json:"name"`
-	Status     TaskStatus       `json:"status"`
+	Status     task.Status      `json:"status"`
 	NextRun    time.Time        `json:"next_run"`
-	Recurring  bool             `json:"recurring"`
+	Type       model.TaskType   `json:"type"`
 	LastStatus model.TaskResult `json:"last_status,omitempty"`
-	LastRun    *time.Time       `json:"last_run,omitempty"`
+	LastRun    *time.Time       `json:"last_run,omitzero"`
 	LastError  string           `json:"last_error,omitempty"`
-	Interval   *time.Duration   `json:"interval,omitempty"`
+	Interval   *time.Duration   `json:"interval,omitzero"`
 }
 
 func TaskDTO(task task.Stat) Task {
 	t := Task{
-		ID:        task.ID,
-		Name:      task.Name,
-		Status:    TaskStatus(task.Status),
-		NextRun:   task.NextRun,
-		Recurring: task.Recurring,
+		TaskUID: task.TaskUID,
+		Name:    task.Name,
+		Status:  task.Status,
+		NextRun: task.NextRun,
+		Type:    task.Type,
 	}
 
-	if task.Recurring {
-		t.LastStatus = model.TaskResult(task.LastStatus)
+	if task.Type == model.TaskRecurring {
+		t.LastStatus = task.LastStatus
 		t.LastRun = &task.LastRun
 		if task.LastError != nil {
 			t.LastError = task.LastError.Error()
@@ -79,4 +65,11 @@ func TaskDTO(task task.Stat) Task {
 	}
 
 	return t
+}
+
+type TaskFilter struct {
+	TaskUID string
+	Result  *model.TaskResult
+	Limit   int
+	Offset  int
 }

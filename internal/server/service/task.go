@@ -6,6 +6,7 @@ import (
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
+	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -25,7 +26,7 @@ func (s *Service) NewTask() *Task {
 }
 
 func (t *Task) GetAll() ([]dto.Task, error) {
-	tasks, err := t.service.task.Tasks()
+	tasks, err := task.Manager.Tasks()
 	if err != nil {
 		zap.S().Error(err)
 		return nil, fiber.ErrInternalServerError
@@ -37,7 +38,7 @@ func (t *Task) GetAll() ([]dto.Task, error) {
 	return utils.SliceMap(tasks, dto.TaskDTO), nil
 }
 
-func (t *Task) GetHistory(ctx context.Context, filter dto.TaskHistoryFilter) ([]dto.TaskHistory, error) {
+func (t *Task) GetHistory(ctx context.Context, filter dto.TaskFilter) ([]dto.TaskHistory, error) {
 	tasks, err := t.task.GetFiltered(ctx, model.TaskFilter(filter))
 	if err != nil {
 		zap.S().Error(err)
@@ -50,23 +51,23 @@ func (t *Task) GetHistory(ctx context.Context, filter dto.TaskHistoryFilter) ([]
 	return utils.SliceMap(tasks, dto.TaskHistoryDTO), nil
 }
 
-func (t *Task) Start(id int) error {
-	return t.service.task.Run(id)
+func (t *Task) Start(taskUID string) error {
+	return task.Manager.RunByUID(taskUID)
 }
 
-func (t *Task) Resolve(ctx context.Context, taskID int) error {
-	task, err := t.task.Get(ctx, taskID)
+func (t *Task) Resolve(ctx context.Context, runID int) error {
+	run, err := t.task.GetByRunID(ctx, runID)
 	if err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}
-	if task == nil {
+	if run == nil {
 		return fiber.ErrNotFound
 	}
 
-	task.Result = model.Resolved
+	run.Result = model.Resolved
 
-	if err := t.task.UpdateResult(ctx, *task); err != nil {
+	if err := t.task.RunResolve(ctx, runID); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}

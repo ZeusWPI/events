@@ -1,32 +1,42 @@
+// Package dsa controls the syncronization between DSA and events
 package dsa
 
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/ZeusWPI/events/internal/check"
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/pkg/config"
-	"github.com/ZeusWPI/events/pkg/utils"
 )
 
-type DSA struct {
+const (
+	checkUID = "check-dsa"
+	taskUID  = "task-dsa"
+)
+
+type Client struct {
 	development  bool
-	dsaURL       string
-	dsaKey       string
+	url          string
+	key          string
 	abbreviation string
+	deadline     time.Duration
 
 	repoDSA   repository.DSA
 	repoEvent repository.Event
 	repoYear  repository.Year
 }
 
-func New(repo repository.Repository) (*DSA, error) {
+func New(repo repository.Repository) (*Client, error) {
 	url := config.GetDefaultString("dsa.url", "")
 	if url == "" {
 		return nil, errors.New("no dsa url link set")
 	}
+
 	dsaKey := config.GetDefaultString("dsa.key", "")
 	if dsaKey == "" {
 		return nil, errors.New("no dsa api key set")
@@ -37,55 +47,101 @@ func New(repo repository.Repository) (*DSA, error) {
 		return nil, errors.New("no association abbreviation set")
 	}
 
-	return &DSA{
-		development:  config.GetDefaultString("app.env", "development") == "development",
-		dsaURL:       url,
-		dsaKey:       dsaKey,
+	client := &Client{
+		development:  config.IsDev(),
+		url:          url,
+		key:          dsaKey,
 		abbreviation: abbreviation,
+		deadline:     config.GetDefaultDuration("dsa.deadline_s", 3*24*60*60),
 		repoDSA:      *repo.NewDSA(),
 		repoEvent:    *repo.NewEvent(),
 		repoYear:     *repo.NewYear(),
-	}, nil
+	}
+
+	// Register task
+	if err := task.Manager.AddRecurring(context.Background(), task.NewTask(
+		taskUID,
+		"Syncronize DSA events",
+		config.GetDefaultDuration("dsa.syncronize_s", 24*60*60),
+		client.Sync,
+	)); err != nil {
+		return nil, err
+	}
+
+	// Register check
+	if err := check.Manager.Register(context.Background(), check.NewCheck(
+		checkUID,
+		"Add event to the DSA website",
+		client.deadline,
+	)); err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
-// Interface compliance
-var _ check.Check = (*DSA)(nil)
+// Create handles a new event
+func (c *Client) Create(ctx context.Context, event model.Event) error {
+	// Create on the dsa website
+	if err := c.createEvent(ctx, event); err != nil {
+		return fmt.Errorf("create event on the dsa website %+v | %w", event, err)
+	}
 
-func (d *DSA) Description() string {
-	return "Add event to the DSA website"
+	// Update checks
+	if err := c.handleEvent(ctx, event, true); err != nil {
+		return fmt.Errorf("update dsa checks for event %+v | %w", event, err)
+	}
+
+	return nil
 }
 
-func (d *DSA) Status(ctx context.Context, events []model.Event) []check.CheckResult {
-	statusses := make(map[int]check.CheckResult)
-	for _, event := range events {
-		statusses[event.ID] = check.CheckResult{
-			EventID: event.ID,
-			Status:  check.Unfinished,
-			Error:   nil,
-		}
+// Update handles an update to an event
+func (c *Client) Update(ctx context.Context, newEvent model.Event) error {
+	// Update the dsa website
+	if err := c.updateEvent(ctx, newEvent); err != nil {
+		return fmt.Errorf("update event on the dsa website %+v | %w", newEvent, err)
 	}
 
-	dsas, err := d.repoDSA.GetByEvents(ctx, events)
-	if err != nil {
-		for k, v := range statusses {
-			v.Error = err
-			statusses[k] = v
-		}
+	return nil
+}
 
-		return utils.MapValues(statusses)
+// Delete handles an event delete
+func (c *Client) Delete(ctx context.Context, event model.Event) error {
+	// Delete on the dsa website
+	if err := c.deleteEvent(ctx, event); err != nil {
+		return fmt.Errorf("delete event on the dsa website %+v | %w", event, err)
 	}
 
-	for _, dsa := range dsas {
-		if status, ok := statusses[dsa.EventID]; ok {
-			if dsa.Deleted {
-				status.Status = check.Warning
-				status.Warning = "DSA activity was manually deleted on the dsa website."
-			} else if dsa.DsaID != 0 {
-				status.Status = check.Finished
-			}
-			statusses[dsa.EventID] = status
-		}
+	// Update checks
+	if err := c.handleEvent(ctx, event, false); err != nil {
+		return fmt.Errorf("update dsa checks for event %+v | %w", event, err)
 	}
 
-	return utils.MapValues(statusses)
+	return nil
+}
+
+func (c *Client) handleEvent(ctx context.Context, event model.Event, added bool) error {
+	var status model.CheckStatus
+	var message string
+
+	if time.Now().Add(c.deadline).Before(event.StartTime) {
+		// Check is in time
+		status = model.CheckDone
+		if !added {
+			status = model.CheckTODO
+		}
+	} else {
+		status = model.CheckTODOLate
+		message = "Too late to add to the DSA website"
+	}
+
+	if err := check.Manager.Update(ctx, checkUID, check.Update{
+		Status:  status,
+		Message: message,
+		EventID: event.ID,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -1,14 +1,40 @@
+// Package mattermost interacts with a mattermost instance
 package mattermost
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/ZeusWPI/events/pkg/config"
 )
 
 const apiURL = "api/v4"
+
+type Client struct {
+	token string
+	url   string
+}
+
+func New() (*Client, error) {
+	token := config.GetDefaultString("mattermost.token", "")
+	if token == "" {
+		return nil, errors.New("no mattermost token set")
+	}
+
+	url := config.GetDefaultString("mattermost.url", "")
+	if url == "" {
+		return nil, errors.New("no mattermost url set")
+	}
+
+	return &Client{
+		token: token,
+		url:   url,
+	}, nil
+}
 
 type query struct {
 	method string
@@ -35,7 +61,7 @@ func (c *Client) query(ctx context.Context, q query) error {
 		_ = resp.Body.Close()
 	}()
 
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return fmt.Errorf("unexpected http status code %s", resp.Status)
 	}
 

@@ -14,20 +14,21 @@ export namespace API {
     end_time?: string;
     location: string;
     year: Year;
-    organizers: Organizer[];
+    organizers?: Organizer[];
     checks?: Check[];
     announcements?: Announcement[];
     mails?: Mail[];
-    posters: Poster[];
+    posters?: Poster[];
   }
 
   export interface Check extends Base {
     event_id: number;
-    description: string;
-    warning?: string;
     status: string;
-    error: string;
-    source: string;
+    message?: string;
+    description: string;
+    deadline?: number;
+    type: string;
+    creator_id?: number;
   }
 
   export interface Announcement extends Base {
@@ -46,9 +47,9 @@ export namespace API {
   }
 
   export interface Organizer extends Base {
-    role: string;
     name: string;
-    zauth_id: number;
+    role: string;
+    zauth_id?: number;
   }
 
   export interface Poster extends Base {
@@ -67,11 +68,12 @@ export namespace API {
     error?: string;
   }
 
-  export interface Task extends Base {
+  export interface Task {
+    uid: string;
     name: string;
     status: string;
     next_run: string;
-    recurring: boolean;
+    type: string;
     last_status?: string;
     last_run?: string;
     last_error?: string;
@@ -83,7 +85,7 @@ export namespace API {
     result: string;
     run_at: string;
     error?: string;
-    recurring: boolean;
+    type: string;
     duration: number;
   }
 }

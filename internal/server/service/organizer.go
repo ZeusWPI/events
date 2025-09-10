@@ -26,7 +26,7 @@ type Organizer struct {
 func (s *Service) NewOrganizer() *Organizer {
 	return &Organizer{
 		service:     *s,
-		development: config.GetDefaultString("app.env", "development") == "development",
+		development: config.IsDev(),
 		board:       *s.repo.NewBoard(),
 		member:      *s.repo.NewMember(),
 		year:        *s.repo.NewYear(),
@@ -63,7 +63,7 @@ func (o *Organizer) GetByMember(ctx context.Context, memberID int) (dto.Organize
 }
 
 func (o *Organizer) GetByYear(ctx context.Context, yearID int) ([]dto.Organizer, error) {
-	organizers, err := o.board.GetByYearPopulated(ctx, yearID)
+	organizers, err := o.board.GetByYear(ctx, yearID)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 			MemberID:    member.ID,
 			YearID:      year.ID,
 			Role:        "Developer",
-			IsOrganizer: true,
+			IsOrganizer: false,
 		}
 
 		if err := o.board.Create(ctx, &board); err != nil {

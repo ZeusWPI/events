@@ -1,4 +1,4 @@
-package mattermost
+package announcement
 
 import (
 	"context"
@@ -8,17 +8,24 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/task"
+	"github.com/ZeusWPI/events/pkg/mattermost"
 )
 
-const announcementTask = "Announcement send"
+func getTaskUID(announcement model.Announcement) string {
+	return fmt.Sprintf("%s-%d", taskUID, announcement.ID)
+}
+
+func getTaskName(announcement model.Announcement) string {
+	return fmt.Sprintf("Send announcement %d", announcement.ID)
+}
 
 func (c *Client) sendAnnouncement(ctx context.Context, announcement model.Announcement) error {
-	if err := c.SendMessage(ctx, Message{
+	if err := c.m.SendMessage(ctx, mattermost.Message{
 		ChannelID: c.announcementChannel,
 		Message:   announcement.Content,
 	}); err != nil {
 		announcement.Error = err.Error()
-		if dbErr := c.repoAnnouncement.Error(ctx, announcement); dbErr != nil {
+		if dbErr := c.repoAnnouncement.Update(ctx, announcement); dbErr != nil {
 			err = errors.Join(err, dbErr)
 		}
 
@@ -32,19 +39,12 @@ func (c *Client) sendAnnouncement(ctx context.Context, announcement model.Announ
 	return nil
 }
 
-// ScheduleAnnouncement schedules a new announcement to be sent
-// If an announcement is already scheduled then update needs to be set to true so that it cancels it first
-func (c *Client) ScheduleAnnouncement(ctx context.Context, announcement model.Announcement, update bool) error {
-	name := fmt.Sprintf("%s %d", announcementTask, announcement.ID)
-
-	if update {
-		// It's fine if it errors
-		_ = c.task.RemoveOnceByName(name)
-	}
+func (c *Client) ScheduleAnnouncement(ctx context.Context, announcement model.Announcement) error {
+	name := getTaskName(announcement)
 
 	if announcement.SendTime.Before(time.Now()) {
 		announcement.Error = "Announcement send time was in the past"
-		if err := c.repoAnnouncement.Error(ctx, announcement); err != nil {
+		if err := c.repoAnnouncement.Update(ctx, announcement); err != nil {
 			return err
 		}
 
@@ -53,7 +53,8 @@ func (c *Client) ScheduleAnnouncement(ctx context.Context, announcement model.An
 
 	interval := time.Until(announcement.SendTime)
 
-	if err := c.task.AddOnce(task.NewTask(
+	if err := task.Manager.AddOnce(task.NewTask(
+		getTaskUID(announcement),
 		name,
 		interval,
 		func(ctx context.Context) error { return c.sendAnnouncement(ctx, announcement) },

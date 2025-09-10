@@ -31,14 +31,14 @@ func (d *DSA) GetByEvents(ctx context.Context, events []model.Event) ([]*model.D
 	return utils.SliceMap(dsa, model.DSAModel), nil
 }
 
-func (d *DSA) GetByEventID(ctx context.Context, eventID int) (*model.DSA, error) {
+func (d *DSA) GetByEvent(ctx context.Context, eventID int) (*model.DSA, error) {
 	dsa, err := d.repo.queries(ctx).DsaGetByEvent(ctx, int32(eventID))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 
-		return nil, fmt.Errorf("get event %+v | %w", eventID, err)
+		return nil, fmt.Errorf("get dsa by event %d | %w", eventID, err)
 	}
 
 	return model.DSAModel(dsa), nil

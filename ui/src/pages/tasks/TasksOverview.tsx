@@ -13,7 +13,7 @@ import { TaskResult } from "@/lib/types/task";
 
 export function TasksOverview() {
   const { data: tasks = [], isLoading } = useTaskGetAll();
-  const { history, isFetchingNextPage, hasNextPage, fetchNextPage } = useTaskGetHistory({ result: TaskResult.FAILED });
+  const { history, isFetchingNextPage, hasNextPage, fetchNextPage } = useTaskGetHistory({ result: TaskResult.Failed });
 
   const [sentryRef] = useInfiniteScroll({
     loading: isFetchingNextPage,

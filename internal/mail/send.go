@@ -11,37 +11,38 @@ import (
 	"github.com/ZeusWPI/events/pkg/zauth"
 )
 
-const mailTask = "Mail send"
+func getTaskUID(mail model.Mail) string {
+	return fmt.Sprintf("%s-%d", taskUID, mail.ID)
+}
 
-func (m *Mail) sendMailAll(ctx context.Context, mail model.Mail) error {
+func getTaskName(mail model.Mail) string {
+	return fmt.Sprintf("Send mail %d", mail.ID)
+}
+
+func (c *Client) sendMailAll(ctx context.Context, mail model.Mail) error {
 	if err := zauth.MailAll(ctx, mail.Title, mail.Content); err != nil {
 		mail.Error = err.Error()
-		if dbErr := m.repoMail.Error(ctx, mail); dbErr != nil {
+		if dbErr := c.repoMail.Update(ctx, mail); dbErr != nil {
 			err = errors.Join(err, dbErr)
 		}
 
 		return err
 	}
 
-	if err := m.repoMail.Send(ctx, mail.ID); err != nil {
+	if err := c.repoMail.Send(ctx, mail.ID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// ScheduleMailAll will schedule a new mail to all Zeus users
-// If a mail is already scheduled then update needs to be set to true so that it cancels it first
-func (m *Mail) ScheduleMailAll(ctx context.Context, mail model.Mail, update bool) error {
-	name := fmt.Sprintf("%s %d", mailTask, mail.ID)
+func (c *Client) ScheduleMailAll(ctx context.Context, mail model.Mail) error {
+	name := getTaskName(mail)
 
-	if update {
-		_ = m.task.RemoveOnceByName(name)
-	}
-
+	// Added as a failsafe but should be checked by the caller
 	if mail.SendTime.Before(time.Now()) {
-		mail.Error = "Mail send time was in the past"
-		if err := m.repoMail.Error(ctx, mail); err != nil {
+		mail.Error = "Mail send time is in the past"
+		if err := c.repoMail.Update(ctx, mail); err != nil {
 			return err
 		}
 
@@ -50,10 +51,11 @@ func (m *Mail) ScheduleMailAll(ctx context.Context, mail model.Mail, update bool
 
 	interval := time.Until(mail.SendTime)
 
-	if err := m.task.AddOnce(task.NewTask(
+	if err := task.Manager.AddOnce(task.NewTask(
+		getTaskUID(mail),
 		name,
 		interval,
-		func(ctx context.Context) error { return m.sendMailAll(ctx, mail) },
+		func(ctx context.Context) error { return c.sendMailAll(ctx, mail) },
 	)); err != nil {
 		return err
 	}

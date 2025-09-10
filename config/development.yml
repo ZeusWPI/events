@@ -38,13 +38,19 @@ dsa:
   get_activities_s: 3600
   create_activities_s: 7200
 
+announcement:
+  channel: c48qqzyfp7dhjciniwbk7k8fgy # Test kanaal
 
 mattermost:
   url: https://mattermost.zeus.gent
-  announcement_channel: c48qqzyfp7dhjciniwbk7k8fgy # Test kanaal
 
 gitmate:
   url: "https://git.zeus.gent/api/v1/repos/ZeusWPI/visueel"
 
+check:
+  sync_s: 10800
+
 poster:
   sync_s: 86400
+  big_deadline_s: 0
+  scc_deadline_s: 0

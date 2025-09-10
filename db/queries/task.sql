@@ -1,23 +1,35 @@
--- name: TaskGet :one
+-- name: TaskGetByUID :one
 SELECT *
 FROM task
-WHERE id = $1;
+WHERE uid = $1;
+
+-- name: TaskRunGet :one
+SELECT sqlc.embed(t), sqlc.embed(r)
+FROM task_run r
+LEFT JOIN task t ON t.uid = r.task_uid
+WHERE r.id = $1;
 
 -- name: TaskGetFiltered :many
-SELECT *
-FROM task
+SELECT sqlc.embed(t), sqlc.embed(r)
+FROM task_run r
+LEFT JOIN task t ON t.uid = r.task_uid
 WHERE
-  (name = $1 OR NOT @filter_name) AND
-  (result = $2 OR NOT @filter_result)
-ORDER BY run_at DESC
+  (t.uid = $1 OR NOT @filter_task_uid) AND
+  (r.result = $2 OR NOT @filter_result) AND
+  t.active
+ORDER BY r.run_at DESC
 LIMIT $3 OFFSET $4;
 
--- name: TaskCreate :one 
-INSERT INTO task (name, result, run_at, error, recurring, duration)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id;
+-- name: TaskCreate :exec
+INSERT INTO task (uid, name, active, "type")
+VALUES ($1, $2, $3, $4);
 
--- name: TaskUpdateResult :exec
+-- name: TaskUpdate :exec
 UPDATE task
-SET result = $1
-WHERE id = $2;
+SET name = $2, active = $3
+WHERE uid = $1;
+
+-- name: TaskSetInactiveRecurring :exec
+UPDATE task
+SET active = false
+WHERE "type" = 'recurring';

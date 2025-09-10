@@ -1,6 +1,6 @@
 import { useTaskStart } from "@/lib/api/task";
 import type { Task } from "@/lib/types/task";
-import { TaskStatus } from "@/lib/types/task";
+import { TaskStatus, TaskType } from "@/lib/types/task";
 import { cn, formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { Calendar, CalendarDays, LoaderCircle, Play } from "lucide-react";
@@ -21,12 +21,15 @@ export function TaskCard({ task }: Props) {
 
   const [updating, setUpdating] = useState(false);
 
+  const recurring = task.type === TaskType.Recurring
+  const running = task.status === TaskStatus.Running
+
   const handleCard = () => {
-    if (!task.recurring) {
+    if (!recurring) {
       return
     }
 
-    void navigate({ to: "/tasks/$id", params: { id: task.id.toString() } });
+    void navigate({ to: "/tasks/$uid", params: { uid: task.uid } });
   }
 
   const handleRun = (e: React.MouseEvent) => {
@@ -44,14 +47,14 @@ export function TaskCard({ task }: Props) {
   };
 
   return (
-    <div onClick={handleCard} className={cn("flex justify-between items-center w-full p-4 bg-accent rounded-lg border ", task.recurring && "transition-transform duration-300 hover:scale-102 hover:cursor-pointer")}>
+    <div onClick={handleCard} className={cn("flex justify-between items-center w-full p-4 bg-accent rounded-lg border ", recurring && "transition-transform duration-300 hover:scale-102 hover:cursor-pointer")}>
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger>
-            {task.recurring ? <CalendarDays /> : <Calendar />}
+            {recurring ? <CalendarDays /> : <Calendar />}
           </TooltipTrigger>
           <TooltipContent>
-            {task.recurring ? "Recurring Task" : "One time Task"}
+            {recurring ? "Recurring Task" : "One time Task"}
           </TooltipContent>
         </Tooltip>
         <div className="flex flex-col">
@@ -62,7 +65,7 @@ export function TaskCard({ task }: Props) {
                 Failed
               </Pill>
             )}
-            {task.status === TaskStatus.RUNNING && (
+            {running && (
               <Pill color="green">
                 Running
               </Pill>
@@ -72,10 +75,10 @@ export function TaskCard({ task }: Props) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {task.recurring && (
-          <TooltipText text={task.status === TaskStatus.RUNNING ? "Running" : "Run"}>
-            <Button onClick={handleRun} disabled={task.status === TaskStatus.RUNNING || updating} size="icon" className="rounded-full">
-              {task.status === TaskStatus.RUNNING ? <LoaderCircle className="animate-spin" /> : <Play />}
+        {recurring && (
+          <TooltipText text={running ? "Running" : "Run"}>
+            <Button onClick={handleRun} disabled={running || updating} size="icon" className="rounded-full">
+              {running ? <LoaderCircle className="animate-spin" /> : <Play />}
             </Button>
           </TooltipText>
         )}
