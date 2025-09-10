@@ -30,6 +30,10 @@ export function TasksHistory() {
     return <Indeterminate />;
   }
 
+  const handleClick = (newResult: TaskResult) => {
+    setFilter(val => ({ ...val, result: val.result === newResult ? undefined : newResult }))
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader>
@@ -39,7 +43,7 @@ export function TasksHistory() {
       </PageHeader>
       <div className="grid grid-cols-3 gap-4">
         <Card
-          onClick={() => setFilter(val => ({ ...val, result: TaskResult.Failed }))}
+          onClick={() => handleClick(TaskResult.Failed)}
           className="cursor-pointer"
         >
           <CardContent>
@@ -53,7 +57,7 @@ export function TasksHistory() {
           </CardContent>
         </Card>
         <Card
-          onClick={() => setFilter(val => ({ ...val, result: TaskResult.Resolved }))}
+          onClick={() => handleClick(TaskResult.Resolved)}
           className="cursor-pointer"
         >
           <CardContent>
@@ -67,7 +71,7 @@ export function TasksHistory() {
           </CardContent>
         </Card>
         <Card
-          onClick={() => setFilter(val => ({ ...val, result: TaskResult.Succes }))}
+          onClick={() => handleClick(TaskResult.Succes)}
           className="cursor-pointer"
         >
           <CardContent>
