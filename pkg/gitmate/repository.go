@@ -207,7 +207,7 @@ func (c *Client) newJSONRequest(ctx context.Context, method, path string, body a
 		}
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, c.url+path, &buf)
+	req, err := http.NewRequestWithContext(ctx, method, url+path, &buf)
 	if err != nil {
 		return nil, fmt.Errorf("new http request %w", err)
 	}

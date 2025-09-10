@@ -38,7 +38,7 @@ func New(repo repository.Repository) (*Client, error) {
 
 	client := &Client{
 		announcementChannel: announcementChannel,
-		deadline:            config.GetDefaultDuration("announcement.deadline", 3*24*60*60),
+		deadline:            config.GetDefaultDuration("announcement.deadline_s", 3*24*60*60),
 		repoAnnouncement:    *repo.NewAnnouncement(),
 		repoEvent:           *repo.NewEvent(),
 	}

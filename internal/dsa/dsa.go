@@ -19,12 +19,16 @@ const (
 	taskUID  = "task-dsa"
 )
 
+// Change these values if you have a local dsa instance @xander
+const (
+	dsaURL       = "https://dsa.ugent.be/api"
+	abbreviation = "zeus"
+)
+
 type Client struct {
-	development  bool
-	url          string
-	key          string
-	abbreviation string
-	deadline     time.Duration
+	development bool
+	key         string
+	deadline    time.Duration
 
 	repoDSA   repository.DSA
 	repoEvent repository.Event
@@ -32,30 +36,18 @@ type Client struct {
 }
 
 func New(repo repository.Repository) (*Client, error) {
-	url := config.GetDefaultString("dsa.url", "")
-	if url == "" {
-		return nil, errors.New("no dsa url link set")
-	}
-
 	dsaKey := config.GetDefaultString("dsa.key", "")
 	if dsaKey == "" {
 		return nil, errors.New("no dsa api key set")
 	}
 
-	abbreviation := config.GetDefaultString("dsa.assoc_abbrev", "")
-	if abbreviation == "" {
-		return nil, errors.New("no association abbreviation set")
-	}
-
 	client := &Client{
-		development:  config.IsDev(),
-		url:          url,
-		key:          dsaKey,
-		abbreviation: abbreviation,
-		deadline:     config.GetDefaultDuration("dsa.deadline_s", 3*24*60*60),
-		repoDSA:      *repo.NewDSA(),
-		repoEvent:    *repo.NewEvent(),
-		repoYear:     *repo.NewYear(),
+		development: config.IsDev(),
+		key:         dsaKey,
+		deadline:    config.GetDefaultDuration("dsa.deadline_s", 3*24*60*60),
+		repoDSA:     *repo.NewDSA(),
+		repoEvent:   *repo.NewEvent(),
+		repoYear:    *repo.NewYear(),
 	}
 
 	// Register task

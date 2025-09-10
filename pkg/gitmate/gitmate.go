@@ -7,8 +7,10 @@ import (
 	"github.com/ZeusWPI/events/pkg/config"
 )
 
+// Change this url if you for some reason have a local instance
+const url = "https://git.zeus.gent/api/v1/repos/ZeusWPI/visueel"
+
 type Client struct {
-	url   string
 	token string
 }
 
@@ -18,13 +20,7 @@ func New() (*Client, error) {
 		return nil, errors.New("no gitmate token set")
 	}
 
-	url := config.GetDefaultString("gitmate.url", "")
-	if token == "" {
-		return nil, errors.New("no gitmate url set")
-	}
-
 	return &Client{
-		url:   url,
 		token: token,
 	}, nil
 }

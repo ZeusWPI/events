@@ -52,7 +52,7 @@ type activityUpdate struct {
 }
 
 func (c *Client) buildDsaURL(endpoint string, queries map[string]string) (string, error) {
-	u, err := url.Parse(c.url)
+	u, err := url.Parse(dsaURL)
 	if err != nil {
 		return "", fmt.Errorf("dsaURL could not be parsed: %w", err)
 	}
@@ -118,7 +118,7 @@ func (c *Client) getActivities(ctx context.Context) ([]activity, error) {
 	var response activityResponse
 	dsaURL, err := c.buildDsaURL("activiteiten", map[string]string{
 		"page_size":   "100",
-		"association": c.abbreviation,
+		"association": abbreviation,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("build dsa url %w", err)
