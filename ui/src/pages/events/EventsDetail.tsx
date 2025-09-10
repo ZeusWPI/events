@@ -22,6 +22,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import { ChevronDownIcon, ChevronUpIcon, LinkIcon, MailIcon, MegaphoneIcon, UserRound } from "lucide-react";
 import { useState } from "react";
 import Error404 from "../404";
+import { OrganizerIcon } from "@/components/atoms/OrganizerIcon";
 
 export function EventsDetail() {
   const { id: eventID } = useParams({ from: "/events/$id" });
@@ -108,17 +109,25 @@ export function EventsDetail() {
           <Separator orientation="vertical" className="h-full hidden lg:block" />
           <HeadlessCard className="h-full mx-auto">
             <CardHeader className="px-0 pt-0">
-              <CardTitle className="flex gap-2 items-center">
+              <CardTitle className="flex gap-2 justify-center items-center">
                 <UserRound />
                 Organizers
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col space-y-1 px-0">
               {event.organizers.length
-                ? event.organizers.map(organizer => (
-                  <span key={organizer.id}>{organizer.name}</span>
-                ))
-                : (
+                ? (
+                  <div className="table border-spacing-x-4 border-spacing-y-1">
+                    {event.organizers.map(organizer => (
+                      <div key={organizer.id} className="table-row">
+                        <div className="table-cell">
+                          <OrganizerIcon user={organizer} />
+                        </div>
+                        <div className="table-cell align-middle">{organizer.name}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
                   <span>No one assigned</span>
                 )}
             </CardContent>
