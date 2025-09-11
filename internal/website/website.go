@@ -44,7 +44,7 @@ func New(repo repository.Repository, dsa dsa.Client) (*Client, error) {
 	// Register tasks
 	if err := task.Manager.AddRecurring(context.Background(), task.NewTask(
 		TaskEventsUID,
-		"Syncronize events",
+		"Events update",
 		config.GetDefaultDuration("website.events_s", 24*60*60),
 		client.SyncEvents,
 	)); err != nil {
@@ -53,7 +53,7 @@ func New(repo repository.Repository, dsa dsa.Client) (*Client, error) {
 
 	if err := task.Manager.AddRecurring(context.Background(), task.NewTask(
 		TaskBoardUID,
-		"Syncronize boards",
+		"Board update",
 		config.GetDefaultDuration("website.board_s", 24*60*60),
 		client.SyncBoard,
 	)); err != nil {

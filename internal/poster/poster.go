@@ -50,7 +50,7 @@ func New(repo repository.Repository) (*Client, error) {
 	// Register task
 	if err := task.Manager.AddRecurring(context.Background(), task.NewTask(
 		TaskUID,
-		"Syncronize posters",
+		"Posters syncronization",
 		config.GetDefaultDuration("poster.sync_s", 60*60),
 		client.Sync,
 	)); err != nil {
@@ -73,44 +73,7 @@ func New(repo repository.Repository) (*Client, error) {
 		return nil, err
 	}
 
-	if err := client.syncCheck(context.Background()); err != nil {
-		return nil, err
-	}
-
 	return client, nil
-}
-
-// SyncCheck synchronizes the checks with the current db situation
-// It's necessary to run at least once because of the new check system
-// Should be removed in a later release
-// TODO: remove
-func (c *Client) syncCheck(ctx context.Context) error {
-	posters, err := c.poster.GetAll(ctx)
-	if err != nil {
-		return err
-	}
-
-	for _, poster := range posters {
-		event, err := c.event.GetByID(ctx, poster.EventID)
-		if err != nil {
-			return err
-		}
-
-		uid := checkBigUID
-		if poster.SCC {
-			uid = checkSCCUID
-		}
-
-		if err := check.Manager.Update(ctx, uid, check.Update{
-			Status:  model.CheckDone,
-			Message: "",
-			EventID: event.ID,
-		}); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // Create handles a poster being created

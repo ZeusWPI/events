@@ -47,10 +47,6 @@ func New(repo repository.Repository) (*Client, error) {
 		return nil, err
 	}
 
-	if err := client.syncCheck(context.Background()); err != nil {
-		return nil, err
-	}
-
 	return client, nil
 }
 
@@ -64,38 +60,6 @@ func (c *Client) startup(ctx context.Context) error {
 	for _, mail := range mails {
 		if err := c.ScheduleMailAll(ctx, *mail); err != nil {
 			return err
-		}
-	}
-
-	return nil
-}
-
-// SyncCheck synchronizes the checks with the current db situation
-// It's necessary to run at least once because of the new check system
-// Should be removed in a later release
-// TODO: remove
-func (c *Client) syncCheck(ctx context.Context) error {
-	mails, err := c.repoMail.GetAll(ctx)
-	if err != nil {
-		return err
-	}
-
-	for _, mail := range mails {
-		for _, eventID := range mail.EventIDs {
-			event, err := c.repoEvent.GetByID(ctx, eventID)
-			if err != nil {
-				return err
-			}
-			if event == nil {
-				return fmt.Errorf("unknown event with id %d", eventID)
-			}
-
-			if err := check.Manager.Update(ctx, checkUID, check.Update{
-				Status:  model.CheckDone,
-				EventID: event.ID,
-			}); err != nil {
-				return err
-			}
 		}
 	}
 

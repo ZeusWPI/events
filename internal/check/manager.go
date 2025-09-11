@@ -51,7 +51,7 @@ func newManager(repo repository.Repository) (*manager, error) {
 
 	if err := task.Manager.AddRecurring(context.Background(), task.NewTask(
 		taskUID,
-		"Update check statuses",
+		"Check status update",
 		config.GetDefaultDuration("check.sync_s", 3*60*60),
 		manager.syncDeadline,
 	)); err != nil {

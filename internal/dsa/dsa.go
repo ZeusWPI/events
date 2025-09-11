@@ -53,7 +53,7 @@ func New(repo repository.Repository) (*Client, error) {
 	// Register task
 	if err := task.Manager.AddRecurring(context.Background(), task.NewTask(
 		taskUID,
-		"Syncronize DSA events",
+		"DSA events synchronization",
 		config.GetDefaultDuration("dsa.syncronize_s", 24*60*60),
 		client.Sync,
 	)); err != nil {
