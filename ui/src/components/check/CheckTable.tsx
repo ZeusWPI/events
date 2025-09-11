@@ -1,7 +1,7 @@
-import { useCheckCreate, useCheckDelete, useCheckToggle } from "@/lib/api/check";
-import { Check, CheckStatus, CheckType, checkStatusToIcon } from "@/lib/types/check";
+import { useCheckCreate, useCheckDelete, useCheckUpdate } from "@/lib/api/check";
+import { Check, CheckStatus, CheckType, checkStatusToIcon, checkStatusToText } from "@/lib/types/check";
 import { ColumnDef, Row } from "@tanstack/react-table";
-import { ChevronDownIcon, ChevronUpIcon, ClipboardCheckIcon, ClipboardXIcon, MessageSquareIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { ClipboardCheckIcon, ClipboardXIcon, MessageCircleMoreIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { IconButton } from "../atoms/IconButton";
@@ -9,13 +9,15 @@ import { TooltipText } from "../atoms/TooltipText";
 import { Table } from "../organisms/Table";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { Event } from "@/lib/types/event";
+import { Countdown } from "../molecules/Countdown";
 
 interface Props {
   checks: Check[];
-  eventId: number;
+  event: Event;
 }
 
-export function CheckTable({ checks, eventId }: Props) {
+export function CheckTable({ checks, event }: Props) {
   const [adding, setAdding] = useState(false)
   const [addCheck, setAddCheck] = useState(false)
   const [addCheckDescription, setAddCheckDescription] = useState("")
@@ -27,12 +29,13 @@ export function CheckTable({ checks, eventId }: Props) {
   }
   const createCheck = () => {
     if (addCheckDescription === "") {
+      toast.error("Empty description")
       return
     }
 
     setAdding(true)
 
-    checkCreate.mutate({ eventId: eventId, description: addCheckDescription }, {
+    checkCreate.mutate({ eventId: event.id, description: addCheckDescription }, {
       onSuccess: () => {
         toast.success("Success")
         setAddCheck(false)
@@ -44,12 +47,18 @@ export function CheckTable({ checks, eventId }: Props) {
   }
 
   const [toggleStatus, setToggleStatus] = useState(false)
-  const checkToggle = useCheckToggle()
+  const CheckUpdate = useCheckUpdate()
 
   const toggleDone = (check: Check) => {
     setToggleStatus(true)
 
-    checkToggle.mutate(check, {
+    if (check.status === CheckStatus.Todo) {
+      check.status = CheckStatus.Done
+    } else {
+      check.status = CheckStatus.Todo
+    }
+
+    CheckUpdate.mutate(check, {
       onSuccess: () => toast.success("Success"),
       onError: error => toast.error("Failed", { description: error.message }),
       onSettled: () => setToggleStatus(false)
@@ -73,16 +82,14 @@ export function CheckTable({ checks, eventId }: Props) {
     {
       accessorKey: "status",
       header: () => <span>{`${checks.filter(c => c.status === CheckStatus.Done || c.status === CheckStatus.DoneLate).length}/${checks.length}`}</span>,
-      cell: ({ row }) => {
-        if (!row.original.message) return checkStatusToIcon[row.original.status]
-
-        return (
-          <TooltipText text={row.original.message}>
+      cell: ({ row }) => (
+        <TooltipText text={checkStatusToText[row.original.status]} subtext={row.original.message}>
+          <div className="flex gap-0">
             {checkStatusToIcon[row.original.status]}
-            <MessageSquareIcon />
-          </TooltipText>
-        )
-      },
+            {row.original.message && <MessageCircleMoreIcon size={16} />}
+          </div>
+        </TooltipText>
+      ),
       meta: { small: true, horizontalAlign: "center" },
     },
     {
@@ -103,7 +110,10 @@ export function CheckTable({ checks, eventId }: Props) {
           </div>
         )
       },
-      cell: ({ row }) => <CheckActions row={row} onToggle={toggleDone} toggleStatus={toggleStatus} onDelete={deleteCheck} deleteStatus={deleteStatus} />,
+      cell: ({ row }) => row.original.type === CheckType.Automatic
+        ? <Deadline check={row.original} event={event} />
+        : <CheckActions row={row} onToggle={toggleDone} toggleStatus={toggleStatus} onDelete={deleteCheck} deleteStatus={deleteStatus} />
+      ,
       meta: { small: true, horizontalAlign: "justify-end" },
     }
   ], [checks, toggleStatus]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -136,20 +146,11 @@ interface ActionProps {
   onDelete: (check: Check) => void;
   deleteStatus: boolean;
 }
-function CheckActions({ row, onToggle, toggleStatus, onDelete, deleteStatus }: ActionProps) {
-  if (!row.getCanExpand()) {
-    return null
-  }
 
+function CheckActions({ row, onToggle, toggleStatus, onDelete, deleteStatus }: ActionProps) {
   const check: Check = row.original
 
-  if (check.source === CheckType.Automatic) {
-    if (check.error) {
-      <IconButton onClick={row.getToggleExpandedHandler()}>
-        {row.getIsExpanded() ? <ChevronUpIcon /> : <ChevronDownIcon />}
-      </IconButton>
-    }
-
+  if (check.type === CheckType.Automatic) {
     return null
   }
 
@@ -163,4 +164,30 @@ function CheckActions({ row, onToggle, toggleStatus, onDelete, deleteStatus }: A
       </Button>
     </div>
   )
+}
+
+interface DeadlineProps {
+  event: Event;
+  check: Check;
+}
+
+function Deadline({ event, check }: DeadlineProps) {
+  if (check.type !== CheckType.Automatic) {
+    return
+  }
+
+  if (!check.deadline) {
+    // Some automatic tasks have no deadline
+    return null
+  }
+
+  const now = new Date()
+  const deadline = new Date(now.getTime() + (check.deadline / 1000))
+  const tooLate = deadline > event.startTime
+
+  if (tooLate) {
+    return null
+  }
+
+  return <Countdown goalDate={deadline} />
 }

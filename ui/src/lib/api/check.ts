@@ -13,11 +13,11 @@ export function useCheckCreate() {
   })
 }
 
-export function useCheckToggle() {
+export function useCheckUpdate() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (check: Pick<Check, 'id'>) => apiPost(`${ENDPOINT}/${check.id}`),
+    mutationFn: async (check: Pick<Check, "id" | "status" | "description">) => (await apiPost(`${ENDPOINT}/${check.id}`, check)).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["event"] })
   })
 }
