@@ -22,11 +22,14 @@ type Check struct {
 func (s *Service) NewCheck() *Check {
 	return &Check{
 		service: *s,
+		board:   *s.repo.NewBoard(),
 		check:   *s.repo.NewCheck(),
+		year:    *s.repo.NewYear(),
 	}
 }
 
 func (c *Check) Create(ctx context.Context, checkSave dto.Check, memberID int) (dto.Check, error) {
+	zap.S().Debug("Getting year")
 	year, err := c.year.GetLast(ctx)
 	if err != nil {
 		zap.S().Error(err)
@@ -53,8 +56,7 @@ func (c *Check) Create(ctx context.Context, checkSave dto.Check, memberID int) (
 		Type:        model.CheckManual,
 		CreatorID:   board.ID,
 		EventID:     checkSave.EventID,
-		Status:      checkSave.Status,
-		Message:     checkSave.Message,
+		Status:      model.CheckTODO,
 	}
 
 	if err := c.service.withRollback(ctx, func(ctx context.Context) error {
@@ -90,7 +92,7 @@ func (c *Check) Update(ctx context.Context, checkSave dto.CheckUpdate) (dto.Chec
 	}
 
 	check.Status = checkSave.Status
-	check.Message = checkSave.Message
+	check.Description = checkSave.Description
 
 	if err := c.check.UpdateEvent(ctx, *check); err != nil {
 		zap.S().Error(err)

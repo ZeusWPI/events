@@ -31,7 +31,7 @@ func CheckDTO(check *model.Check) Check {
 }
 
 type CheckUpdate struct {
-	ID      int               `json:"id" validate:"required"`
-	Status  model.CheckStatus `json:"status" validate:"required"`
-	Message string            `json:"message"`
+	ID          int               `json:"id" validate:"required"`
+	Status      model.CheckStatus `json:"status" validate:"required"`
+	Description string            `json:"description" validate:"required"`
 }

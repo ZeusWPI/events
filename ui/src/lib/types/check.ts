@@ -14,9 +14,17 @@ export enum CheckStatus {
 export const checkStatusToIcon: Record<CheckStatus, React.ReactNode> = {
   [CheckStatus.Done]: createElement(SquareCheckIcon, { className: 'text-green-500' }),
   [CheckStatus.DoneLate]: createElement(SquareCheckIcon, { className: 'text-orange-500' }),
-  [CheckStatus.Todo]: createElement(SquareXIcon, { className: 'text-red-500' }),
+  [CheckStatus.Todo]: createElement(SquareXIcon),
   [CheckStatus.TodoLate]: createElement(FlameIcon, { className: 'text-red-500' }),
   [CheckStatus.Warning]: createElement(TriangleAlertIcon, { className: 'text-orange-500' }),
+}
+
+export const checkStatusToText: Record<CheckStatus, string> = {
+  [CheckStatus.Done]: "Done",
+  [CheckStatus.DoneLate]: "Done after deadline",
+  [CheckStatus.Todo]: "Todo",
+  [CheckStatus.TodoLate]: "Deadline passed",
+  [CheckStatus.Warning]: "Warning",
 }
 
 export enum CheckType {

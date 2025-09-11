@@ -135,7 +135,7 @@ export function EventsDetail() {
         </div>
       </div>
       <div className="col-span-full">
-        <CheckTable checks={event.checks} eventId={Number(eventID)} />
+        <CheckTable checks={event.checks} event={event} />
       </div>
       <div className="col-span-full py-4">
         <div className="flex flex-wrap gap-16 justify-center lg:justify-start">
