@@ -4,6 +4,7 @@ import { useYearGetAll } from "../api/year";
 import { YearContext } from "../contexts/yearContext";
 import { Year } from "../types/year";
 import { toast } from "sonner";
+import { useAuth } from "../hooks/useAuth";
 
 interface YearProviderProps {
   children: ReactNode;
@@ -11,10 +12,11 @@ interface YearProviderProps {
 }
 
 export function YearProvider({ children, storageKey = "events-ui-year" }: YearProviderProps) {
+  const { user } = useAuth()
   const [year, setYear] = useState<Year>({ id: 0, start: 0, end: 0, formatted: "" })
   const [locked, setLocked] = useState(false)
 
-  const { data, isLoading } = useYearGetAll();
+  const { data, isLoading } = useYearGetAll(!!user);
 
   useEffect(() => {
     if (data && data.length) {

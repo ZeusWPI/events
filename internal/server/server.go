@@ -70,7 +70,7 @@ func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 	// Internal api
 	api.NewAuth(apiRouter, service)
 
-	protectedRouter := apiRouter.Use(middleware.ProtectedRoute)
+	protectedRouter := apiRouter.Use(middleware.ProtectedRoute, middleware.RoleRoute)
 
 	api.NewEvent(protectedRouter, service)
 	api.NewYear(protectedRouter, service)

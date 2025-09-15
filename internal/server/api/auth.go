@@ -60,13 +60,6 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 		return fiber.ErrBadGateway
 	}
 
-	if !r.development {
-		// Only restrict application access in non dev environment
-		if !utils.SliceContainsAny(zauth.Roles, []string{"bestuur", "events_admin"}) {
-			return fiber.ErrForbidden
-		}
-	}
-
 	dbUser, err := r.organizer.GetByZauth(c.Context(), zauth)
 	if err != nil {
 		return err
@@ -74,6 +67,11 @@ func (r *Auth) loginCallback(c *fiber.Ctx) error {
 
 	if err = storeInSession(c, "memberID", dbUser.ID); err != nil {
 		zap.S().Errorf("Failed to store member id in session %v", err)
+		return fiber.ErrInternalServerError
+	}
+
+	if err = storeInSession(c, "role", dbUser.Role); err != nil {
+		zap.S().Errorf("Failed to store member role in session %v", err)
 		return fiber.ErrInternalServerError
 	}
 

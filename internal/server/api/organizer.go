@@ -51,7 +51,7 @@ func (r *Organizer) me(c *fiber.Ctx) error {
 
 	user, err := r.organizer.GetByMember(c.Context(), memberID)
 	if err != nil {
-		if errors.Is(err, fiber.ErrBadRequest) {
+		if errors.Is(err, fiber.ErrNotFound) {
 			return fiber.ErrForbidden
 		}
 		return err

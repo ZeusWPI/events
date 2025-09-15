@@ -99,20 +99,26 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 			return dto.Organizer{}, fiber.ErrInternalServerError
 		}
 	}
+	year, err := o.year.GetLast(ctx)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Organizer{}, fiber.ErrInternalServerError
+	}
 
-	if slices.Contains(zauth.Roles, "events_admin") {
-		// User is an events admin
-		// Add the user to the board
-		year, err := o.year.GetLast(ctx)
-		if err != nil {
-			zap.S().Error(err)
-			return dto.Organizer{}, fiber.ErrInternalServerError
-		}
+	board, err := o.board.GetByMemberYear(ctx, member.ID, year.ID)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Organizer{}, fiber.ErrInternalServerError
+	}
 
+	if o.development && board == nil {
+		// Development environment
+		// Add user to the board to give permission
+		// to edit everything
 		board := model.Board{
 			MemberID:    member.ID,
 			YearID:      year.ID,
-			Role:        "Events Admin",
+			Role:        "Developer",
 			IsOrganizer: false,
 		}
 
@@ -122,20 +128,13 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 		}
 	}
 
-	if o.development {
-		// Development environment
-		// Add user to the board to give permission
-		// to edit everything
-		year, err := o.year.GetLast(ctx)
-		if err != nil {
-			zap.S().Error(err)
-			return dto.Organizer{}, fiber.ErrInternalServerError
-		}
-
+	if slices.Contains(zauth.Roles, "events_admin") && board == nil {
+		// User is an events admin
+		// Add the user to the board
 		board := model.Board{
 			MemberID:    member.ID,
 			YearID:      year.ID,
-			Role:        "Developer",
+			Role:        "Events Admin",
 			IsOrganizer: false,
 		}
 
