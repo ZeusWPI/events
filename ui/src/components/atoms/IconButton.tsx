@@ -6,5 +6,5 @@ interface Props extends ComponentProps<'button'> {
 }
 
 export function IconButton({ ...props }: Props) {
-  return <Button size="icon" variant="outline" {...props} />
+  return <Button asChild size="icon" variant="outline" {...props} />
 }

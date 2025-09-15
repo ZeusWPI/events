@@ -66,7 +66,7 @@ export function EventsDetail() {
             </IconButton>
           </TooltipText>
           <TooltipText text="Go to event website page">
-            <IconButton asChild>
+            <IconButton>
               <a href={event.url} rel="noopener noreferrer" target="_blank">
                 <LinkIcon />
               </a>
