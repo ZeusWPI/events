@@ -160,5 +160,6 @@ func (o *Organizer) GetByZauth(ctx context.Context, zauth zauth.User) (dto.Organ
 	return dto.Organizer{
 		ID:   member.ID,
 		Name: member.Name,
+		Role: board.Role,
 	}, nil
 }
