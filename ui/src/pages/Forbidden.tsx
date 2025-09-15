@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/hooks/useAuth";
+import GithubIcon from "@/components/icons/GithubIcon";
 
 export function Forbidden() {
   const { logout } = useAuth();
@@ -19,16 +20,24 @@ export function Forbidden() {
         <br />
         Contact the board if you think this is a mistake.
       </p>
-      <div className="mt-10 flex items-center justify-center gap-x-6">
-        <Button onClick={logout} asChild>
-          <Link to="/">
-            Try again
-          </Link>
-        </Button>
-        <Button asChild variant="ghost">
-          <a href="https://zeus.gent" target="_blank" rel="noopener noreferrer">
-            Zeus WPI website
-            <ArrowRight />
+      <div className="mt-10 flex flex-col gap-y-6">
+        <div className="flex items-center justify-center gap-x-6">
+          <Button onClick={logout} asChild>
+            <Link to="/">
+              Try again
+            </Link>
+          </Button>
+          <Button asChild variant="ghost">
+            <a href="https://zeus.gent" target="_blank" rel="noopener noreferrer">
+              Zeus WPI website
+              <ArrowRight />
+            </a>
+          </Button>
+        </div>
+        <Button asChild variant="ghost" className="border">
+          <a href="https://github.com/ZeusWPI/events" target="_blank" rel="noopener noreferrer">
+            <GithubIcon className="stroke-secondary-foreground" />
+            What is events?
           </a>
         </Button>
       </div>
