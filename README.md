@@ -28,6 +28,7 @@ Automatic checks are updated automatically. Currently, they include:
 - Is it added to the DSA website?
 - Is there an announcement written?
 - Has the event been covered in a mail?
+- Are there any posters for the event?
 
 ### Announcements
 
@@ -73,7 +74,7 @@ Some modules require external API keys. The will fail to launch without them and
 You can find each API key in the [example env file](./.env.example).
 If you don't have an API key you should remove the startup of the relevant module inside the [main file](./cmd/api/main.go).
 
-A more in depth explanation of `Events` can be found in the [internal README.md](/internal/README.md).
+A more in depth explanation of this application can be found in the [internal README.md](/internal/README.md).
 
 ### Quickstart
 
