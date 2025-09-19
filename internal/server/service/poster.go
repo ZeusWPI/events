@@ -187,7 +187,7 @@ func (p *Poster) Sync() error {
 	// The task manager runs everything in the background
 	// The returned error is the status for adding it to the task manager
 	// The result of the task itself is logged by the task manager
-	if err := task.Manager.AddOnce(task.NewTask(poster.TaskUID, "Syncronizing posters", task.Now, p.service.poster.Sync)); err != nil {
+	if err := task.Manager.AddOnce(task.NewTask(poster.TaskUID+"-now", "Syncronizing posters", task.Now, p.service.poster.Sync)); err != nil {
 		zap.S().Error(err)
 		return fiber.ErrInternalServerError
 	}
