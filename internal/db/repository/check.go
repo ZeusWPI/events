@@ -129,15 +129,8 @@ func (c *Check) CreateEvent(ctx context.Context, check *model.Check) error {
 
 // CreateEventBatch creates the check events in batch
 func (c *Check) CreateEventBatch(ctx context.Context, checks []model.Check) error {
-	if len(checks) == 0 {
-		return nil
-	}
-	if checks[0].UID == "" {
-		return fmt.Errorf("invalid check %+v", checks)
-	}
-
 	if err := c.repo.queries(ctx).CheckEventCreateBatch(ctx, sqlc.CheckEventCreateBatchParams{
-		Column1: utils.SliceRepeat(checks[0].UID, len(checks)),
+		Column1: utils.SliceMap(checks, func(check model.Check) string { return check.UID }),
 		Column2: utils.SliceMap(checks, func(check model.Check) int32 { return int32(check.EventID) }),
 		Column3: utils.SliceMap(checks, func(check model.Check) string { return string(check.Status) }),
 		Column4: utils.SliceMap(checks, func(check model.Check) string { return check.Message }),
