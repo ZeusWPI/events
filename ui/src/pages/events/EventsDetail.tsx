@@ -52,21 +52,21 @@ export function EventsDetail() {
         <Title>{event.name}</Title>
         <ButtonGroup>
           <TooltipText text="Create announcement">
-            <IconButton>
+            <IconButton asChild>
               <Link to="/announcements/create">
                 <MegaphoneIcon />
               </Link>
             </IconButton>
           </TooltipText>
           <TooltipText text="Create mail">
-            <IconButton>
+            <IconButton asChild>
               <Link to="/mails/create">
                 <MailIcon />
               </Link>
             </IconButton>
           </TooltipText>
           <TooltipText text="Go to event website page">
-            <IconButton>
+            <IconButton asChild>
               <a href={event.url} rel="noopener noreferrer" target="_blank">
                 <LinkIcon />
               </a>

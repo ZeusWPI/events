@@ -36,11 +36,17 @@ func New(repo repository.Repository) (*Client, error) {
 		return nil, errors.New("no mattermost announcement channel id set")
 	}
 
+	m, err := mattermost.New()
+	if err != nil {
+		return nil, err
+	}
+
 	client := &Client{
 		announcementChannel: announcementChannel,
 		deadline:            config.GetDefaultDuration("announcement.deadline_s", 3*24*60*60),
 		repoAnnouncement:    *repo.NewAnnouncement(),
 		repoEvent:           *repo.NewEvent(),
+		m:                   *m,
 	}
 
 	// Register check
