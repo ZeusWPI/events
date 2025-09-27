@@ -13,7 +13,6 @@ const (
 	CreateActivitesTask = "Create activites on DSA website"
 )
 
-// NewEvent processes the DSA part for a new event on the website
 func (c *Client) createEvent(ctx context.Context, event model.Event) error {
 	if time.Now().Add(c.deadline).After(event.StartTime) {
 		return nil
@@ -46,7 +45,6 @@ func (c *Client) createEvent(ctx context.Context, event model.Event) error {
 	return nil
 }
 
-// UpdateEvent processes the DSA part for when an event is updated on the website
 func (c *Client) updateEvent(ctx context.Context, event model.Event) error {
 	if time.Now().Add(c.deadline).After(event.StartTime) {
 		return nil

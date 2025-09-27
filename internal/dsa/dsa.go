@@ -12,6 +12,7 @@ import (
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/pkg/config"
+	"github.com/ZeusWPI/events/pkg/utils"
 )
 
 const (
@@ -74,9 +75,18 @@ func New(repo repository.Repository) (*Client, error) {
 
 // Create handles a new event
 func (c *Client) Create(ctx context.Context, event model.Event) error {
-	// Create on the dsa website
-	if err := c.createEvent(ctx, event); err != nil {
-		return fmt.Errorf("create event on the dsa website %+v | %w", event, err)
+	// Does the activity already exist on the dsa website
+	activities, err := c.getActivities(ctx)
+	if err != nil {
+		return fmt.Errorf("get all dsa activities %w", err)
+	}
+
+	if _, ok := utils.SliceFind(activities, func(activity activity) bool { return activity.Title == event.Name }); !ok {
+		// It doesn't exist on the dsa website yet
+		// Create on the dsa website
+		if err := c.createEvent(ctx, event); err != nil {
+			return fmt.Errorf("create event on the dsa website %+v | %w", event, err)
+		}
 	}
 
 	// Update checks

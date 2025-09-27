@@ -20,6 +20,7 @@ type activityResponse struct {
 
 type activity struct {
 	Association string    `json:"association"`
+	Title       string    `json:"title"`
 	StartTime   time.Time `json:"start_time"`
 	EndTime     time.Time `json:"end_time"`
 	Location    string    `json:"location"`
