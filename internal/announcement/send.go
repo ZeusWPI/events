@@ -9,10 +9,11 @@ import (
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/pkg/mattermost"
+	"github.com/google/uuid"
 )
 
 func getTaskUID(announcement model.Announcement) string {
-	return fmt.Sprintf("%s-%d", taskUID, announcement.ID)
+	return fmt.Sprintf("%s-%d-%s", taskUID, announcement.ID, uuid.NewString())
 }
 
 func getTaskName(announcement model.Announcement) string {
