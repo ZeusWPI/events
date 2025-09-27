@@ -10,7 +10,6 @@ import (
 	"net/http"
 
 	"github.com/ZeusWPI/events/pkg/config"
-	"go.uber.org/zap"
 )
 
 // Change this if you have a local mattermost instance
@@ -47,8 +46,6 @@ func (c *Client) query(ctx context.Context, q query) error {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+c.token)
 	req.Header.Set("Content-Type", "application/json")
-
-	zap.S().Debug(*req)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

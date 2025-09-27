@@ -365,9 +365,6 @@ func (m *manager) wrapOnce(task Task) func(context.Context) {
 		if err := m.repo.Create(ctx, *taskDB); err != nil {
 			zap.S().Errorf("Failed to save one time task in database %+v | %v", *taskDB, err)
 		}
-		if err := m.repo.Create(ctx, *taskDB); err != nil {
-			zap.S().Error("Failed to save one time task run in database %+v | %v", *taskDB, err)
-		}
 
 		m.mu.Lock()
 		defer m.mu.Unlock()

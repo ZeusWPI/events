@@ -96,7 +96,7 @@ func (c *Client) SyncBoard(ctx context.Context) error {
 
 	// Delete old boards
 	for _, board := range dbBoards {
-		if !board.IsOrganizer {
+		if !board.IsOrganizer || board.Role == "Developer" {
 			// Don't delete manually created board members
 			// They are not on the website as board member
 			// and are either in a development environment or an event admin

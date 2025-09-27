@@ -29,7 +29,6 @@ func (s *Service) NewCheck() *Check {
 }
 
 func (c *Check) Create(ctx context.Context, checkSave dto.Check, memberID int) (dto.Check, error) {
-	zap.S().Debug("Getting year")
 	year, err := c.year.GetLast(ctx)
 	if err != nil {
 		zap.S().Error(err)
