@@ -32,7 +32,7 @@ type manager struct {
 	repoCheck repository.Check
 	repoEvent repository.Event
 
-	// The mutexes main purpose if to avoid any concurrent changes in the dabase to the automatic checks
+	// The mutexes main purpose is to avoid any concurrent changes in the dabase to the automatic checks
 	// Mainly for the syncDeadline function as well times function calls can overwrite statusses
 	// The check manager is not used from the API so there won't be any noticable delay
 	// because of the non concurrent db transactions.
@@ -214,7 +214,7 @@ func (m *manager) NewEvent(ctx context.Context, event model.Event) error {
 	return nil
 }
 
-// syncDeadline will go over each check_event and update the status to TODOLAte if the following conditions are met
+// syncDeadline will go over each check_event and update the status to TODOLate if the following conditions are met
 //   - Status == TODO
 //   - Type == "automatic"
 //   - Deadline != NoDeadline
@@ -254,6 +254,15 @@ func (m *manager) syncDeadline(ctx context.Context) error {
 
 		// Deadline != NoDeadline
 		if check.Deadline == NoDeadline {
+			continue
+		}
+
+		// Deadline is in the future
+		event, ok := utils.SliceFind(events, func(e *model.Event) bool { return e.ID == check.EventID })
+		if !ok {
+			return fmt.Errorf("no associated event with check %+v", *check)
+		}
+		if time.Now().Add(check.Deadline).Before(event.StartTime) {
 			continue
 		}
 

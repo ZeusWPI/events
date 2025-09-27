@@ -27,7 +27,7 @@ func NewTask(router fiber.Router, service *service.Service) *Task {
 func (r *Task) createRoutes() {
 	r.router.Get("/history", r.getHistory)
 	r.router.Post("/resolve/:id", r.resolve)
-	r.router.Post("/start/:id", r.start)
+	r.router.Post("/start/:uid", r.start)
 	r.router.Get("/", r.getAll)
 }
 
