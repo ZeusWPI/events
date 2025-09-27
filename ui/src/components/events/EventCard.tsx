@@ -13,7 +13,7 @@ interface Props extends ComponentProps<'div'> {
   event: Event;
 }
 
-function checksColor(finishedChecks: Check[], checks: Check[]) {
+function checksColor(checks: Check[]) {
   if (checks.some(c => [CheckStatus.TodoLate].includes(c.status))) {
     return "text-red-500"
   }
@@ -66,7 +66,7 @@ export function EventCard({ event, ...props }: Props) {
           <Tooltip>
             <TooltipTrigger>
               <div className="flex items-center space-x-2">
-                <span className={checksColor(finishedChecks, event.checks)}>{`${finishedChecks.length}/${event.checks.length}`}</span>
+                <span className={checksColor(event.checks)}>{`${finishedChecks.length}/${event.checks.length}`}</span>
                 <ClipboardList className="size-6" />
               </div>
             </TooltipTrigger>
