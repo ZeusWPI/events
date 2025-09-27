@@ -14,8 +14,12 @@ interface Props extends ComponentProps<'div'> {
 }
 
 function checksColor(finishedChecks: Check[], checks: Check[]) {
-  if (finishedChecks.length !== checks.length) {
+  if (checks.some(c => [CheckStatus.TodoLate].includes(c.status))) {
     return "text-red-500"
+  }
+
+  if (checks.some(c => [CheckStatus.DoneLate, CheckStatus.Warning].includes(c.status))) {
+    return "text-orange-500"
   }
 
   return "text-secondary-foreground"
