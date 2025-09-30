@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { isA4AspectRatio } from "@/lib/utils/utils";
 
 interface Props {
-  poster: Poster;
+  poster: Pick<Poster, "id" | "eventId" | "scc">;
   open: boolean;
   setOpen: (open: boolean) => void;
 }

@@ -24,7 +24,7 @@ func NewPoster(router fiber.Router, service *service.Service) *Poster {
 }
 
 func (r *Poster) createRoutes() {
-	r.router.Get("/:id/file", r.getFile)
+	r.router.Get("/:id", r.getFile)
 	r.router.Delete("/:id", r.delete)
 	r.router.Post("/:id", r.update)
 	r.router.Put("/", r.create)

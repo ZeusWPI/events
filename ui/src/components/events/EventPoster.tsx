@@ -1,35 +1,37 @@
-import { usePosterDelete, usePosterGetFile } from "@/lib/api/poster";
+import { usePosterDelete } from "@/lib/api/poster";
 import { Poster } from "@/lib/types/poster";
 import { Year } from "@/lib/types/year";
+import { getUuid } from "@/lib/utils/utils";
 import { DownloadIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { FileImg } from "../atoms/FileImg";
+import { LoadableImage } from "../atoms/LoadableImage";
 import { TooltipText } from "../atoms/TooltipText";
 import { DeleteConfirm } from "../molecules/DeleteConfirm";
 import { Button } from "../ui/button";
 import { EventPosterDialog } from "./EventPosterDialog";
-import { getUuid } from "@/lib/utils/utils";
 
 interface Props {
   title: string;
   description: string;
-  poster: Poster;
+  poster?: Poster;
+  eventId: number;
+  scc: boolean;
   year: Year;
 }
 
-export const EventPoster = ({ title, description, poster, year }: Props) => {
-  const { data: file, isLoading } = usePosterGetFile(poster)
-
+export const EventPoster = ({ title, description, poster, eventId, scc, year }: Props) => {
   const [openEdit, setOpenEdit] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
 
   const posterDelete = usePosterDelete()
 
   const handleDownload = () => {
+    if (!poster) return
+
     const a = document.createElement('a')
 
-    a.href = `/api/poster/${poster.id}/file?original=true`
+    a.href = `/api/poster/${poster.id}?original=true`
     a.download = `${getUuid()}.png`
     document.body.appendChild(a)
     a.click()
@@ -38,6 +40,8 @@ export const EventPoster = ({ title, description, poster, year }: Props) => {
   }
 
   const handleDeleteConfirm = () => {
+    if (!poster) return
+
     posterDelete.mutate({ poster, year }, {
       onSuccess: () => toast.success("Poster deleted"),
       onError: (error: Error) => toast.error("Failed", { description: error.message }),
@@ -46,11 +50,11 @@ export const EventPoster = ({ title, description, poster, year }: Props) => {
   }
 
   return (
-    <div className="flex flex-col border rounded-xl max-w-96 w-full justify-between">
+    <div className="flex flex-col border rounded-xl max-w-96 w-full justify-between mx-auto lg:mx-0">
       <div>
-        {poster.id > 0 && (
+        {poster && (
           <div className="rounded-xl overflow-hidden aspect-poster">
-            <FileImg file={file} isLoading={isLoading} alt={title} />
+            <LoadableImage src={`/api/poster/${poster.id}`} alt={title} />
           </div>
         )}
       </div>
@@ -64,30 +68,30 @@ export const EventPoster = ({ title, description, poster, year }: Props) => {
           </span>
         </div>
         <div className="flex gap-1 items-end">
-          {file && (
+          {poster && (
             <TooltipText text="Download uncompressed poster">
               <Button onClick={handleDownload} size="icon" variant="ghost" className="size-6">
                 <DownloadIcon />
               </Button>
             </TooltipText>
           )}
-          <TooltipText text={file ? "Edit" : "Create"}>
-            <Button onClick={() => setOpenEdit(true)} size="icon" variant="ghost" disabled={isLoading} className="size-6">
-              {file
+          <TooltipText text={poster ? "Edit" : "Create"}>
+            <Button onClick={() => setOpenEdit(true)} size="icon" variant="ghost" className="size-6">
+              {poster
                 ? <PencilIcon />
                 : <PlusIcon />
               }
             </Button>
           </TooltipText>
           <TooltipText text="Delete poster">
-            <Button onClick={() => setOpenDelete(true)} size="icon" variant="secondary" disabled={!file || isLoading} className="size-6">
+            <Button onClick={() => setOpenDelete(true)} size="icon" variant="secondary" disabled={!poster} className="size-6">
               <Trash2Icon className="text-red-500" />
             </Button>
           </TooltipText>
         </div>
       </div>
       <EventPosterDialog
-        poster={poster}
+        poster={poster ?? { id: 0, eventId, scc }}
         open={openEdit}
         setOpen={setOpenEdit}
       />

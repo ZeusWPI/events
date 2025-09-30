@@ -30,8 +30,8 @@ export function EventsDetail() {
 
   const { data: event, isLoading } = useEvent({ id: Number(eventID) });
 
-  const big = event?.posters.find(p => !p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: false }
-  const scc = event?.posters.find(p => p.scc) ?? { id: 0, eventId: event?.id ?? 0, scc: true }
+  const big = event?.posters.find(p => !p.scc)
+  const scc = event?.posters.find(p => p.scc)
 
   const [showAnnouncements, setShowAnnouncements] = useState(false)
   const [showMails, setShowMails] = useState(false)
@@ -137,66 +137,72 @@ export function EventsDetail() {
       <div className="col-span-full">
         <CheckTable checks={event.checks} event={event} />
       </div>
-      <div className="col-span-full py-4">
-        <div className="flex flex-wrap gap-16 justify-center lg:justify-start">
-          <EventPoster
-            title="Big Poster"
-            description="Poster to distribute"
-            poster={big}
-            year={year}
-          />
-          <EventPoster
-            title="SCC Poster"
-            description="Cammiechat screen poster"
-            poster={scc}
-            year={year}
-          />
-        </div>
+      <div className="lg:col-span-2 xl:col-span-2 w-full">
+        <EventPoster
+          title="Big Poster"
+          description="Poster to distribute"
+          poster={big}
+          eventId={event.id}
+          scc={false}
+          year={year}
+        />
       </div>
-      {event.announcements.length > 0 && (
-        <div className="lg:col-span-3">
-          <HeadlessCard>
-            <CardHeader className="px-4 sm:px-0 pt-0">
-              <CardTitle onClick={() => setShowAnnouncements(prev => !prev)} className="flex justify-between items-center cursor-pointer">
-                <span>{`${event.announcements.length} Announcement${event.announcements.length !== 1 ? 's' : ''}`}</span>
-                <Button size="icon" variant="ghost" disabled={event.announcements.length === 0}>
-                  {showAnnouncements
-                    ? <ChevronUpIcon />
-                    : <ChevronDownIcon />
-                  }
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            {showAnnouncements && (
-              <CardContent className="px-0">
-                <AnnouncementList announcements={event.announcements} />
-              </CardContent>
-            )}
-          </HeadlessCard>
-        </div>
-      )}
-      {event.mails.length > 0 && (
-        <div className="lg:col-span-3">
-          <HeadlessCard>
-            <CardHeader className="px-4 sm:px-0 pt-0">
-              <CardTitle onClick={() => setShowMails(prev => !prev)} className="flex justify-between items-center cursor-pointer">
-                <span>{`${event.mails.length} Mail${event.mails.length !== 1 ? 's' : ''}`}</span>
-                <Button size="icon" variant="ghost" disabled={event.announcements.length === 0}>
-                  {showMails
-                    ? <ChevronUpIcon />
-                    : <ChevronDownIcon />
-                  }
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            {showMails && (
-              <CardContent className="px-0">
-                <MailList mails={event.mails} />
-              </CardContent>
-            )}
-          </HeadlessCard>
-        </div>
-      )}
+      <div className="lg:col-span-2 xl:col-span-2 w-full">
+        <EventPoster
+          title="SCC Poster"
+          description="Cammiechat screen poster"
+          poster={scc}
+          eventId={event.id}
+          scc={true}
+          year={year}
+        />
+      </div>
+      <div className="lg:col-span-full xl:col-span-2 flex flex-col">
+        {event.announcements.length > 0 && (
+          <div className="">
+            <HeadlessCard>
+              <CardHeader className="px-4 sm:px-0 pt-0">
+                <CardTitle onClick={() => setShowAnnouncements(prev => !prev)} className="flex justify-between items-center cursor-pointer pb-1 border-b">
+                  <span>{`${event.announcements.length} Announcement${event.announcements.length !== 1 ? 's' : ''}`}</span>
+                  <Button size="icon" variant="ghost" disabled={event.announcements.length === 0}>
+                    {showAnnouncements
+                      ? <ChevronUpIcon />
+                      : <ChevronDownIcon />
+                    }
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              {showAnnouncements && (
+                <CardContent className="px-0">
+                  <AnnouncementList announcements={event.announcements} />
+                </CardContent>
+              )}
+            </HeadlessCard>
+          </div>
+        )}
+        {event.mails.length > 0 && (
+          <div className="">
+            <HeadlessCard>
+              <CardHeader className="px-4 sm:px-0 pt-0">
+                <CardTitle onClick={() => setShowMails(prev => !prev)} className="flex justify-between items-center cursor-pointer pb-1 border-b">
+                  <span>{`${event.mails.length} Mail${event.mails.length !== 1 ? 's' : ''}`}</span>
+                  <Button size="icon" variant="ghost" disabled={event.announcements.length === 0}>
+                    {showMails
+                      ? <ChevronUpIcon />
+                      : <ChevronDownIcon />
+                    }
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              {showMails && (
+                <CardContent className="px-0">
+                  <MailList mails={event.mails} />
+                </CardContent>
+              )}
+            </HeadlessCard>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

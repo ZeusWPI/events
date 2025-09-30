@@ -12,7 +12,7 @@ export function usePosterGetFile(poster: Pick<Poster, 'id' | 'eventId'>, origina
   return useQuery({
     queryKey: ["event", poster.eventId, "poster", poster.id, original],
     queryFn: async () => {
-      const { data } = await apiGet<Blob>(`${ENDPOINT}/${poster.id}/file?original=${original}`)
+      const { data } = await apiGet<Blob>(`${ENDPOINT}/${poster.id}?original=${original}`)
       return new File([data], `${getUuid()}.${original ? "png" : "webp"}`, { type: original ? CONTENT_TYPE.PNG : CONTENT_TYPE.WEBP })
     },
     staleTime: STALE_30_MIN,
@@ -44,7 +44,7 @@ export function usePosterDelete() {
 
   return useMutation({
     mutationFn: (args: { poster: Poster, year: Pick<Year, 'id'> }) => apiDelete(`${ENDPOINT}/${args.poster.id}`),
-    onSuccess: (_, args) => queryClient.invalidateQueries({ queryKey: ["event", args.year.id] })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["event"] })
   })
 }
 
