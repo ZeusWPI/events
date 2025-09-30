@@ -20,6 +20,7 @@ import { TasksOverview } from "./pages/tasks/TasksOverview";
 import { AnnouncementsEdit } from "./pages/announcements/AnnouncementsEdit";
 import { MailsEdit } from "./pages/mails/MailsEdit";
 import { MailsOverview } from "./pages/mails/MailsOverview";
+import { Deadlines } from "./pages/deadlines/Deadlines";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -128,6 +129,16 @@ const powerpointsRoute = createRoute({
 })
 
 //
+// Deadlines
+//
+
+const deadlinesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/deadlines",
+  component: Deadlines,
+})
+
+//
 // Tasks
 //
 
@@ -173,6 +184,7 @@ const routeTree = rootRoute.addChildren([
     mailsEditRoute,
   ]),
   powerpointsRoute,
+  deadlinesRoute,
   tasksRoute.addChildren([tasksOverviewRoute, tasksDetailRoute, tasksHistory]),
 ]);
 

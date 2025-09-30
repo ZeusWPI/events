@@ -24,9 +24,24 @@ func NewCheck(router fiber.Router, service *service.Service) *Check {
 }
 
 func (r *Check) createRoutes() {
+	r.router.Get("/year/:id", r.getByYear)
 	r.router.Put("/", r.create)
 	r.router.Post("/:id", r.update)
 	r.router.Delete("/:id", r.delete)
+}
+
+func (r *Check) getByYear(c *fiber.Ctx) error {
+	year, err := c.ParamsInt("id")
+	if err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	checks, err := r.check.GetByYear(c.Context(), year)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(checks)
 }
 
 func (r *Check) create(c *fiber.Ctx) error {

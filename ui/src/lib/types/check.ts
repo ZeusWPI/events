@@ -49,9 +49,12 @@ export function convertCheckToModel(check: API.Check): Check {
     status: check.status as CheckStatus,
     message: check.message,
     description: check.description,
-    deadline: check.deadline,
+    deadline: (check?.deadline ?? 0) / 1_000_000,
     type: check.type as CheckType,
     creator_id: check.creator_id,
   };
 }
 
+export function convertChecksToModel(checks: API.Check[]): Check[] {
+  return checks.map(convertCheckToModel)
+}

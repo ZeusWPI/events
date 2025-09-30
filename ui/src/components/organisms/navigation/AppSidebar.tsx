@@ -14,9 +14,12 @@ import { NavMails } from "./NavMails";
 import { NavPowerpoints } from "./NavPowerpoints";
 import NavTasks from "./NavTasks";
 import { NavUser } from "./NavUser";
+import { NavDeadlines } from "./NavDeadlines";
 
 function AppSidebar({ children }: { children: ReactNode }) {
   const { state: breadcrumbs } = useBreadcrumbs();
+
+  const buildTime = getBuildTime()
 
   return (
     <SidebarProvider>
@@ -32,7 +35,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
                   <div className="flex flex-col gap-0.5 leading-none">
                     <span className="font-semibold">Events</span>
                     <span className="text-xs text-muted-foreground">
-                      {`Built: ${formatDate(getBuildTime())}`}
+                      {`Built: ${buildTime ? formatDate(buildTime) : "Development"}`}
                     </span>
                   </div>
                 </Link>
@@ -46,6 +49,7 @@ function AppSidebar({ children }: { children: ReactNode }) {
             <NavAnnouncements />
             <NavMails />
             <NavPowerpoints />
+            <NavDeadlines />
             <NavTasks />
           </SidebarGroup>
           <SidebarGroup className="mt-auto">

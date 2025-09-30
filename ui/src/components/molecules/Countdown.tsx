@@ -33,7 +33,6 @@ export function Countdown({ goalDate }: Props) {
         <NumberFlow
           trend={-1}
           value={days}
-          digits={{ 1: { max: 5 } }}
           format={{ minimumIntegerDigits: 2 }}
         />
         <p>:</p>

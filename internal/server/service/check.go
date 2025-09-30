@@ -6,6 +6,7 @@ import (
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/server/dto"
+	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -16,6 +17,7 @@ type Check struct {
 
 	board repository.Board
 	check repository.Check
+	event repository.Event
 	year  repository.Year
 }
 
@@ -24,8 +26,31 @@ func (s *Service) NewCheck() *Check {
 		service: *s,
 		board:   *s.repo.NewBoard(),
 		check:   *s.repo.NewCheck(),
+		event:   *s.repo.NewEvent(),
 		year:    *s.repo.NewYear(),
 	}
+}
+
+func (c *Check) GetByYear(ctx context.Context, yearID int) ([]dto.Check, error) {
+	events, err := c.event.GetByYear(ctx, yearID)
+	if err != nil {
+		zap.S().Error(err)
+		return []dto.Check{}, fiber.ErrInternalServerError
+	}
+	if len(events) == 0 {
+		return []dto.Check{}, nil
+	}
+
+	checks, err := c.check.GetByEvents(ctx, utils.SliceDereference(events))
+	if err != nil {
+		zap.S().Error(err)
+		return []dto.Check{}, fiber.ErrInternalServerError
+	}
+	if len(checks) == 0 {
+		return []dto.Check{}, nil
+	}
+
+	return utils.SliceMap(checks, dto.CheckDTO), nil
 }
 
 func (c *Check) Create(ctx context.Context, checkSave dto.Check, memberID int) (dto.Check, error) {

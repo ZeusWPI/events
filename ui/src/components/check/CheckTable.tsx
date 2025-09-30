@@ -178,15 +178,19 @@ function Deadline({ event, check }: DeadlineProps) {
 
   if (!check.deadline) {
     // Some automatic tasks have no deadline
-    return null
+    return
+  }
+
+  if ([CheckStatus.Done, CheckStatus.DoneLate].includes(check.status)) {
+    return
   }
 
   const now = new Date()
-  const deadline = new Date(now.getTime() + (check.deadline / 1000))
-  const tooLate = deadline > event.startTime
+  const deadline = new Date(event.startTime.getTime() - check.deadline)
+  const tooLate = deadline < now
 
   if (tooLate) {
-    return null
+    return
   }
 
   return <Countdown goalDate={deadline} />
