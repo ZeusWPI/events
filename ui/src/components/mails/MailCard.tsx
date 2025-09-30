@@ -156,7 +156,7 @@ function ActionBar({ mail, onResend, onDelete }: ActionBarProps) {
 
 function MailBadge({ mail }: { mail: Mail }) {
   if (mail.send) {
-    return <Badge variant="outline" className="text-green-500 border-green-500">Send</Badge>
+    return <Badge variant="outline" className="text-green-500 border-green-500">Sent</Badge>
   }
 
   if (mail.error) {

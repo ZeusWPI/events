@@ -36,7 +36,7 @@ export function YearProvider({ children, storageKey = "events-ui-year" }: YearPr
       year,
       setYear: (year: Year) => {
         if (locked) {
-          toast.error("Year locked", { description: "Year cannot be changed in this page" })
+          toast.error("Year locked", { description: "Year cannot be changed on this page" })
           return
         }
 

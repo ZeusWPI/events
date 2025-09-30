@@ -151,7 +151,7 @@ function ActionBar({ announcement, onResend, onDelete }: ActionBarProps) {
 
 function AnnouncementBadge({ announcement }: { announcement: Announcement }) {
   if (announcement.send) {
-    return <Badge variant="outline" className="text-green-500 border-green-500">Send</Badge>
+    return <Badge variant="outline" className="text-green-500 border-green-500">Sent</Badge>
   }
 
   if (announcement.error) {

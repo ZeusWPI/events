@@ -3,11 +3,12 @@ import { Check, CheckStatus, checkStatusToIcon } from "@/lib/types/check";
 import type { Event } from "@/lib/types/event";
 import { formatDate } from "@/lib/utils/utils";
 import { useNavigate } from "@tanstack/react-router";
+import { getISOWeek } from "date-fns";
 import { ClipboardList, UserRound } from "lucide-react";
 import { ComponentProps } from "react";
+import { OrganizerGroup } from "../molecules/OrganizerGroup";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { OrganizerGroup } from "../molecules/OrganizerGroup";
 
 interface Props extends ComponentProps<'div'> {
   event: Event;
@@ -41,7 +42,7 @@ export function EventCard({ event, ...props }: Props) {
       <CardHeader className="grow">
         <CardTitle>{event.name}</CardTitle>
         <CardDescription>
-          <span>{formatDate(event.startTime)}</span>
+          <span>{`${formatDate(event.startTime)} | W ${getISOWeek(event.startTime).toString().padStart(2, "0")}`}</span>
         </CardDescription>
       </CardHeader>
       <CardFooter>
