@@ -1,11 +1,11 @@
-import { Event } from "../types/event";
+import { convertEventToModel, Event } from "../types/event";
 
 import { format } from "date-fns";
 import { nlBE } from "date-fns/locale";
 import pptxgen from "pptxgenjs";
-import { CONTENT_TYPE } from "../types/contentType";
+import QrCodeWithLogo from "qrcode-with-logos";
+import { apiGet } from "../api/query";
 import { capitalize } from "../utils/utils";
-import QrCodeWithLogo from "qrcode-with-logos"
 
 const masterName = "ZEUS_WPI_TEMPLATE"
 
@@ -219,20 +219,22 @@ async function generateEventSlide(pptx: pptxgen, event: Event) {
     { x: "10%", y: "38%", h: "40%", w: "40%", valign: "top", fontSize: 18, color: colorBlack },
   )
 
-  if (event.posters.some(p => !p.scc)) {
+  const populated = await getEvent(event)
+
+  if (populated.posters.some(p => !p.scc)) {
     // Event has a big poster
-    await generateEventSlidePoster(slide, event)
+    await generateEventSlidePoster(slide, populated)
   } else {
-    await generateEventSlideNoPoster(slide, event)
+    await generateEventSlideNoPoster(slide, populated)
   }
 }
 
 async function generateEventSlidePoster(slide: pptxgen.Slide, event: Event) {
-  // Poster
-  const poster = await getBigPoster(event)
+  const poster = `/api/poster/${event.posters.find(p => !p.scc)?.id ?? 0}?original=true`
+
   if (poster) {
     slide.addImage({
-      data: poster,
+      path: poster,
       x: "63%",
       y: "20%",
       h: 3.5,
@@ -273,36 +275,9 @@ function formatTime(date: Date) {
   return format(date, "HH'h'mm")
 }
 
-
-async function getBigPoster(event: Event): Promise<string | null> {
-  const posters = event.posters.filter(p => !p.scc);
-  if (posters.length !== 1) return null;
-
-  const poster = posters[0]!;
-
-  const response = await fetch(`/api/poster/${poster.id}/file`);
-  if (!response.ok) return null;
-
-  const contentType = response.headers.get("content-type");
-  if (!contentType?.includes(CONTENT_TYPE.PNG)) return null;
-
-  const blob = await response.blob();
-
-  return await new Promise<string | null>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result;
-      if (typeof result === 'string') {
-        resolve(result);
-      } else {
-        resolve(null);
-      }
-    };
-    reader.onerror = () => reject(null);
-    reader.readAsDataURL(blob);
-  });
+async function getEvent({ id }: Pick<Event, "id">) {
+  return (await apiGet(`event/${id}`, convertEventToModel)).data
 }
-
 
 async function getQrCode(url: string, cornerColor: string = colorZeus, background: string = colorWhite): Promise<string> {
   const qr = new QrCodeWithLogo({
