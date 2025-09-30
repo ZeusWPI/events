@@ -20,7 +20,8 @@ const (
 )
 
 type Client struct {
-	deadline time.Duration
+	development bool
+	deadline    time.Duration
 
 	repoEvent repository.Event
 	repoMail  repository.Mail
@@ -28,9 +29,10 @@ type Client struct {
 
 func New(repo repository.Repository) (*Client, error) {
 	client := &Client{
-		deadline:  config.GetDefaultDuration("mail.deadline_s", 0),
-		repoEvent: *repo.NewEvent(),
-		repoMail:  *repo.NewMail(),
+		development: config.IsDev(),
+		deadline:    config.GetDefaultDuration("mail.deadline_s", 0),
+		repoEvent:   *repo.NewEvent(),
+		repoMail:    *repo.NewMail(),
 	}
 
 	// Register check

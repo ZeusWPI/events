@@ -22,6 +22,7 @@ const (
 )
 
 type Client struct {
+	development         bool
 	announcementChannel string
 	deadline            time.Duration
 
@@ -42,6 +43,7 @@ func New(repo repository.Repository) (*Client, error) {
 	}
 
 	client := &Client{
+		development:         config.IsDev(),
 		announcementChannel: announcementChannel,
 		deadline:            config.GetDefaultDuration("announcement.deadline_s", 3*24*60*60),
 		repoAnnouncement:    *repo.NewAnnouncement(),

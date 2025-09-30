@@ -9,11 +9,11 @@ import (
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/pkg/mattermost"
-	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 func getTaskUID(announcement model.Announcement) string {
-	return fmt.Sprintf("%s-%d-%s", taskUID, announcement.ID, uuid.NewString())
+	return fmt.Sprintf("%s-%d", taskUID, announcement.ID)
 }
 
 func getTaskName(announcement model.Announcement) string {
@@ -21,16 +21,21 @@ func getTaskName(announcement model.Announcement) string {
 }
 
 func (c *Client) sendAnnouncement(ctx context.Context, announcement model.Announcement) error {
-	if err := c.m.SendMessage(ctx, mattermost.Message{
-		ChannelID: c.announcementChannel,
-		Message:   announcement.Content,
-	}); err != nil {
-		announcement.Error = err.Error()
-		if dbErr := c.repoAnnouncement.Update(ctx, announcement); dbErr != nil {
-			err = errors.Join(err, dbErr)
-		}
+	if c.development {
+		// Moch the request in development
+		zap.S().Infof("Mock announcement: %+v", announcement)
+	} else {
+		if err := c.m.SendMessage(ctx, mattermost.Message{
+			ChannelID: c.announcementChannel,
+			Message:   announcement.Content,
+		}); err != nil {
+			announcement.Error = err.Error()
+			if dbErr := c.repoAnnouncement.Update(ctx, announcement); dbErr != nil {
+				err = errors.Join(err, dbErr)
+			}
 
-		return err
+			return err
+		}
 	}
 
 	if err := c.repoAnnouncement.Send(ctx, announcement.ID); err != nil {

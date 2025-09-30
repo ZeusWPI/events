@@ -83,7 +83,7 @@ func (c *Client) doRequest(ctx context.Context, method string, url string, body 
 
 	if c.development && method != http.MethodGet {
 		// Do not do the actual request in development
-		zap.S().Infof("Mock request: %s %s\n\tBody: %+v", method, url, body)
+		zap.S().Infof("Mock DSA request: %s %s\n\tBody: %+v", method, url, body)
 		return nil
 	}
 

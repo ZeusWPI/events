@@ -9,11 +9,11 @@ import (
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/pkg/zauth"
-	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 func getTaskUID(mail model.Mail) string {
-	return fmt.Sprintf("%s-%d-%s", taskUID, mail.ID, uuid.NewString())
+	return fmt.Sprintf("%s-%d", taskUID, mail.ID)
 }
 
 func getTaskName(mail model.Mail) string {
@@ -21,13 +21,18 @@ func getTaskName(mail model.Mail) string {
 }
 
 func (c *Client) sendMailAll(ctx context.Context, mail model.Mail) error {
-	if err := zauth.MailAll(ctx, mail.Title, mail.Content); err != nil {
-		mail.Error = err.Error()
-		if dbErr := c.repoMail.Update(ctx, mail); dbErr != nil {
-			err = errors.Join(err, dbErr)
-		}
+	if c.development {
+		// Mock the request in development
+		zap.S().Infof("Mock mail: %+v", mail)
+	} else {
+		if err := zauth.MailAll(ctx, mail.Title, mail.Content); err != nil {
+			mail.Error = err.Error()
+			if dbErr := c.repoMail.Update(ctx, mail); dbErr != nil {
+				err = errors.Join(err, dbErr)
+			}
 
-		return err
+			return err
+		}
 	}
 
 	if err := c.repoMail.Send(ctx, mail.ID); err != nil {
