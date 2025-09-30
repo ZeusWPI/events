@@ -8,5 +8,12 @@ export function useTheme() {
     throw new Error("useTheme must be used within a ThemeProvider");
   }
 
-  return context;
+  let actualTheme = context.theme
+  if (context.theme == "system") {
+    actualTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+
+  return { ...context, actualTheme };
 }

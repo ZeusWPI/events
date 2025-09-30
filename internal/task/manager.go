@@ -154,7 +154,7 @@ func (m *manager) AddOnce(newTask Task) error {
 		UID:    newTask.UID(),
 		Name:   newTask.Name(),
 		Active: true,
-		Type:   model.TaskRecurring,
+		Type:   model.TaskOnce,
 	}
 
 	m.mu.Lock()
