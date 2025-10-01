@@ -77,8 +77,19 @@ export function DateTimePicker({ value, setValue, id, referenceDate }: Props) {
   }
 
   const handleSetTime = (e: ChangeEvent<HTMLInputElement>) => {
+    let time
+
+    if (e.target.value === "") {
+      time = new Date()
+
+      time.setHours(0)
+      time.setMinutes(0)
+      time.setSeconds(0)
+    } else {
+      time = parse(e.target.value, "HH:mm:ss", new Date())
+    }
+
     const newDate = new Date(value?.getTime())
-    const time = parse(e.target.value, "HH:mm:ss", new Date())
 
     newDate.setHours(time.getHours())
     newDate.setMinutes(time.getMinutes())
