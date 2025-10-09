@@ -17,3 +17,8 @@ VALUES (
 UPDATE check_event
 SET status = $2, message = $3, updated_at = NOW()
 WHERE id = $1;
+
+-- name: CheckEventMattermost :exec
+UPDATE check_event
+SET mattermost = true
+WHERE id = $1;

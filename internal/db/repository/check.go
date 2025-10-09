@@ -169,6 +169,14 @@ func (c *Check) UpdateEvent(ctx context.Context, check model.Check) error {
 	return nil
 }
 
+func (c *Check) SendMattermost(ctx context.Context, checkEventID int) error {
+	if err := c.repo.queries(ctx).CheckEventMattermost(ctx, int32(checkEventID)); err != nil {
+		return fmt.Errorf("set mattermost for check event %d | %w", checkEventID, err)
+	}
+
+	return nil
+}
+
 func (c *Check) SetInactiveAutomatic(ctx context.Context) error {
 	if err := c.repo.queries(ctx).CheckSetInactiveAutomatic(ctx); err != nil {
 		return fmt.Errorf("set automatic checks to inactive %w", err)

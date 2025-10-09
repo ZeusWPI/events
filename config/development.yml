@@ -41,6 +41,7 @@ announcement:
   deadline_s: 172800 # 2 days
 
 check:
+  channel: # Not used in development
   sync_s: 3600 # 1 hour
 
 poster:

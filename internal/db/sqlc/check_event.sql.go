@@ -64,6 +64,17 @@ func (q *Queries) CheckEventCreateBatch(ctx context.Context, arg CheckEventCreat
 	return err
 }
 
+const checkEventMattermost = `-- name: CheckEventMattermost :exec
+UPDATE check_event
+SET mattermost = true
+WHERE id = $1
+`
+
+func (q *Queries) CheckEventMattermost(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, checkEventMattermost, id)
+	return err
+}
+
 const checkEventUpdate = `-- name: CheckEventUpdate :exec
 UPDATE check_event
 SET status = $2, message = $3, updated_at = NOW()

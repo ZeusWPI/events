@@ -48,7 +48,7 @@ func (q *Queries) CheckDelete(ctx context.Context, uid string) error {
 }
 
 const checkGetByCheckEvent = `-- name: CheckGetByCheckEvent :one
-SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
+SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, e.mattermost, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
 FROM check_event e
 LEFT JOIN "check" c ON c.uid = e.check_uid
 WHERE c.uid = $1 AND e.event_id = $2
@@ -74,6 +74,7 @@ func (q *Queries) CheckGetByCheckEvent(ctx context.Context, arg CheckGetByCheckE
 		&i.CheckEvent.Status,
 		&i.CheckEvent.Message,
 		&i.CheckEvent.UpdatedAt,
+		&i.CheckEvent.Mattermost,
 		&i.Check.Uid,
 		&i.Check.Description,
 		&i.Check.Deadline,
@@ -85,7 +86,7 @@ func (q *Queries) CheckGetByCheckEvent(ctx context.Context, arg CheckGetByCheckE
 }
 
 const checkGetByCheckEventID = `-- name: CheckGetByCheckEventID :one
-SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
+SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, e.mattermost, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
 FROM check_event e
 LEFT JOIN "check" c ON c.uid = e.check_uid
 WHERE e.id = $1
@@ -107,6 +108,7 @@ func (q *Queries) CheckGetByCheckEventID(ctx context.Context, id int32) (CheckGe
 		&i.CheckEvent.Status,
 		&i.CheckEvent.Message,
 		&i.CheckEvent.UpdatedAt,
+		&i.CheckEvent.Mattermost,
 		&i.Check.Uid,
 		&i.Check.Description,
 		&i.Check.Deadline,
@@ -138,7 +140,7 @@ func (q *Queries) CheckGetByCheckUID(ctx context.Context, uid string) (Check, er
 }
 
 const checkGetByCheckUIDAll = `-- name: CheckGetByCheckUIDAll :many
-SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
+SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, e.mattermost, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
 FROM check_event e
 LEFT JOIN "check" c ON c.uid = e.check_uid
 WHERE c.uid = $1
@@ -165,6 +167,7 @@ func (q *Queries) CheckGetByCheckUIDAll(ctx context.Context, uid string) ([]Chec
 			&i.CheckEvent.Status,
 			&i.CheckEvent.Message,
 			&i.CheckEvent.UpdatedAt,
+			&i.CheckEvent.Mattermost,
 			&i.Check.Uid,
 			&i.Check.Description,
 			&i.Check.Deadline,
@@ -183,7 +186,7 @@ func (q *Queries) CheckGetByCheckUIDAll(ctx context.Context, uid string) ([]Chec
 }
 
 const checkGetByEvents = `-- name: CheckGetByEvents :many
-SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
+SELECT e.id, e.check_uid, e.event_id, e.status, e.message, e.updated_at, e.mattermost, c.uid, c.description, c.deadline, c.active, c.type, c.creator_id
 FROM check_event e
 LEFT JOIN "check" c ON c.uid = e.check_uid
 WHERE c.active AND event_id = ANY($1::int[])
@@ -210,6 +213,7 @@ func (q *Queries) CheckGetByEvents(ctx context.Context, dollar_1 []int32) ([]Che
 			&i.CheckEvent.Status,
 			&i.CheckEvent.Message,
 			&i.CheckEvent.UpdatedAt,
+			&i.CheckEvent.Mattermost,
 			&i.Check.Uid,
 			&i.Check.Description,
 			&i.Check.Deadline,

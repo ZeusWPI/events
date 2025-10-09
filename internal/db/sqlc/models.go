@@ -217,12 +217,13 @@ type Check struct {
 }
 
 type CheckEvent struct {
-	ID        int32
-	CheckUid  string
-	EventID   int32
-	Status    CheckStatus
-	Message   pgtype.Text
-	UpdatedAt pgtype.Timestamptz
+	ID         int32
+	CheckUid   string
+	EventID    int32
+	Status     CheckStatus
+	Message    pgtype.Text
+	UpdatedAt  pgtype.Timestamptz
+	Mattermost bool
 }
 
 type Dsa struct {

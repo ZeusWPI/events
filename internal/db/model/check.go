@@ -25,11 +25,12 @@ const (
 
 type Check struct {
 	// Check event fields
-	ID        int // ID of the check event
-	EventID   int
-	Status    CheckStatus
-	Message   string
-	UpdatedAt time.Time
+	ID         int // ID of the check event
+	EventID    int
+	Status     CheckStatus
+	Message    string
+	Mattermost bool
+	UpdatedAt  time.Time
 
 	// Check fields
 	UID         string // Identifier of the check
@@ -57,11 +58,12 @@ func CheckModel(check sqlc.Check, checkEvent sqlc.CheckEvent) *Check {
 	}
 
 	return &Check{
-		ID:        int(checkEvent.ID),
-		EventID:   int(checkEvent.EventID),
-		Status:    CheckStatus(checkEvent.Status),
-		Message:   message,
-		UpdatedAt: checkEvent.UpdatedAt.Time,
+		ID:         int(checkEvent.ID),
+		EventID:    int(checkEvent.EventID),
+		Status:     CheckStatus(checkEvent.Status),
+		Message:    message,
+		Mattermost: checkEvent.Mattermost,
+		UpdatedAt:  checkEvent.UpdatedAt.Time,
 
 		UID:         check.Uid,
 		Description: check.Description,

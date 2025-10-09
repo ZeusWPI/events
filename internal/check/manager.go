@@ -11,6 +11,7 @@ import (
 	"github.com/ZeusWPI/events/internal/db/repository"
 	"github.com/ZeusWPI/events/internal/task"
 	"github.com/ZeusWPI/events/pkg/config"
+	"github.com/ZeusWPI/events/pkg/mattermost"
 	"github.com/ZeusWPI/events/pkg/utils"
 	"go.uber.org/zap"
 )
@@ -32,6 +33,10 @@ type manager struct {
 	repoCheck repository.Check
 	repoEvent repository.Event
 
+	development bool
+	mattermost  mattermost.Client
+	channelID   string
+
 	// The mutexes main purpose is to avoid any concurrent changes in the dabase to the automatic checks
 	// Mainly for the syncDeadline function as well times function calls can overwrite statusses
 	// The check manager is not used from the API so there won't be any noticable delay
@@ -40,9 +45,17 @@ type manager struct {
 }
 
 func newManager(repo repository.Repository) (*manager, error) {
+	mClient, err := mattermost.New()
+	if err != nil {
+		return nil, err
+	}
+
 	manager := &manager{
-		repoCheck: *repo.NewCheck(),
-		repoEvent: *repo.NewEvent(),
+		repoCheck:   *repo.NewCheck(),
+		repoEvent:   *repo.NewEvent(),
+		development: config.IsDev(),
+		mattermost:  *mClient,
+		channelID:   config.GetString("check.channel"),
 	}
 
 	if err := manager.repoCheck.SetInactiveAutomatic(context.Background()); err != nil {
@@ -176,12 +189,30 @@ func (m *manager) Update(ctx context.Context, checkUID string, update Update) er
 		}
 	}
 
+	if check.Status == update.Status && check.Message == update.Message {
+		// No change, no need to update it
+		return nil
+	}
+
 	// Update the entry
+	oldStatus := check.Status
 	check.Status = update.Status
 	check.Message = update.Message
 
 	if err := m.repoCheck.UpdateEvent(ctx, *check); err != nil {
 		return err
+	}
+
+	message := fmt.Sprintf("**Check Update**\n%s\n`%s` -> `%s`", check.Description, oldStatus, check.Status)
+	if m.development {
+		zap.S().Infof("Mock check update: \n%s", message)
+	} else {
+		if err := m.mattermost.SendMessage(ctx, mattermost.Message{
+			ChannelID: m.channelID,
+			Message:   message,
+		}); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -263,6 +294,30 @@ func (m *manager) syncDeadline(ctx context.Context) error {
 			return fmt.Errorf("no associated event with check %+v", *check)
 		}
 		if time.Now().Add(check.Deadline).Before(event.StartTime) {
+			// Deadline is in the future, the board still has some time left
+			// However if there's less than 1 day left send a message to mattermost to warn them
+			if time.Now().Add(check.Deadline).Add(24 * time.Hour).After(event.StartTime) {
+				if check.Mattermost {
+					// We already warned them
+					continue
+				}
+
+				message := fmt.Sprintf("**⚠️Check Deadline⚠️**\nCheck: `%s`\nEvent: `%s`\nTime left: `%s`", check.Description, event.Name, event.StartTime.Sub(time.Now().Add(check.Deadline)))
+				if m.development {
+					zap.S().Infof("Mock deadline warning: \n%s", message)
+				} else {
+					if err := m.mattermost.SendMessage(ctx, mattermost.Message{
+						ChannelID: m.channelID,
+						Message:   message,
+					}); err != nil {
+						return err
+					}
+				}
+
+				if err := m.repoCheck.SendMattermost(ctx, check.ID); err != nil {
+					return err
+				}
+			}
 			continue
 		}
 
