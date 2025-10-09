@@ -1,3 +1,4 @@
+// Package utils provides some general purpose functions
 package utils
 
 import "slices"

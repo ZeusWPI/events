@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/ZeusWPI/events/internal/server/dto"
 	"github.com/ZeusWPI/events/internal/server/service"
+	"github.com/ZeusWPI/events/pkg/utils"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -49,7 +50,8 @@ func (r *Poster) getFile(c *fiber.Ctx) error {
 	}
 
 	c.Set("Content-Type", contentType)
-	return c.Send(file)
+
+	return utils.SendCached(c, file)
 }
 
 func (r *Poster) create(c *fiber.Ctx) error {
@@ -65,7 +67,7 @@ func (r *Poster) create(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.ErrBadRequest
 	}
-	file, err := getFormFile(form, "file")
+	file, err := utils.GetFormFile(form, "file")
 	if err != nil {
 		return err
 	}
@@ -96,7 +98,7 @@ func (r *Poster) update(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.ErrBadRequest
 	}
-	file, err := getFormFile(form, "file")
+	file, err := utils.GetFormFile(form, "file")
 	if err != nil {
 		return err
 	}

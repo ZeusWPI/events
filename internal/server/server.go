@@ -66,6 +66,7 @@ func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 	v1Router := apiRouter.Group("/v1")
 
 	v1.NewEvent(v1Router, service)
+	v1.NewImage(v1Router, service)
 
 	// Internal api
 	api.NewAuth(apiRouter, service)

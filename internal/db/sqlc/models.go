@@ -244,6 +244,12 @@ type Event struct {
 	Deleted     bool
 }
 
+type Image struct {
+	ID     int32
+	Name   string
+	FileID string
+}
+
 type Mail struct {
 	ID       int32
 	Content  string

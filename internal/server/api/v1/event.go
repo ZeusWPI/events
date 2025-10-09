@@ -152,5 +152,6 @@ func (r *Event) getPoster(c *fiber.Ctx) error {
 		contentType = mimePNG
 	}
 	c.Set("Content-Type", contentType)
-	return c.Send(file)
+
+	return utils.SendCached(c, file)
 }
