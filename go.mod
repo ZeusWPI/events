@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/go-co-op/gocron/v2 v2.16.6
-	github.com/go-playground/validator/v10 v10.27.0
+	github.com/go-playground/validator/v10 v10.28.0
 	github.com/gofiber/contrib/fiberzap v1.0.2
 	github.com/gofiber/contrib/swagger v1.3.0
 	github.com/gofiber/fiber/v2 v2.52.9
@@ -15,13 +15,13 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kolesa-team/go-webp v1.0.5
 	github.com/markbates/goth v1.82.0
-	github.com/pressly/goose/v3 v3.25.0
+	github.com/pressly/goose/v3 v3.26.0
 	github.com/shareed2k/goth_fiber v0.3.2
 	github.com/spf13/viper v1.21.0
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/zap v1.27.0
-	golang.org/x/image v0.31.0
-	golang.org/x/oauth2 v0.31.0
+	golang.org/x/image v0.32.0
+	golang.org/x/oauth2 v0.32.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -127,7 +127,7 @@ require (
 	github.com/tinylib/msgp v1.4.0 // indirect
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240902231107-85af5b9d094d // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.66.0 // indirect
+	github.com/valyala/fasthttp v1.67.0 // indirect
 	github.com/vertica/vertica-sql-go v1.3.3 // indirect
 	github.com/wasilibs/go-pgquery v0.0.0-20250409022910-10ac41983c07 // indirect
 	github.com/wasilibs/wazero-helpers v0.0.0-20240620070341-3dff1577cd52 // indirect
@@ -140,15 +140,15 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/crypto v0.42.0 // indirect
+	golang.org/x/crypto v0.43.0 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
-	golang.org/x/mod v0.28.0 // indirect
-	golang.org/x/net v0.44.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
+	golang.org/x/net v0.46.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/telemetry v0.0.0-20250908211612-aef8a434d053 // indirect
-	golang.org/x/text v0.29.0 // indirect
-	golang.org/x/tools v0.37.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/telemetry v0.0.0-20251008203120-078029d740a8 // indirect
+	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
 	google.golang.org/grpc v1.71.1 // indirect
