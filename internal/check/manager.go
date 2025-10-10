@@ -302,7 +302,7 @@ func (m *manager) syncDeadline(ctx context.Context) error {
 					continue
 				}
 
-				message := fmt.Sprintf("**⚠️Check Deadline⚠️**\nCheck: `%s`\nEvent: `%s`\nTime left: `%s`", check.Description, event.Name, event.StartTime.Sub(time.Now().Add(check.Deadline)))
+				message := fmt.Sprintf("**⚠️Check Deadline Approaching⚠️**\nCheck: `%s`\nEvent: `%s`\nTime left: `%s`", check.Description, event.Name, event.StartTime.Sub(time.Now().Add(check.Deadline)))
 				if m.development {
 					zap.S().Infof("Mock deadline warning: \n%s", message)
 				} else {
@@ -326,6 +326,18 @@ func (m *manager) syncDeadline(ctx context.Context) error {
 		check.Status = model.CheckTODOLate
 		if err := m.repoCheck.UpdateEvent(ctx, *check); err != nil {
 			return err
+		}
+
+		message := fmt.Sprintf("**❌Check Deadline Passed❌**\nCheck: `%s`\nEvent: `%s`", check.Description, event.Name)
+		if m.development {
+			zap.S().Infof("Mock deadline passed: \n%s", message)
+		} else {
+			if err := m.mattermost.SendMessage(ctx, mattermost.Message{
+				ChannelID: m.channelID,
+				Message:   message,
+			}); err != nil {
+				return err
+			}
 		}
 	}
 
