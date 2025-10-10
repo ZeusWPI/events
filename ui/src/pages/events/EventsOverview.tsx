@@ -39,7 +39,7 @@ export function EventsOverview() {
     <div className="flex flex-col gap-8">
       <PageHeader>
         <Title>{`${!isMobile ? "Events " : ""} ${year.formatted}`}</Title>
-        <Button size="lg" variant="outline" disabled={!events?.length}>
+        <Button size="lg" variant="outline" disabled={!events?.length} asChild>
           <Link to="/events/assign" params={{ year: year.formatted }}>
             Assign
           </Link>
