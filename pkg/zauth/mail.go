@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/renderer/html"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 )
@@ -27,9 +31,14 @@ func (c *client) MailAll(ctx context.Context, subject, content string) error {
 
 	client := conf.Client(ctx)
 
+	html, err := toHTML(content)
+	if err != nil {
+		return err
+	}
+
 	m := mail{
 		Subject: subject,
-		Content: content,
+		Content: html,
 		Author:  "Zeus WPI",
 	}
 	jsonBytes, err := json.Marshal(m)
@@ -54,4 +63,24 @@ func (c *client) MailAll(ctx context.Context, subject, content string) error {
 	}
 
 	return nil
+}
+
+func toHTML(content string) (string, error) {
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
+		goldmark.WithRendererOptions(
+			html.WithHardWraps(),
+			html.WithUnsafe(),
+		),
+	)
+
+	var buf bytes.Buffer
+	if err := md.Convert([]byte(content), &buf); err != nil {
+		return "", fmt.Errorf("convert markdown to html %s | %w", content, err)
+	}
+
+	return buf.String(), nil
 }
