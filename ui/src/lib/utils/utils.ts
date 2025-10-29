@@ -98,7 +98,7 @@ export function capitalize(text: string): string {
     return text
   }
 
-  return text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+  return text.charAt(0).toUpperCase() + text.substring(1)
 }
 
 
