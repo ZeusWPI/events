@@ -9,7 +9,6 @@ import (
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/sqlc"
 	"github.com/ZeusWPI/events/pkg/utils"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Board struct {
@@ -90,7 +89,6 @@ func (b *Board) Create(ctx context.Context, board *model.Board) error {
 		YearID:      int32(board.YearID),
 		Role:        board.Role,
 		IsOrganizer: board.IsOrganizer,
-		Mattermost:  pgtype.Text{String: board.Mattermost, Valid: board.Mattermost != ""},
 	})
 	if err != nil {
 		return fmt.Errorf("create board %+v | %w", *board, err)
@@ -108,7 +106,6 @@ func (b *Board) Update(ctx context.Context, board model.Board) error {
 		YearID:      int32(board.YearID),
 		Role:        board.Role,
 		IsOrganizer: board.IsOrganizer,
-		Mattermost:  pgtype.Text{String: board.Mattermost, Valid: board.Mattermost != ""},
 	}); err != nil {
 		return fmt.Errorf("update board %+v | %w", board, err)
 	}

@@ -38,7 +38,7 @@ func (q *Queries) OrganizerDeleteByEvent(ctx context.Context, eventID int32) err
 }
 
 const organizerGetByEvents = `-- name: OrganizerGetByEvents :many
-SELECT o.id, o.event_id, o.board_id, b.id, b.member_id, b.year_id, b.role, b.is_organizer, b.mattermost, e.id, e.file_name, e.name, e.description, e.start_time, e.end_time, e.location, e.year_id, e.deleted, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+SELECT o.id, o.event_id, o.board_id, b.id, b.member_id, b.year_id, b.role, b.is_organizer, e.id, e.file_name, e.name, e.description, e.start_time, e.end_time, e.location, e.year_id, e.deleted, m.id, m.name, m.username, m.zauth_id, m.mattermost, y.id, y.year_start, y.year_end
 FROM organizer o
 LEFT JOIN event e ON e.id = o.event_id
 LEFT JOIN year y ON y.id = e.year_id
@@ -73,7 +73,6 @@ func (q *Queries) OrganizerGetByEvents(ctx context.Context, dollar_1 []int32) ([
 			&i.Board.YearID,
 			&i.Board.Role,
 			&i.Board.IsOrganizer,
-			&i.Board.Mattermost,
 			&i.Event.ID,
 			&i.Event.FileName,
 			&i.Event.Name,
@@ -87,6 +86,7 @@ func (q *Queries) OrganizerGetByEvents(ctx context.Context, dollar_1 []int32) ([
 			&i.Member.Name,
 			&i.Member.Username,
 			&i.Member.ZauthID,
+			&i.Member.Mattermost,
 			&i.Year.ID,
 			&i.Year.YearStart,
 			&i.Year.YearEnd,

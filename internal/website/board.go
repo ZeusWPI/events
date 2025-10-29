@@ -44,7 +44,7 @@ func (c *Client) SyncBoard(ctx context.Context) error {
 			// Both the website and the local database contain this board member
 			// but they differ slightly, let's bring it up to date.
 			// This situation can happen if
-			//   - The website entry changed (e.g. a new role)
+			//   - The website entry changed (e.g. a new role or a new mattermost name)
 			//   - The user logged in before the board sync happened
 			//   - The user has multiple role assignments (happened in the beginning of Zeus WPI)
 			board.ID = oldBoard.ID
@@ -53,6 +53,17 @@ func (c *Client) SyncBoard(ctx context.Context) error {
 
 			if err := c.boardRepo.Update(ctx, board); err != nil {
 				return fmt.Errorf("updating board entry for old board %+v | %w", *oldBoard, err)
+			}
+
+			member, ok := utils.SliceFind(dbMembers, func(m *model.Member) bool { return m.ID == board.MemberID })
+			if !ok {
+				return fmt.Errorf("finding corresponding member %+v", board)
+			}
+			member.Name = oldBoard.Member.Name
+			member.Mattermost = oldBoard.Member.Mattermost
+
+			if err := c.memberRepo.Update(ctx, *member); err != nil {
+				return fmt.Errorf("updating member entry for old board %+v | %w", *oldBoard, err)
 			}
 
 			continue

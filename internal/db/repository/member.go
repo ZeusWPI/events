@@ -59,13 +59,11 @@ func (m *Member) GetByName(ctx context.Context, name string) (*model.Member, err
 }
 
 func (m *Member) Create(ctx context.Context, member *model.Member) error {
-	zauthID := pgtype.Int4{Int32: int32(member.ZauthID), Valid: member.ZauthID != 0}
-	username := pgtype.Text{String: member.Username, Valid: member.Username != ""}
-
 	id, err := m.repo.queries(ctx).MemberCreate(ctx, sqlc.MemberCreateParams{
-		Name:     member.Name,
-		Username: username,
-		ZauthID:  zauthID,
+		Name:       member.Name,
+		Username:   pgtype.Text{String: member.Username, Valid: member.Username != ""},
+		Mattermost: pgtype.Text{String: member.Mattermost, Valid: member.Mattermost != ""},
+		ZauthID:    pgtype.Int4{Int32: int32(member.ZauthID), Valid: member.ZauthID != 0},
 	})
 	if err != nil {
 		return fmt.Errorf("create member %+v | %w", *member, err)
@@ -77,14 +75,12 @@ func (m *Member) Create(ctx context.Context, member *model.Member) error {
 }
 
 func (m *Member) Update(ctx context.Context, member model.Member) error {
-	zauthID := pgtype.Int4{Int32: int32(member.ZauthID), Valid: member.ZauthID != 0}
-	username := pgtype.Text{String: member.Username, Valid: member.Username != ""}
-
 	if err := m.repo.queries(ctx).MemberUpdate(ctx, sqlc.MemberUpdateParams{
-		ID:       int32(member.ID),
-		ZauthID:  zauthID,
-		Name:     member.Name,
-		Username: username,
+		ID:         int32(member.ID),
+		Name:       member.Name,
+		Username:   pgtype.Text{String: member.Username, Valid: member.Username != ""},
+		Mattermost: pgtype.Text{String: member.Mattermost, Valid: member.Mattermost != ""},
+		ZauthID:    pgtype.Int4{Int32: int32(member.ZauthID), Valid: member.ZauthID != 0},
 	}); err != nil {
 		return fmt.Errorf("update member %+v | %w", member, err)
 	}

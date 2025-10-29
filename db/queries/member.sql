@@ -10,14 +10,14 @@ SELECT * FROM member
 WHERE name ILIKE $1;
 
 -- name: MemberCreate :one 
-INSERT INTO member (name, username, zauth_id)
-VALUES ($1, $2, $3)
+INSERT INTO member (name, username, mattermost, zauth_id)
+VALUES ($1, $2, $3, $4)
 RETURNING id;
 
 -- name: MemberUpdate :exec 
 UPDATE member 
-SET name = $1, username = $2, zauth_id = $3
-WHERE id = $4;
+SET name = $2, username = $3, mattermost = $4, zauth_id = $5
+WHERE id = $1;
 
 -- name: MemberDelete :exec 
 DELETE FROM member 

@@ -12,19 +12,25 @@ import (
 )
 
 const memberCreate = `-- name: MemberCreate :one
-INSERT INTO member (name, username, zauth_id)
-VALUES ($1, $2, $3)
+INSERT INTO member (name, username, mattermost, zauth_id)
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
 type MemberCreateParams struct {
-	Name     string
-	Username pgtype.Text
-	ZauthID  pgtype.Int4
+	Name       string
+	Username   pgtype.Text
+	Mattermost pgtype.Text
+	ZauthID    pgtype.Int4
 }
 
 func (q *Queries) MemberCreate(ctx context.Context, arg MemberCreateParams) (int32, error) {
-	row := q.db.QueryRow(ctx, memberCreate, arg.Name, arg.Username, arg.ZauthID)
+	row := q.db.QueryRow(ctx, memberCreate,
+		arg.Name,
+		arg.Username,
+		arg.Mattermost,
+		arg.ZauthID,
+	)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
@@ -41,7 +47,7 @@ func (q *Queries) MemberDelete(ctx context.Context, id int32) error {
 }
 
 const memberGetAll = `-- name: MemberGetAll :many
-SELECT id, name, username, zauth_id FROM member
+SELECT id, name, username, zauth_id, mattermost FROM member
 `
 
 func (q *Queries) MemberGetAll(ctx context.Context) ([]Member, error) {
@@ -58,6 +64,7 @@ func (q *Queries) MemberGetAll(ctx context.Context) ([]Member, error) {
 			&i.Name,
 			&i.Username,
 			&i.ZauthID,
+			&i.Mattermost,
 		); err != nil {
 			return nil, err
 		}
@@ -70,7 +77,7 @@ func (q *Queries) MemberGetAll(ctx context.Context) ([]Member, error) {
 }
 
 const memberGetByID = `-- name: MemberGetByID :one
-SELECT id, name, username, zauth_id FROM member 
+SELECT id, name, username, zauth_id, mattermost FROM member 
 WHERE id = $1
 `
 
@@ -82,12 +89,13 @@ func (q *Queries) MemberGetByID(ctx context.Context, id int32) (Member, error) {
 		&i.Name,
 		&i.Username,
 		&i.ZauthID,
+		&i.Mattermost,
 	)
 	return i, err
 }
 
 const memberGetByName = `-- name: MemberGetByName :one
-SELECT id, name, username, zauth_id FROM member 
+SELECT id, name, username, zauth_id, mattermost FROM member 
 WHERE name ILIKE $1
 `
 
@@ -99,29 +107,32 @@ func (q *Queries) MemberGetByName(ctx context.Context, name string) (Member, err
 		&i.Name,
 		&i.Username,
 		&i.ZauthID,
+		&i.Mattermost,
 	)
 	return i, err
 }
 
 const memberUpdate = `-- name: MemberUpdate :exec
 UPDATE member 
-SET name = $1, username = $2, zauth_id = $3
-WHERE id = $4
+SET name = $2, username = $3, mattermost = $4, zauth_id = $5
+WHERE id = $1
 `
 
 type MemberUpdateParams struct {
-	Name     string
-	Username pgtype.Text
-	ZauthID  pgtype.Int4
-	ID       int32
+	ID         int32
+	Name       string
+	Username   pgtype.Text
+	Mattermost pgtype.Text
+	ZauthID    pgtype.Int4
 }
 
 func (q *Queries) MemberUpdate(ctx context.Context, arg MemberUpdateParams) error {
 	_, err := q.db.Exec(ctx, memberUpdate,
+		arg.ID,
 		arg.Name,
 		arg.Username,
+		arg.Mattermost,
 		arg.ZauthID,
-		arg.ID,
 	)
 	return err
 }

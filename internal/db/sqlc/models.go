@@ -205,7 +205,6 @@ type Board struct {
 	YearID      int32
 	Role        string
 	IsOrganizer bool
-	Mattermost  pgtype.Text
 }
 
 type Check struct {
@@ -270,10 +269,11 @@ type MailEvent struct {
 }
 
 type Member struct {
-	ID       int32
-	Name     string
-	Username pgtype.Text
-	ZauthID  pgtype.Int4
+	ID         int32
+	Name       string
+	Username   pgtype.Text
+	ZauthID    pgtype.Int4
+	Mattermost pgtype.Text
 }
 
 type Organizer struct {

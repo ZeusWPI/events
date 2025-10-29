@@ -302,7 +302,7 @@ func (m *manager) syncDeadline(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		organizerMsg := strings.Join(utils.SliceMap(organizers, func(o *model.Organizer) string { return "@" + o.Board.Mattermost }), " ")
+		organizerMsg := strings.Join(utils.SliceMap(organizers, func(o *model.Organizer) string { return "@" + o.Board.Member.Mattermost }), " ")
 
 		if time.Now().Add(check.Deadline).Before(event.StartTime) {
 			// Deadline is in the future, the board still has some time left

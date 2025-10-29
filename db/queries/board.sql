@@ -33,13 +33,13 @@ LEFT JOIN year y ON b.year_id = y.id
 WHERE m.id = $1;
 
 -- name: BoardCreate :one
-INSERT INTO board (role, member_id, year_id, is_organizer, mattermost)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO board (role, member_id, year_id, is_organizer)
+VALUES ($1, $2, $3, $4)
 RETURNING id;
 
 -- name: BoardUpdate :exec
 UPDATE board
-SET role = $2, member_id = $3, year_id = $4, is_organizer = $5, mattermost = $6
+SET role = $2, member_id = $3, year_id = $4, is_organizer = $5
 WHERE id = $1;
 
 -- name: BoardDelete :exec

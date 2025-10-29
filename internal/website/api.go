@@ -18,8 +18,9 @@ import (
 
 type bestuurYAML struct {
 	Data map[string][]struct {
-		Role string `yaml:"rol"`
-		Name string `yaml:"naam"`
+		Role       string `yaml:"rol"`
+		Name       string `yaml:"naam"`
+		Mattermost string `yaml:"mattermost"`
 	} `yaml:"data"`
 }
 
@@ -40,7 +41,8 @@ func (c *Client) fetchAndParseBoard(ctx context.Context) ([]model.Board, error) 
 			boards = append(boards, model.Board{
 				Role: m.Role,
 				Member: model.Member{
-					Name: m.Name,
+					Name:       m.Name,
+					Mattermost: m.Mattermost,
 				},
 				Year: model.Year{
 					Start: startYear,
