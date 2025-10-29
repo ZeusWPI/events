@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,8 +31,9 @@ var Manager *manager
 type manager struct {
 	checks []model.Check
 
-	repoCheck repository.Check
-	repoEvent repository.Event
+	repoCheck     repository.Check
+	repoEvent     repository.Event
+	repoOrganizer repository.Organizer
 
 	development bool
 	mattermost  mattermost.Client
@@ -51,11 +53,12 @@ func newManager(repo repository.Repository) (*manager, error) {
 	}
 
 	manager := &manager{
-		repoCheck:   *repo.NewCheck(),
-		repoEvent:   *repo.NewEvent(),
-		development: config.IsDev(),
-		mattermost:  *mClient,
-		channelID:   config.GetString("check.channel"),
+		repoCheck:     *repo.NewCheck(),
+		repoEvent:     *repo.NewEvent(),
+		repoOrganizer: *repo.NewOrganizer(),
+		development:   config.IsDev(),
+		mattermost:    *mClient,
+		channelID:     config.GetString("check.channel"),
 	}
 
 	if err := manager.repoCheck.SetInactiveAutomatic(context.Background()); err != nil {
@@ -188,6 +191,15 @@ func (m *manager) Update(ctx context.Context, checkUID string, update Update) er
 			return err
 		}
 	}
+	if check.Status == update.Status {
+		// No need to do anything if the status didn't change
+		return nil
+	}
+
+	event, err := m.repoEvent.GetByID(ctx, check.EventID)
+	if err != nil {
+		return err
+	}
 
 	if check.Status == update.Status && check.Message == update.Message {
 		// No change, no need to update it
@@ -203,16 +215,9 @@ func (m *manager) Update(ctx context.Context, checkUID string, update Update) er
 		return err
 	}
 
-	message := fmt.Sprintf("**Check Update**\n%s\n`%s` -> `%s`", check.Description, oldStatus, check.Status)
-	if m.development {
-		zap.S().Infof("Mock check update: \n%s", message)
-	} else {
-		if err := m.mattermost.SendMessage(ctx, mattermost.Message{
-			ChannelID: m.channelID,
-			Message:   message,
-		}); err != nil {
-			return err
-		}
+	message := fmt.Sprintf("**Check Update**\nEvent: `%s`\nCheck: `%s`\nStatus: `%s` -> `%s`", event.Name, check.Description, oldStatus, check.Status)
+	if err := m.sendMessage(ctx, message); err != nil {
+		return err
 	}
 
 	return nil
@@ -293,6 +298,12 @@ func (m *manager) syncDeadline(ctx context.Context) error {
 		if !ok {
 			return fmt.Errorf("no associated event with check %+v", *check)
 		}
+		organizers, err := m.repoOrganizer.GetByEvents(ctx, []model.Event{*event})
+		if err != nil {
+			return err
+		}
+		organizerMsg := strings.Join(utils.SliceMap(organizers, func(o *model.Organizer) string { return "@" + o.Board.Mattermost }), " ")
+
 		if time.Now().Add(check.Deadline).Before(event.StartTime) {
 			// Deadline is in the future, the board still has some time left
 			// However if there's less than 1 day left send a message to mattermost to warn them
@@ -302,22 +313,16 @@ func (m *manager) syncDeadline(ctx context.Context) error {
 					continue
 				}
 
-				message := fmt.Sprintf("**⚠️Check Deadline Approaching⚠️**\nCheck: `%s`\nEvent: `%s`\nTime left: `%s`", check.Description, event.Name, event.StartTime.Sub(time.Now().Add(check.Deadline)))
-				if m.development {
-					zap.S().Infof("Mock deadline warning: \n%s", message)
-				} else {
-					if err := m.mattermost.SendMessage(ctx, mattermost.Message{
-						ChannelID: m.channelID,
-						Message:   message,
-					}); err != nil {
-						return err
-					}
+				message := fmt.Sprintf("**⚠️ Check Deadline Approaching ⚠️**\nCheck: `%s`\nEvent: `%s`\nTime left: `%s`\n%s", check.Description, event.Name, event.StartTime.Sub(time.Now().Add(check.Deadline)), organizerMsg)
+				if err := m.sendMessage(ctx, message); err != nil {
+					return err
 				}
 
 				if err := m.repoCheck.SendMattermost(ctx, check.ID); err != nil {
 					return err
 				}
 			}
+
 			continue
 		}
 
@@ -328,16 +333,24 @@ func (m *manager) syncDeadline(ctx context.Context) error {
 			return err
 		}
 
-		message := fmt.Sprintf("**❌Check Deadline Passed❌**\nCheck: `%s`\nEvent: `%s`", check.Description, event.Name)
-		if m.development {
-			zap.S().Infof("Mock deadline passed: \n%s", message)
-		} else {
-			if err := m.mattermost.SendMessage(ctx, mattermost.Message{
-				ChannelID: m.channelID,
-				Message:   message,
-			}); err != nil {
-				return err
-			}
+		message := fmt.Sprintf("**❌ Check Deadline Passed ❌**\nCheck: `%s`\nEvent: `%s`\n%s", check.Description, event.Name, organizerMsg)
+		if err := m.sendMessage(ctx, message); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *manager) sendMessage(ctx context.Context, message string) error {
+	if m.development {
+		zap.S().Infof("Mock check mattermost message: \n%s", message)
+	} else {
+		if err := m.mattermost.SendMessage(ctx, mattermost.Message{
+			ChannelID: m.channelID,
+			Message:   message,
+		}); err != nil {
+			return err
 		}
 	}
 

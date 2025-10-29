@@ -7,11 +7,13 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const boardCreate = `-- name: BoardCreate :one
-INSERT INTO board (role, member_id, year_id, is_organizer)
-VALUES ($1, $2, $3, $4)
+INSERT INTO board (role, member_id, year_id, is_organizer, mattermost)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 `
 
@@ -20,6 +22,7 @@ type BoardCreateParams struct {
 	MemberID    int32
 	YearID      int32
 	IsOrganizer bool
+	Mattermost  pgtype.Text
 }
 
 func (q *Queries) BoardCreate(ctx context.Context, arg BoardCreateParams) (int32, error) {
@@ -28,6 +31,7 @@ func (q *Queries) BoardCreate(ctx context.Context, arg BoardCreateParams) (int32
 		arg.MemberID,
 		arg.YearID,
 		arg.IsOrganizer,
+		arg.Mattermost,
 	)
 	var id int32
 	err := row.Scan(&id)
@@ -45,7 +49,7 @@ func (q *Queries) BoardDelete(ctx context.Context, id int32) error {
 }
 
 const boardGetAll = `-- name: BoardGetAll :many
-SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, b.mattermost, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
 FROM board b
 LEFT JOIN member m ON b.member_id = m.id 
 LEFT JOIN year y ON b.year_id = y.id
@@ -72,6 +76,7 @@ func (q *Queries) BoardGetAll(ctx context.Context) ([]BoardGetAllRow, error) {
 			&i.Board.YearID,
 			&i.Board.Role,
 			&i.Board.IsOrganizer,
+			&i.Board.Mattermost,
 			&i.Member.ID,
 			&i.Member.Name,
 			&i.Member.Username,
@@ -91,7 +96,7 @@ func (q *Queries) BoardGetAll(ctx context.Context) ([]BoardGetAllRow, error) {
 }
 
 const boardGetByIds = `-- name: BoardGetByIds :many
-SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, b.mattermost, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
 FROM board b
 LEFT JOIN member m ON b.member_id = m.id 
 LEFT JOIN year y ON b.year_id = y.id
@@ -119,6 +124,7 @@ func (q *Queries) BoardGetByIds(ctx context.Context, dollar_1 []int32) ([]BoardG
 			&i.Board.YearID,
 			&i.Board.Role,
 			&i.Board.IsOrganizer,
+			&i.Board.Mattermost,
 			&i.Member.ID,
 			&i.Member.Name,
 			&i.Member.Username,
@@ -138,7 +144,7 @@ func (q *Queries) BoardGetByIds(ctx context.Context, dollar_1 []int32) ([]BoardG
 }
 
 const boardGetByMember = `-- name: BoardGetByMember :many
-SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, b.mattermost, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
 FROM board b
 LEFT JOIN member m ON b.member_id = m.id
 LEFT JOIN year y ON b.year_id = y.id
@@ -166,6 +172,7 @@ func (q *Queries) BoardGetByMember(ctx context.Context, id int32) ([]BoardGetByM
 			&i.Board.YearID,
 			&i.Board.Role,
 			&i.Board.IsOrganizer,
+			&i.Board.Mattermost,
 			&i.Member.ID,
 			&i.Member.Name,
 			&i.Member.Username,
@@ -185,7 +192,7 @@ func (q *Queries) BoardGetByMember(ctx context.Context, id int32) ([]BoardGetByM
 }
 
 const boardGetByMemberYear = `-- name: BoardGetByMemberYear :one
-SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, b.mattermost, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
 FROM board b
 LEFT JOIN member m ON b.member_id = m.id
 LEFT JOIN year y ON b.year_id = y.id
@@ -212,6 +219,7 @@ func (q *Queries) BoardGetByMemberYear(ctx context.Context, arg BoardGetByMember
 		&i.Board.YearID,
 		&i.Board.Role,
 		&i.Board.IsOrganizer,
+		&i.Board.Mattermost,
 		&i.Member.ID,
 		&i.Member.Name,
 		&i.Member.Username,
@@ -224,7 +232,7 @@ func (q *Queries) BoardGetByMemberYear(ctx context.Context, arg BoardGetByMember
 }
 
 const boardGetByYear = `-- name: BoardGetByYear :many
-SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
+SELECT b.id, b.member_id, b.year_id, b.role, b.is_organizer, b.mattermost, m.id, m.name, m.username, m.zauth_id, y.id, y.year_start, y.year_end
 FROM board b
 LEFT JOIN member m ON b.member_id = m.id
 LEFT JOIN year y ON b.year_id = y.id
@@ -252,6 +260,7 @@ func (q *Queries) BoardGetByYear(ctx context.Context, yearID int32) ([]BoardGetB
 			&i.Board.YearID,
 			&i.Board.Role,
 			&i.Board.IsOrganizer,
+			&i.Board.Mattermost,
 			&i.Member.ID,
 			&i.Member.Name,
 			&i.Member.Username,
@@ -272,25 +281,27 @@ func (q *Queries) BoardGetByYear(ctx context.Context, yearID int32) ([]BoardGetB
 
 const boardUpdate = `-- name: BoardUpdate :exec
 UPDATE board
-SET role = $1, member_id = $2, year_id = $3, is_organizer = $4
-WHERE id = $5
+SET role = $2, member_id = $3, year_id = $4, is_organizer = $5, mattermost = $6
+WHERE id = $1
 `
 
 type BoardUpdateParams struct {
+	ID          int32
 	Role        string
 	MemberID    int32
 	YearID      int32
 	IsOrganizer bool
-	ID          int32
+	Mattermost  pgtype.Text
 }
 
 func (q *Queries) BoardUpdate(ctx context.Context, arg BoardUpdateParams) error {
 	_, err := q.db.Exec(ctx, boardUpdate,
+		arg.ID,
 		arg.Role,
 		arg.MemberID,
 		arg.YearID,
 		arg.IsOrganizer,
-		arg.ID,
+		arg.Mattermost,
 	)
 	return err
 }

@@ -205,6 +205,7 @@ type Board struct {
 	YearID      int32
 	Role        string
 	IsOrganizer bool
+	Mattermost  pgtype.Text
 }
 
 type Check struct {
