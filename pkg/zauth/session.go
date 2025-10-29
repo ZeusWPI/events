@@ -1,3 +1,4 @@
+// Package zauth interacts with the Zeus zauth service
 package zauth
 
 import (

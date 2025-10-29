@@ -25,7 +25,7 @@ func (c *Client) sendMailAll(ctx context.Context, mail model.Mail) error {
 		// Mock the request in development
 		zap.S().Infof("Mock mail: %+v", mail)
 	} else {
-		if err := zauth.MailAll(ctx, mail.Title, mail.Content); err != nil {
+		if err := zauth.C.MailAll(ctx, mail.Title, mail.Content); err != nil {
 			mail.Error = err.Error()
 			if dbErr := c.repoMail.Update(ctx, mail); dbErr != nil {
 				err = errors.Join(err, dbErr)

@@ -16,6 +16,7 @@ import (
 	"github.com/ZeusWPI/events/pkg/db"
 	"github.com/ZeusWPI/events/pkg/logger"
 	"github.com/ZeusWPI/events/pkg/storage"
+	"github.com/ZeusWPI/events/pkg/zauth"
 	"go.uber.org/zap"
 )
 
@@ -53,6 +54,8 @@ func main() {
 	if err := check.Init(*repo); err != nil {
 		zap.S().Fatalf("Unable to initialize the check manager %v", err)
 	}
+
+	zauth.Init()
 
 	// Start dsa
 	dsa, err := dsa.New(*repo)

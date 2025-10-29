@@ -12,8 +12,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const endpoint = "https://zauth.zeus.gent"
-
 // Provider is the implementation of `goth.Provider` for accessing Zauth
 type Provider struct {
 	config     *oauth2.Config
@@ -39,15 +37,15 @@ type User struct {
 }
 
 // NewProvider creates a new Zauth provider
-func NewProvider(clientKey, secret, callbackURL string) *Provider {
+func (c *client) NewProvider() *Provider {
 	p := &Provider{
-		clientKey:    clientKey,
-		secret:       secret,
-		callbackURL:  callbackURL,
+		clientKey:    c.clientKey,
+		secret:       c.secret,
+		callbackURL:  c.callbackURL,
 		userURL:      endpoint + "/current_user",
 		providerName: "zauth",
 	}
-	c := &oauth2.Config{
+	conf := &oauth2.Config{
 		ClientID:     p.clientKey,
 		ClientSecret: p.secret,
 		RedirectURL:  p.callbackURL,
@@ -58,7 +56,7 @@ func NewProvider(clientKey, secret, callbackURL string) *Provider {
 		},
 		Scopes: []string{"roles"},
 	}
-	p.config = c
+	p.config = conf
 
 	return p
 }
