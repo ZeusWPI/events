@@ -22,7 +22,7 @@ func getTaskName(announcement model.Announcement) string {
 
 func (c *Client) sendAnnouncement(ctx context.Context, announcement model.Announcement) error {
 	if c.development {
-		// Moch the request in development
+		// Mock the request in development
 		zap.S().Infof("Mock announcement: %+v", announcement)
 	} else {
 		if err := c.m.SendMessage(ctx, mattermost.Message{

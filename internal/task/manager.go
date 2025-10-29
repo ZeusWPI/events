@@ -343,27 +343,42 @@ func (m *manager) wrapOnce(task Task) func(context.Context) {
 
 		// Run task
 		start := time.Now()
-		err := task.Func()(ctx)
+		taskErr := task.Func()(ctx)
 		end := time.Now()
 
 		// Save result
-		result := model.Success
+		taskDB, err := m.repo.GetByUID(ctx, task.UID())
 		if err != nil {
-			result = model.Failed
+			zap.S().Errorf("Failed to get pre-existing task %+v | %v", task, err)
+			return
 		}
-		taskDB := &model.Task{
-			UID:      task.UID(),
-			Name:     task.Name(),
-			Active:   true,
-			Type:     model.TaskOnce,
-			RunAt:    time.Now(),
-			Result:   result,
-			Error:    err,
-			Duration: end.Sub(start),
+		if taskDB == nil {
+			// Will be the case 99% of the time
+			// The only times it isn't true is if the one time task failed and an user reran it manually
+			taskDB = &model.Task{
+				UID:    task.UID(),
+				Name:   task.Name(),
+				Active: true,
+				Type:   model.TaskOnce,
+			}
+
+			if err := m.repo.Create(ctx, *taskDB); err != nil {
+				zap.S().Errorf("Failed to save one time task in database %+v | %v", *taskDB, err)
+			}
 		}
 
-		if err := m.repo.Create(ctx, *taskDB); err != nil {
-			zap.S().Errorf("Failed to save one time task in database %+v | %v", *taskDB, err)
+		result := model.Success
+		if taskErr != nil {
+			result = model.Failed
+		}
+
+		taskDB.RunAt = time.Now()
+		taskDB.Result = result
+		taskDB.Error = taskErr
+		taskDB.Duration = end.Sub(start)
+
+		if err := m.repo.CreateRun(ctx, taskDB); err != nil {
+			zap.S().Errorf("Failed to save one time task run in database %+v | %v", *taskDB, err)
 		}
 
 		m.mu.Lock()
