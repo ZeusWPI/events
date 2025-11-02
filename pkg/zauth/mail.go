@@ -11,10 +11,18 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
+type contentType string
+
+const (
+	contentPlain    contentType = "text/plain"
+	contentMarkdown contentType = "text/markdown"
+)
+
 type mail struct {
-	Subject string `json:"subject"`
-	Content string `json:"body"`
-	Author  string `json:"author"`
+	Subject     string      `json:"subject"`
+	Content     string      `json:"body"`
+	Author      string      `json:"author"`
+	ContentType contentType `json:"content_type"`
 }
 
 func (c *client) MailAll(ctx context.Context, subject, content string) error {
@@ -28,9 +36,10 @@ func (c *client) MailAll(ctx context.Context, subject, content string) error {
 	client := conf.Client(ctx)
 
 	m := mail{
-		Subject: subject,
-		Content: content,
-		Author:  "Zeus WPI",
+		Subject:     subject,
+		Content:     content,
+		Author:      "Zeus WPI",
+		ContentType: contentMarkdown,
 	}
 	jsonBytes, err := json.Marshal(m)
 	if err != nil {
