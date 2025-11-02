@@ -81,6 +81,7 @@ func NewServer(service *service.Service, pool *pgxpool.Pool) *Server {
 	api.NewAnnouncement(protectedRouter, service)
 	api.NewMail(protectedRouter, service)
 	api.NewPoster(protectedRouter, service)
+	api.NewImage(protectedRouter, service)
 
 	// Webhook
 	webhookRouter := app.Group("/webhook")

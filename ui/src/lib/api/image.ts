@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query"
 import { apiPut, NO_CONVERTER } from "./query"
 
-const ENDPOINT = "v1/image"
+const ENDPOINT = "image"
 
 export function useImageCreate() {
   return useMutation({
