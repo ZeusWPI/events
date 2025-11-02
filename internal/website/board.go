@@ -59,8 +59,8 @@ func (c *Client) SyncBoard(ctx context.Context) error {
 			if !ok {
 				return fmt.Errorf("finding corresponding member %+v", board)
 			}
-			member.Name = oldBoard.Member.Name
-			member.Mattermost = oldBoard.Member.Mattermost
+			member.Name = board.Member.Name
+			member.Mattermost = board.Member.Mattermost
 
 			if err := c.memberRepo.Update(ctx, *member); err != nil {
 				return fmt.Errorf("updating member entry for old board %+v | %w", *oldBoard, err)
@@ -114,7 +114,7 @@ func (c *Client) SyncBoard(ctx context.Context) error {
 			continue
 		}
 
-		if ok := slices.ContainsFunc(websiteBoards, func(b model.Board) bool { return b.Equal(*board) }); !ok {
+		if ok := slices.ContainsFunc(websiteBoards, func(b model.Board) bool { return b.EqualEntry(*board) }); !ok {
 			if err := c.boardRepo.Delete(ctx, *board); err != nil {
 				return err
 			}
