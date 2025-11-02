@@ -38,3 +38,7 @@ func MemberModel(member sqlc.Member) *Member {
 func (m *Member) Equal(m2 Member) bool {
 	return m.Name == m2.Name && m.Mattermost == m2.Mattermost
 }
+
+func (m *Member) EqualEntry(m2 Member) bool {
+	return m.Name == m2.Name
+}

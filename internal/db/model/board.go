@@ -31,5 +31,5 @@ func (b *Board) Equal(b2 Board) bool {
 
 // EqualEntry return true if the both board instances refer to the same entry on the website
 func (b *Board) EqualEntry(b2 Board) bool {
-	return b.Member.Equal(b2.Member) && b.Year.Equal(b2.Year)
+	return b.Member.EqualEntry(b2.Member) && b.Year.Equal(b2.Year)
 }
