@@ -88,6 +88,11 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
           </Button>
         </div>
       </PageHeader>
+      <div className="border border-orange-500 rounded-lg whitespace-pre p-8">
+        {`Mattermost supports only a small subset of markdown features.\nThe preview you see does not necessarily reflect what mattermost will render.\nYou can find `}
+        <a href="https://mattermost.com/blog/laymans-guide-to-markdown-on-mattermost/" target="_blank" rel="noopener noreferrer" className="cursor-pointer underline underline-offset-4 decoration-orange-500 hover:no-underline">here</a>
+        {` a list of supported features.`}
+      </div>
       <form className="space-y-4" onSubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
