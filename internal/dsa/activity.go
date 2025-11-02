@@ -90,8 +90,8 @@ func (c *Client) deleteEvent(ctx context.Context, event model.Event) error {
 		return err
 	}
 	if dsa == nil {
-		// Can only happen if someone manually messed with the database
-		return fmt.Errorf("who touche my spaghetti (database)\nDSA entry not found for delete event %+v", event)
+		// Can happen if the event was added to the website after de dsa deadline
+		return nil
 	}
 
 	if _, err := c.deleteActivity(ctx, dsa.DsaID); err != nil {
