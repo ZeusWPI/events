@@ -18,8 +18,7 @@ export function EventSelector({ selected, setSelected, future = false }: Props) 
   const { year } = useYear()
   const { data: eventsAll, isLoading: isLoadingEvents } = useEventByYear(year)
 
-  const now = new Date()
-  const events = useMemo(() => eventsAll?.filter(e => !future || e.startTime.getTime() > now.getTime()), [eventsAll])
+  const events = useMemo(() => eventsAll?.filter(e => !future || e.startTime.getTime() > new Date().getTime()), [eventsAll, future])
 
   if (isLoadingEvents) {
     return <Indeterminate />

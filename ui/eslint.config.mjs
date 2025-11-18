@@ -34,6 +34,10 @@ export default tseslint.config(
       "@typescript-eslint/no-namespace": "off",
       "react/display-name": "off",
       "react/no-unescaped-entities": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/incompatible-library": "off",
     },
     settings: {
       react: {
