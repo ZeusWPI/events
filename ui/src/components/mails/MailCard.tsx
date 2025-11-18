@@ -14,7 +14,7 @@ import { IconButton } from "../atoms/IconButton";
 import { OrganizerIcon } from "../atoms/OrganizerIcon";
 import { TooltipText } from "../atoms/TooltipText";
 import { DeleteConfirm } from "../molecules/DeleteConfirm";
-import { ResendConfirm } from "../molecules/ResendConfirm";
+import { Confirm } from "../molecules/Confirm";
 import { MarkdownViewer } from "../organisms/markdown/MarkdownViewer";
 import { Badge } from "../ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
@@ -116,10 +116,13 @@ export function MailCard({ mail }: Props) {
         onOpenChange={setOpenDelete}
         onDelete={handleDeleteConfirm}
       />
-      <ResendConfirm
+      <Confirm
+        title="Resend confirmation"
+        description="Are you sure you want to try to resend the mail"
+        confirmText="Resend"
+        onConfirm={handleResendConfirm}
         open={openResend}
         onOpenChange={setOpenResend}
-        onResend={handleResendConfirm}
       />
     </>
   )

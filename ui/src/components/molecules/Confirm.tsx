@@ -3,26 +3,25 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 interface Props extends React.ComponentProps<typeof DialogPrimitive.Root> {
-  onResend: () => void;
+  title: string;
+  description: string;
+  confirmText: string;
+  onConfirm: () => void;
 }
 
-export function ResendConfirm({ onResend, open, onOpenChange }: Props) {
+export function Confirm({ title, description, confirmText, onConfirm, open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            Resend confirmation
-          </DialogTitle>
-          <DialogDescription>
-            Are you sure you want to resend it?
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button onClick={onResend} variant="destructive">Resend</Button>
+          <Button onClick={onConfirm} variant="destructive">{confirmText}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

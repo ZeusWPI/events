@@ -15,6 +15,7 @@ import { PageHeader } from "../molecules/PageHeader";
 import { DateTimePicker } from "../organisms/DateTimePicker";
 import { MarkdownCombo } from "../organisms/markdown/MarkdownCombo";
 import { Button } from "../ui/button";
+import { Confirm } from "../molecules/Confirm";
 
 interface Props {
   announcement?: AnnouncementSchema;
@@ -29,7 +30,12 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
 
   const [referenceDate, setReferenceDate] = useState<Date | undefined>(undefined)
 
-  const handleSubmit = () => {
+  const [openAtChannel, setOpenAtChannel] = useState(false)
+  const handleAtChannel = () => {
+    handleSubmit(true)
+  }
+
+  const handleSubmit = (ignoreAtChannel: boolean) => {
     const selected = events?.filter(e => form.state.values.eventIds.includes(e.id)) ?? []
 
     if (selected.some(e => e.startTime.getTime() < form.state.values.sendTime.getTime())) {
@@ -41,6 +47,14 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
     if (!organizer) {
       toast.error("Not a board member", { description: "You were not a board member that year" })
       return
+    }
+
+    if (!ignoreAtChannel) {
+      const mentions = ["@channel", "@here"]
+      if (mentions.some(m => !form.state.values.content.includes(m))) {
+        setOpenAtChannel(true)
+        return
+      }
     }
 
     onSubmit(form.state.values)
@@ -56,7 +70,7 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
     validators: {
       onSubmit: announcementSchema,
     },
-    onSubmit: handleSubmit,
+    onSubmit: () => handleSubmit(false),
   })
 
   const updateReferenceDate = (eventIds: number[]) => {
@@ -74,51 +88,61 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
   }
 
   return (
-    <div className="space-y-8">
-      <PageHeader>
-        <Title>{`${announcement ? "Edit" : "Create"} Announcement`}</Title>
-        <div className="flex justify-center gap-2">
-          <Button variant="outline" asChild>
-            <Link to="/announcements" >
-              Cancel
-            </Link>
-          </Button>
-          <Button onClick={form.handleSubmit} disabled={isLoadingOrganizers}>
-            Submit
-          </Button>
+    <>
+      <div className="space-y-8">
+        <PageHeader>
+          <Title>{`${announcement ? "Edit" : "Create"} Announcement`}</Title>
+          <div className="flex justify-center gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/announcements" >
+                Cancel
+              </Link>
+            </Button>
+            <Button onClick={form.handleSubmit} disabled={isLoadingOrganizers}>
+              Submit
+            </Button>
+          </div>
+        </PageHeader>
+        <div className="border border-orange-500 rounded-lg whitespace-pre p-8">
+          {`Mattermost supports only a small subset of markdown features.\nThe preview you see does not necessarily reflect what mattermost will render.\nYou can find `}
+          <a href="https://mattermost.com/blog/laymans-guide-to-markdown-on-mattermost/" target="_blank" rel="noopener noreferrer" className="cursor-pointer underline underline-offset-4 decoration-orange-500 hover:no-underline">here</a>
+          {` a list of supported features.`}
         </div>
-      </PageHeader>
-      <div className="border border-orange-500 rounded-lg whitespace-pre p-8">
-        {`Mattermost supports only a small subset of markdown features.\nThe preview you see does not necessarily reflect what mattermost will render.\nYou can find `}
-        <a href="https://mattermost.com/blog/laymans-guide-to-markdown-on-mattermost/" target="_blank" rel="noopener noreferrer" className="cursor-pointer underline underline-offset-4 decoration-orange-500 hover:no-underline">here</a>
-        {` a list of supported features.`}
+        <form className="space-y-4" onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}>
+          <form.Field name="sendTime">
+            {(field) => (
+              <FormField field={field} className="flex items-center gap-4">
+                <label htmlFor={field.name}>Send time</label>
+                <DateTimePicker id={field.name} value={field.state.value as Date} setValue={field.handleChange} referenceDate={referenceDate} />
+              </FormField>
+            )}
+          </form.Field>
+          <form.Field name="content">
+            {(field) => (
+              <FormField field={field}>
+                <MarkdownCombo value={field.state.value as string} onChange={field.handleChange} textareaProps={{ placeholder: "Write announcement here..." }} />
+              </FormField>
+            )}
+          </form.Field>
+          <form.Field name="eventIds" listeners={{ onChange: ({ value }) => updateReferenceDate(value as number[]) }}>
+            {(field) => (
+              <EventSelector selected={field.state.value as number[]} setSelected={field.handleChange} future />
+            )}
+          </form.Field>
+        </form>
       </div>
-      <form className="space-y-4" onSubmit={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        form.handleSubmit();
-      }}>
-        <form.Field name="sendTime">
-          {(field) => (
-            <FormField field={field} className="flex items-center gap-4">
-              <label htmlFor={field.name}>Send time</label>
-              <DateTimePicker id={field.name} value={field.state.value as Date} setValue={field.handleChange} referenceDate={referenceDate} />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Field name="content">
-          {(field) => (
-            <FormField field={field}>
-              <MarkdownCombo value={field.state.value as string} onChange={field.handleChange} textareaProps={{ placeholder: "Write announcement here..." }} />
-            </FormField>
-          )}
-        </form.Field>
-        <form.Field name="eventIds" listeners={{ onChange: ({ value }) => updateReferenceDate(value as number[]) }}>
-          {(field) => (
-            <EventSelector selected={field.state.value as number[]} setSelected={field.handleChange} future />
-          )}
-        </form.Field>
-      </form>
-    </div>
+      <Confirm
+        title="Send confirmation"
+        description="The announcement has no @channel or @here mention. Do you still want to send it?"
+        confirmText="Send"
+        onConfirm={handleAtChannel}
+        open={openAtChannel}
+        onOpenChange={setOpenAtChannel}
+      />
+    </>
   )
 }
