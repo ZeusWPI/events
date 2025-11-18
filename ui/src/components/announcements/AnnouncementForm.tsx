@@ -115,7 +115,7 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
         </form.Field>
         <form.Field name="eventIds" listeners={{ onChange: ({ value }) => updateReferenceDate(value as number[]) }}>
           {(field) => (
-            <EventSelector selected={field.state.value as number[]} setSelected={field.handleChange} />
+            <EventSelector selected={field.state.value as number[]} setSelected={field.handleChange} future />
           )}
         </form.Field>
       </form>

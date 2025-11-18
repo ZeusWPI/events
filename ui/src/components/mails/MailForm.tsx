@@ -159,7 +159,7 @@ export function MailForm({ mail, onSubmit }: Props) {
         </HeadlessCard>
         <form.Field name="eventIds" listeners={{ onChange: ({ value }) => updateReferenceDate(value as number[]) }}>
           {(field) => (
-            <EventSelector selected={field.state.value as number[]} setSelected={field.handleChange} />
+            <EventSelector selected={field.state.value as number[]} setSelected={field.handleChange} future />
           )}
         </form.Field>
       </form>

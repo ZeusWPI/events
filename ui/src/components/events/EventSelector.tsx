@@ -6,15 +6,20 @@ import { motion } from "framer-motion";
 import { EventCard } from "./EventCard";
 import { HeadlessCard } from "../molecules/HeadlessCard";
 import { CardContent, CardHeader, CardTitle } from "../ui/card";
+import { useMemo } from "react";
 
 interface Props {
   selected: number[];
   setSelected: (events: number[]) => void;
+  future?: boolean;
 }
 
-export function EventSelector({ selected, setSelected }: Props) {
+export function EventSelector({ selected, setSelected, future = false }: Props) {
   const { year } = useYear()
-  const { data: events, isLoading: isLoadingEvents } = useEventByYear(year)
+  const { data: eventsAll, isLoading: isLoadingEvents } = useEventByYear(year)
+
+  const now = new Date()
+  const events = useMemo(() => eventsAll?.filter(e => !future || e.startTime.getTime() > now.getTime()), [eventsAll])
 
   if (isLoadingEvents) {
     return <Indeterminate />
