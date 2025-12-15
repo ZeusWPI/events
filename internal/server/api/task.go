@@ -52,8 +52,8 @@ func (r *Task) getHistory(c *fiber.Ctx) error {
 	}
 
 	limit := c.QueryInt("limit", 10)
-	page := c.QueryInt("page", 0)
-	if limit < 1 || page < 0 {
+	page := c.QueryInt("page", 1)
+	if limit < 1 || page < 1 {
 		return fiber.ErrBadRequest
 	}
 
@@ -61,7 +61,7 @@ func (r *Task) getHistory(c *fiber.Ctx) error {
 		TaskUID: uid,
 		Result:  result,
 		Limit:   limit,
-		Offset:  page * limit,
+		Offset:  (page - 1) * limit,
 	})
 	if err != nil {
 		return err

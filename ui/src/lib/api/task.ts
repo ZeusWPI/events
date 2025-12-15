@@ -29,7 +29,7 @@ export function useTaskGetAll() {
 export function useTaskGetHistory(filter?: TaskHistoryFilter) {
   const { data, isLoading, fetchNextPage, isFetchingNextPage, hasNextPage, error, refetch, isFetching } = useInfiniteQuery({
     queryKey: ["task_history", JSON.stringify(filter)],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam = 1 }) => {
       const queryParams = new URLSearchParams({
         page: pageParam.toString(),
         limit: PAGE_LIMIT.toString(),
@@ -46,7 +46,7 @@ export function useTaskGetHistory(filter?: TaskHistoryFilter) {
       const url = `${ENDPOINT}/history?${queryParams.toString()}`;
       return (await apiGet(url, convertTaskHistoryToModel)).data;
     },
-    initialPageParam: 0,
+    initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length < PAGE_LIMIT ? undefined : allPages.length + 1;
     },
