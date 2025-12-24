@@ -2,10 +2,14 @@ import { MailForm } from "@/components/mails/MailForm";
 import { useMailCreate } from "@/lib/api/mail";
 import { useYearLock } from "@/lib/hooks/useYear";
 import { MailSchema } from "@/lib/types/mail";
-import { useNavigate } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
+const route = getRouteApi('/mails/create')
+
 export function MailsCreate() {
+  const { eventIds } = route.useSearch()
+
   const navigate = useNavigate()
   const create = useMailCreate()
 
@@ -23,6 +27,6 @@ export function MailsCreate() {
   }
 
   return (
-    <MailForm onSubmit={handleSubmit} />
+    <MailForm defaultEvents={eventIds} onSubmit={handleSubmit} />
   )
 }

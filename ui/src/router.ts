@@ -1,9 +1,14 @@
 import { createRootRoute, createRoute, createRouter } from "@tanstack/react-router";
+import { zodValidator } from '@tanstack/zod-adapter';
 import App from "./App";
+import { announcementSearch } from "./lib/router/announcement";
+import { mailSearch } from "./lib/router/mail";
 import Error404 from "./pages/404";
 import { Announcements } from "./pages/announcements/Announcements";
 import { AnnouncementsCreate } from "./pages/announcements/AnnouncementsCreate";
+import { AnnouncementsEdit } from "./pages/announcements/AnnouncementsEdit";
 import { AnnouncementsOverview } from "./pages/announcements/AnnouncementsOverview";
+import { Deadlines } from "./pages/deadlines/Deadlines";
 import { Error } from "./pages/Error";
 import Events from "./pages/events/Events";
 import { EventsAssign } from "./pages/events/EventsAssign";
@@ -12,15 +17,13 @@ import { EventsOverview } from "./pages/events/EventsOverview";
 import Index from "./pages/Index";
 import { Mails } from "./pages/mails/Mails";
 import { MailsCreate } from "./pages/mails/MailsCreate";
+import { MailsEdit } from "./pages/mails/MailsEdit";
+import { MailsOverview } from "./pages/mails/MailsOverview";
 import { PowerPoints } from "./pages/powerpoints/Powerpoints";
 import { Tasks } from "./pages/tasks/Tasks";
 import { TasksDetail } from "./pages/tasks/TasksDetail";
 import { TasksHistory } from "./pages/tasks/TasksHistory";
 import { TasksOverview } from "./pages/tasks/TasksOverview";
-import { AnnouncementsEdit } from "./pages/announcements/AnnouncementsEdit";
-import { MailsEdit } from "./pages/mails/MailsEdit";
-import { MailsOverview } from "./pages/mails/MailsOverview";
-import { Deadlines } from "./pages/deadlines/Deadlines";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -82,6 +85,7 @@ const announcementsCreateRoute = createRoute({
   getParentRoute: () => announcementsRoute,
   path: "/create",
   component: AnnouncementsCreate,
+  validateSearch: zodValidator(announcementSearch),
 })
 
 const announcementsEditRoute = createRoute({
@@ -110,6 +114,7 @@ const mailsCreateRoute = createRoute({
   getParentRoute: () => mailsRoute,
   path: "/create",
   component: MailsCreate,
+  validateSearch: zodValidator(mailSearch),
 })
 
 const mailsEditRoute = createRoute({

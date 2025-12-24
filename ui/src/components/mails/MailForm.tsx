@@ -27,10 +27,11 @@ import { capitalize } from "@/lib/utils/utils";
 
 interface Props {
   mail?: MailSchema;
+  defaultEvents?: number[];
   onSubmit: (mail: MailSchema) => void;
 }
 
-export function MailForm({ mail, onSubmit }: Props) {
+export function MailForm({ mail, defaultEvents, onSubmit }: Props) {
   const { user } = useAuth()
   const { year } = useYear()
   const { data: events, isLoading: isLoadingEvents } = useEventByYear(year)
@@ -60,7 +61,7 @@ export function MailForm({ mail, onSubmit }: Props) {
   const form = useForm({
     defaultValues: mail ?? {
       yearId: year.id,
-      eventIds: [],
+      eventIds: defaultEvents ?? [],
       title: "",
       content: "",
       sendTime: new Date(),

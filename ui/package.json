@@ -25,6 +25,7 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "@tanstack/react-router": "^1.136.8",
     "@tanstack/react-table": "^8.21.3",
+    "@tanstack/zod-adapter": "^1.143.4",
     "@uiw/react-md-editor": "^4.0.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

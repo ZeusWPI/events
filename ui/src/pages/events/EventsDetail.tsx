@@ -53,14 +53,14 @@ export function EventsDetail() {
         <ButtonGroup>
           <TooltipText text="Create announcement">
             <IconButton asChild>
-              <Link to="/announcements/create">
+              <Link to="/announcements/create" search={{ eventIds: [event.id] }}>
                 <MegaphoneIcon />
               </Link>
             </IconButton>
           </TooltipText>
           <TooltipText text="Create mail">
             <IconButton asChild>
-              <Link to="/mails/create">
+              <Link to="/mails/create" search={{ eventIds: [event.id] }}>
                 <MailIcon />
               </Link>
             </IconButton>

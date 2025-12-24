@@ -2,10 +2,14 @@ import { AnnouncementForm } from "@/components/announcements/AnnouncementForm";
 import { useAnnouncementCreate } from "@/lib/api/announcement";
 import { useYearLock } from "@/lib/hooks/useYear";
 import { AnnouncementSchema } from "@/lib/types/announcement";
-import { useNavigate } from "@tanstack/react-router";
+import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
+const route = getRouteApi('/announcements/create')
+
 export function AnnouncementsCreate() {
+  const { eventIds } = route.useSearch()
+
   const navigate = useNavigate()
   const create = useAnnouncementCreate()
 
@@ -23,6 +27,6 @@ export function AnnouncementsCreate() {
   }
 
   return (
-    <AnnouncementForm onSubmit={handleSubmit} />
+    <AnnouncementForm defaultEvents={eventIds} onSubmit={handleSubmit} />
   )
 }

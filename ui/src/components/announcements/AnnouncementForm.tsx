@@ -19,10 +19,11 @@ import { Confirm } from "../molecules/Confirm";
 
 interface Props {
   announcement?: AnnouncementSchema;
+  defaultEvents?: number[];
   onSubmit: (announcement: AnnouncementSchema) => void;
 }
 
-export function AnnouncementForm({ announcement, onSubmit }: Props) {
+export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Props) {
   const { user } = useAuth()
   const { year } = useYear()
   const { data: events, isLoading: isLoadingEvents } = useEventByYear(year)
@@ -63,7 +64,7 @@ export function AnnouncementForm({ announcement, onSubmit }: Props) {
   const form = useForm({
     defaultValues: announcement ?? {
       yearId: year.id,
-      eventIds: [],
+      eventIds: defaultEvents ?? [],
       content: "",
       sendTime: new Date(),
     },
