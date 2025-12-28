@@ -11,7 +11,7 @@ require (
 	github.com/gofiber/storage/minio v0.4.1
 	github.com/gofiber/storage/postgres/v3 v3.3.1
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.7.6
+	github.com/jackc/pgx/v5 v5.8.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kolesa-team/go-webp v1.0.5
 	github.com/markbates/goth v1.82.0
