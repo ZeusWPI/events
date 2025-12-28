@@ -9,6 +9,7 @@ import (
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/go-co-op/gocron/v2"
 	"go.uber.org/zap"
 )
@@ -44,6 +45,9 @@ type manager struct {
 	mu            sync.Mutex
 	jobsRecurring map[string]jobRecurring
 	jobsOnce      map[string]jobOnce
+
+	development bool
+	channelID   string
 }
 
 func newManager(repo repository.Repository) (*manager, error) {
@@ -59,6 +63,8 @@ func newManager(repo repository.Repository) (*manager, error) {
 		repo:          *repo.NewTask(),
 		jobsRecurring: make(map[string]jobRecurring),
 		jobsOnce:      make(map[string]jobOnce),
+		development:   config.IsDev(),
+		channelID:     config.GetString("task.channel"),
 	}
 
 	if err := manager.repo.SetInactiveRecurring(context.Background()); err != nil {

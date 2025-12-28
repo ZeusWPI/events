@@ -15,19 +15,23 @@ import (
 // Change this if you have a local mattermost instance
 const url = "https://mattermost.zeus.gent/api/v4"
 
-type Client struct {
+type client struct {
 	token string
 }
 
-func New() (*Client, error) {
+var C *client
+
+func Init() error {
 	token := config.GetDefaultString("mattermost.token", "")
 	if token == "" {
-		return nil, errors.New("no mattermost token set")
+		return errors.New("no mattermost token set")
 	}
 
-	return &Client{
+	C = &client{
 		token: token,
-	}, nil
+	}
+
+	return nil
 }
 
 type query struct {
@@ -37,7 +41,7 @@ type query struct {
 	target any
 }
 
-func (c *Client) query(ctx context.Context, q query) error {
+func (c *client) query(ctx context.Context, q query) error {
 	req, err := http.NewRequestWithContext(ctx, q.method, fmt.Sprintf("%s/%s", url, q.url), q.body)
 	if err != nil {
 		return fmt.Errorf("new http request %w", err)

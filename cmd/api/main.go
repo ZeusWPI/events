@@ -15,6 +15,7 @@ import (
 	"github.com/ZeusWPI/events/pkg/config"
 	"github.com/ZeusWPI/events/pkg/db"
 	"github.com/ZeusWPI/events/pkg/logger"
+	"github.com/ZeusWPI/events/pkg/mattermost"
 	"github.com/ZeusWPI/events/pkg/storage"
 	"github.com/ZeusWPI/events/pkg/zauth"
 	"go.uber.org/zap"
@@ -56,6 +57,10 @@ func main() {
 	}
 
 	zauth.Init()
+
+	if err := mattermost.Init(); err != nil {
+		zap.S().Fatalf("Unable to initialize mattermost %v", err)
+	}
 
 	// Start dsa
 	dsa, err := dsa.New(*repo)

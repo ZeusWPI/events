@@ -44,6 +44,9 @@ check:
   channel: # Not used in development
   sync_s: 3600 # 1 hour
 
+task:
+  channel: # Not used in development
+
 poster:
   sync_s: 86400 # 1 day
   big_deadline_s: 0

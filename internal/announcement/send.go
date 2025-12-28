@@ -25,7 +25,7 @@ func (c *Client) sendAnnouncement(ctx context.Context, announcement model.Announ
 		// Mock the request in development
 		zap.S().Infof("Mock announcement: %+v", announcement)
 	} else {
-		if err := c.m.SendMessage(ctx, mattermost.Message{
+		if err := mattermost.C.SendMessage(ctx, mattermost.Message{
 			ChannelID: c.announcementChannel,
 			Message:   announcement.Content,
 		}); err != nil {

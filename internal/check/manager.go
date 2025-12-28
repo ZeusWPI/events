@@ -36,7 +36,6 @@ type manager struct {
 	repoOrganizer repository.Organizer
 
 	development bool
-	mattermost  mattermost.Client
 	channelID   string
 
 	// The mutexes main purpose is to avoid any concurrent changes in the dabase to the automatic checks
@@ -47,17 +46,11 @@ type manager struct {
 }
 
 func newManager(repo repository.Repository) (*manager, error) {
-	mClient, err := mattermost.New()
-	if err != nil {
-		return nil, err
-	}
-
 	manager := &manager{
 		repoCheck:     *repo.NewCheck(),
 		repoEvent:     *repo.NewEvent(),
 		repoOrganizer: *repo.NewOrganizer(),
 		development:   config.IsDev(),
-		mattermost:    *mClient,
 		channelID:     config.GetString("check.channel"),
 	}
 
@@ -346,7 +339,7 @@ func (m *manager) sendMessage(ctx context.Context, message string) error {
 	if m.development {
 		zap.S().Infof("Mock check mattermost message: \n%s", message)
 	} else {
-		if err := m.mattermost.SendMessage(ctx, mattermost.Message{
+		if err := mattermost.C.SendMessage(ctx, mattermost.Message{
 			ChannelID: m.channelID,
 			Message:   message,
 		}); err != nil {

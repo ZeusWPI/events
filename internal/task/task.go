@@ -3,10 +3,12 @@ package task
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ZeusWPI/events/internal/db/model"
 	"github.com/ZeusWPI/events/internal/db/repository"
+	"github.com/ZeusWPI/events/pkg/mattermost"
 	"go.uber.org/zap"
 )
 
@@ -114,6 +116,19 @@ func (t *internalTask) Func() func(context.Context) error {
 
 		if err := t.fn(ctx); err != nil {
 			zap.S().Errorf("Task %s failed | %v", t.name, err)
+
+			message := fmt.Sprintf("Task %s failed\n%v", t.name, err)
+			if Manager.development {
+				zap.S().Infof("Mock task failed mattermost message: \n%s", message)
+			} else {
+				if err := mattermost.C.SendMessage(ctx, mattermost.Message{
+					ChannelID: Manager.channelID,
+					Message:   message,
+				}); err != nil {
+					zap.S().Errorf("Send mattermost message failed %v", err)
+				}
+			}
+
 			return err
 		}
 
