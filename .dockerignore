@@ -1,0 +1,7 @@
+.git/
+.githooks/
+.github/
+main
+migrate
+screenshots/
+tmp/

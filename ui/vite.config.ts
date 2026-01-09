@@ -5,6 +5,10 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    emptyOutDir: true,
+    sourcemap: true,
+  },
   plugins: [
     tailwindcss(),
     react(),

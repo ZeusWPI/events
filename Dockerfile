@@ -1,56 +1,51 @@
-# Build backend
-FROM golang:1.25.0-alpine3.22 AS build_backend
+# Stage 1: Build backend
+FROM golang:1.25.0-alpine3.22 AS backend-builder
+WORKDIR /app
 
-RUN apk add --no-cache upx alpine-sdk gcc musl-dev libwebp-dev
-
-WORKDIR /backend
+RUN apk add --no-cache gcc musl-dev libwebp-dev
 
 COPY go.mod go.sum ./ 
 RUN go mod download 
 
 COPY . .
 
-# Build server executable
-RUN CGO_ENABLED=1 go build -ldflags "-s -w" -v -tags musl -o main ./cmd/api/main.go
-RUN upx --best --lzma main
-
-# Build migration executable
-RUN CGO_ENABLED=1 go build -ldflags "-s -w" -v -tags musl -o migrate migrate.go
-RUN upx --best --lzma migrate
+RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -o server ./cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o migrate migrate.go
 
 
-# Build frontend
-FROM node:22.16.0 AS build_frontend
+# Stage 3: Build frontend
+FROM node:22.16.0-alpine3.22 AS frontend-builder
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
-WORKDIR /frontend
+WORKDIR /frontend/ui
 
-COPY ui/package.json ui/pnpm-lock.yaml ./
-RUN npm install -g pnpm@10.14.0 && pnpm install 
+COPY ./ui/package.json ./ui/pnpm-lock.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-COPY ui/ .
+COPY ./ui/ .
 
 ARG BUILD_TIME
+
 ENV VITE_BUILD_TIME=$BUILD_TIME
+ENV CI=true
 
 RUN pnpm run build
 
+# Stage 3: Combine
+FROM alpine:3.22 AS prod
+WORKDIR /app
 
-# End container
-FROM alpine:3.22
+RUN apk add --no-cache libwebp-dev ca-certificates tzdata 
 
-WORKDIR /
-
-RUN apk add --no-cache tzdata gcc musl-dev libwebp-dev
-
-COPY --from=build_backend /backend/main .
-COPY --from=build_backend /backend/migrate .
-COPY --from=build_backend /backend/docs ./docs
-COPY --from=build_frontend /frontend/dist ./public
-
-RUN chmod +x ./main ./migrate
+COPY --from=backend-builder /app/server .
+COPY --from=backend-builder /app/migrate .
+COPY --from=backend-builder /app/docs ./docs
+COPY --from=frontend-builder /frontend/ui/dist ./public
 
 ENV APP_ENV=PRODUCTION
 
 EXPOSE 4000
 
-ENTRYPOINT ["sh", "-c", "./migrate && exec ./main"]
+ENTRYPOINT ["sh", "-c", "./migrate && ./server"]
