@@ -20,12 +20,12 @@
     "@number-flow/react": "^0.5.10",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.1.18",
-    "@tanstack/react-form": "^1.27.6",
-    "@tanstack/react-query": "^5.90.14",
+    "@tanstack/react-form": "^1.27.7",
+    "@tanstack/react-query": "^5.90.16",
     "@tanstack/react-query-devtools": "^5.91.2",
-    "@tanstack/react-router": "^1.144.0",
+    "@tanstack/react-router": "^1.146.2",
     "@tanstack/react-table": "^8.21.3",
-    "@tanstack/zod-adapter": "^1.144.0",
+    "@tanstack/zod-adapter": "^1.146.2",
     "@uiw/react-md-editor": "^4.0.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -33,7 +33,7 @@
     "copy-to-clipboard": "^3.3.3",
     "date-fns": "^4.1.0",
     "eslint-plugin-react": "^7.37.5",
-    "framer-motion": "^12.23.26",
+    "framer-motion": "^12.25.0",
     "install": "^0.13.0",
     "lucide-react": "^0.554.0",
     "next-themes": "^0.4.6",
@@ -50,12 +50,12 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^13.0.0",
-    "zod": "^4.2.1"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@tanstack/eslint-plugin-query": "^5.91.2",
-    "@tanstack/react-router-devtools": "^1.144.0",
+    "@tanstack/react-router-devtools": "^1.146.2",
     "@types/node": "^24.10.4",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
@@ -68,7 +68,7 @@
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.50.1",
-    "vite": "^7.3.0"
+    "typescript-eslint": "^8.52.0",
+    "vite": "^7.3.1"
   }
 }
