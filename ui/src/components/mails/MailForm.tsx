@@ -180,6 +180,6 @@ const generators: Generator[] = [
   },
   {
     name: "Long",
-    func: (events: Event[]) => events.map(e => `### ${e.name}\n\n__🕑 ${capitalize(format(e.startTime, "iiii (dd LLLL)", { locale: nlBE }))}__ \\\n__📍 ${e.location}__`).join("\n\n\n\n")
+    func: (events: Event[]) => events.map(e => `### **[${e.name}](${e.url})**\n\n__🕑 ${capitalize(format(e.startTime, "iiii (dd LLLL)", { locale: nlBE }))}__ \\\n__📍 ${e.location}__`).join("\n\n\n\n")
   },
 ]
