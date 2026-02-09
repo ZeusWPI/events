@@ -29,6 +29,13 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
       end: ta.selectionEnd ?? 0,
     };
   };
+  const setSelection = (start: number, end: number) => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.focus();
+    ta.setSelectionRange(start, end);
+    selectionRef.current = { start: start, end: end };
+  };
 
   useEffect(() => {
     const root = editorRef.current;
@@ -87,11 +94,11 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
         updateSelection();
         const { start, end } = selectionRef.current;
 
+        // only do special handling if there was text selected
+        // otherwise use the normal handling, so the undo/redo is preserved
         const selectedText = value.slice(start, end);
         if (selectedText) {
-          // only do special handling if there was text selected
-          // otherwise use the normal handling, so the undo/redo is preserved
-        e.preventDefault();
+          e.preventDefault();
           const nextValue = value.slice(0, start) + `[${selectedText}](${pasteText})` + value.slice(end);
           onChange?.(nextValue);
           return;
@@ -139,18 +146,12 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
     const { start, end } = selectionRef.current;
 
     const nextValue = value.slice(0, start) + emoji + value.slice(end);
-    const nextCursor = start + emoji.length;
-
+    
     onChange?.(nextValue);
     setEmojiOpen(false);
-
-    requestAnimationFrame(() => {
-      const ta = textareaRef.current;
-      if (!ta) return;
-      ta.focus();
-      ta.setSelectionRange(nextCursor, nextCursor);
-      selectionRef.current = { start: nextCursor, end: nextCursor };
-    });
+    
+    const nextCursor = start + emoji.length;
+    setSelection(nextCursor, nextCursor);
   };
 
   return (
