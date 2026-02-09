@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 allowed_prefixes=("fix" "chore" "docs" "feat" "refactor" "lint" "test" "deps")
 
