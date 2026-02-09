@@ -81,12 +81,21 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
     if (!container) return;
 
     const handlePaste = async (e: ClipboardEvent) => {
-      console.log(e);
-      // handle pasting text (for auto url)
+      // handle pasting http urls (for auto hyperlink)
       const pasteText = e.clipboardData?.getData("text/plain");
-      if (pasteText) {
+      if (pasteText?.startsWith("https://")) {
+        updateSelection();
+        const { start, end } = selectionRef.current;
+
+        const selectedText = value.slice(start, end);
+        if (selectedText) {
+          // only do special handling if there was text selected
+          // otherwise use the normal handling, so the undo/redo is preserved
         e.preventDefault();
-        console.log(pasteText);
+          const nextValue = value.slice(0, start) + `[${selectedText}](${pasteText})` + value.slice(end);
+          onChange?.(nextValue);
+          return;
+        }
       }
 
       const allItems = e.clipboardData?.items;
