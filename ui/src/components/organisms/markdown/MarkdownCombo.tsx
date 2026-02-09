@@ -29,6 +29,11 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
       end: ta.selectionEnd ?? 0,
     };
   };
+  const getSelection = (): string => {
+    updateSelection();
+    const { start, end } = selectionRef.current;
+    return value.slice(start, end);
+  }
   const setSelection = (start: number, end: number) => {
     requestAnimationFrame(() => {
       const ta = textareaRef.current;
@@ -38,6 +43,16 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
       selectionRef.current = { start: start, end: end };
     });
   };
+  const replaceSelection = (replaceText: string) => {
+    updateSelection();
+    const { start, end } = selectionRef.current;
+
+    const nextValue = value.slice(0, start) + replaceText + value.slice(end);
+    onChange?.(nextValue);
+
+    const nextCursor = start + replaceText.length;
+    setSelection(nextCursor, nextCursor);
+  }
 
   useEffect(() => {
     const root = editorRef.current;
@@ -93,20 +108,14 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
       // handle pasting http urls (for auto hyperlink)
       const pasteText = e.clipboardData?.getData("text/plain");
       if (pasteText?.startsWith("https://")) {
-        updateSelection();
-        const { start, end } = selectionRef.current;
 
         // only do special handling if there was text selected
         // otherwise use the normal handling, so the undo/redo is preserved
-        const selectedText = value.slice(start, end);
+        const selectedText = getSelection();
         if (selectedText) {
           e.preventDefault();
-          const replaceText = `[${selectedText}](${pasteText})`;
-          const nextValue = value.slice(0, start) + replaceText + value.slice(end);
-          onChange?.(nextValue);
-
-          const nextCursor = start + replaceText.length;
-          setSelection(nextCursor, nextCursor);
+          const replacementText = `[${selectedText}](${pasteText})`;
+          replaceSelection(replacementText);
           return;
         }
       }
@@ -114,7 +123,6 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
       const allItems = e.clipboardData?.items;
       const items = [...(allItems ?? [])].filter((i) => i.type.startsWith("image/"));
       if (!items.length) return;
-
 
       setUploading(true);
 
@@ -128,8 +136,9 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
           {
             onSuccess: (image) => {
               const baseUrl = window.location.origin;
-              const inserted = `\n\n![pasted image](${baseUrl}/api/v1/image/${image.id})`;
-              onChange?.(`${value}${inserted}`);
+              const selectedText = getSelection() || "pasted image";
+              const replacementText = `![${selectedText}](${baseUrl}/api/v1/image/${image.id})`;
+              replaceSelection(replacementText);
             },
             onError: () => toast.error("Failed", { description: "Probably an unsupported file type" }),
             onSettled: () => setUploading(false),
@@ -145,19 +154,8 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
   const toggleEmojiSelector = () => setEmojiOpen((v) => !v);
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
-    const emoji = emojiData.emoji;
-
-    updateSelection();
-
-    const { start, end } = selectionRef.current;
-
-    const nextValue = value.slice(0, start) + emoji + value.slice(end);
-    
-    onChange?.(nextValue);
+    replaceSelection(emojiData.emoji);
     setEmojiOpen(false);
-    
-    const nextCursor = start + emoji.length;
-    setSelection(nextCursor, nextCursor);
   };
 
   return (
