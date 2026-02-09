@@ -30,11 +30,13 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
     };
   };
   const setSelection = (start: number, end: number) => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    ta.focus();
-    ta.setSelectionRange(start, end);
-    selectionRef.current = { start: start, end: end };
+    requestAnimationFrame(() => {
+      const ta = textareaRef.current;
+      if (!ta) return;
+      ta.focus();
+      ta.setSelectionRange(start, end);
+      selectionRef.current = { start: start, end: end };
+    });
   };
 
   useEffect(() => {
@@ -99,8 +101,12 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
         const selectedText = value.slice(start, end);
         if (selectedText) {
           e.preventDefault();
-          const nextValue = value.slice(0, start) + `[${selectedText}](${pasteText})` + value.slice(end);
+          const replaceText = `[${selectedText}](${pasteText})`;
+          const nextValue = value.slice(0, start) + replaceText + value.slice(end);
           onChange?.(nextValue);
+
+          const nextCursor = start + replaceText.length;
+          setSelection(nextCursor, nextCursor);
           return;
         }
       }
