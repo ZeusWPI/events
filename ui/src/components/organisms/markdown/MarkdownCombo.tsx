@@ -81,9 +81,18 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
     if (!container) return;
 
     const handlePaste = async (e: ClipboardEvent) => {
+      console.log(e);
+      // handle pasting text (for auto url)
+      const pasteText = e.clipboardData?.getData("text/plain");
+      if (pasteText) {
+        e.preventDefault();
+        console.log(pasteText);
+      }
+
       const allItems = e.clipboardData?.items;
       const items = [...(allItems ?? [])].filter((i) => i.type.startsWith("image/"));
       if (!items.length) return;
+
 
       setUploading(true);
 
@@ -119,11 +128,9 @@ export function MarkdownCombo({ value = "", onChange, ...props }: MDEditorProps)
     updateSelection();
 
     const { start, end } = selectionRef.current;
-    const safeStart = Math.max(0, Math.min(start, value.length));
-    const safeEnd = Math.max(0, Math.min(end, value.length));
 
-    const nextValue = value.slice(0, safeStart) + emoji + value.slice(safeEnd);
-    const nextCursor = safeStart + emoji.length;
+    const nextValue = value.slice(0, start) + emoji + value.slice(end);
+    const nextCursor = start + emoji.length;
 
     onChange?.(nextValue);
     setEmojiOpen(false);
