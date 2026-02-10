@@ -123,28 +123,28 @@ export function EventsAssign() {
           </CardContent>
         </Card>
       </div>
-      <div className="xl:col-span-3 flex flex-col gap-5">
-        {futureEvents.map((event, i) => (
-          <Fragment key={event.id}>
-            <EventAssignCard event={event} organizers={organizers ?? []} onAssign={handleAssign} />
-            {i !== (events?.length ?? 0) - 1 && <Separator />}
-          </Fragment>
-        ))}
-      </div>
+      {futureEvents.length > 0 && (
+        <div className="xl:col-span-3 flex flex-col gap-5">
+          {futureEvents.map((event, i) => (
+            <Fragment key={event.id}>
+              <EventAssignCard event={event} organizers={organizers ?? []} onAssign={handleAssign} />
+              {i !== (events?.length ?? 0) - 1 && <Separator />}
+            </Fragment>
+          ))}
+        </div>
+      )}
       {pastEvents.length > 0 && (
-        <>
-          <DividerText className="xl:col-span-3 xl:col-start-2">
+        <div className="xl:col-span-3 xl:col-start-2 flex flex-col gap-5">
+          <DividerText>
             Past Events
           </DividerText>
-          <div className="xl:col-span-3 xl:col-start-2 flex flex-col gap-5">
-            {pastEvents.map((event, i) => (
-              <Fragment key={event.id}>
-                <EventAssignCard event={event} organizers={organizers ?? []} onAssign={handleAssign} />
-                {i !== (events?.length ?? 0) - 1 && <Separator />}
-              </Fragment>
-            ))}
-          </div>
-        </>
+          {pastEvents.map((event, i) => (
+            <Fragment key={event.id}>
+              <EventAssignCard event={event} organizers={organizers ?? []} onAssign={handleAssign} />
+              {i !== (events?.length ?? 0) - 1 && <Separator />}
+            </Fragment>
+          ))}
+        </div>
       )}
     </div>
   );
