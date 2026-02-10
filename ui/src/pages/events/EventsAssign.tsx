@@ -7,10 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useEventByYear, useEventSaveOrganizers } from "@/lib/api/event";
 import { useOrganizerByYear } from "@/lib/api/organizer";
-import { Link } from "@tanstack/react-router";
+import { Link, useBlocker } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, LoaderCircle } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { DividerText } from "@/components/atoms/DividerText";
@@ -29,8 +29,12 @@ export function EventsAssign() {
   const updateOrganizers = useEventSaveOrganizers();
 
   const [updatedEvents, setUpdatedEvents] = useState(events ?? []);
-  const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!events) return
+    setUpdatedEvents(events)
+  }, [events])
 
   useBreadcrumb({ title: "Assign", weight: weightSubcategory, link: { to: "/events/assign" } });
   useYearLock()
@@ -47,15 +51,10 @@ export function EventsAssign() {
     oldEvents: updatedEvents.filter(event => isBefore(event.endTime ?? event.startTime, now) && event.organizers.some(({ id }) => id === organizer.id)).length,
   })).sort((a, b) => b.futureEvents - a.futureEvents || a.name.localeCompare(b.name)) ?? []
 
-  const handleDiscard = () => {
-    setIsDirty(false);
-  };
-
   const handleSave = () => {
     setIsSaving(true);
     updateOrganizers.mutate(updatedEvents, {
       onSuccess: () => {
-        setIsDirty(false);
         toast.success("Success");
       },
       onError: error => toast.error("Failed", { description: error.message }),
@@ -71,8 +70,17 @@ export function EventsAssign() {
           : event,
       ),
     );
-    setIsDirty(true);
   };
+
+  const changed = useMemo(() => JSON.stringify(events) !== JSON.stringify(updatedEvents), [events, updatedEvents])
+  useBlocker({
+    shouldBlockFn: () => {
+      if (!changed) return false
+
+      const shouldLeave = confirm("Are you sure you want to leave. You have unsaved changed.")
+      return !shouldLeave
+    }
+  })
 
   if (isLoadingEvents || isLoadingOrganizers) {
     return <Indeterminate />;
@@ -83,9 +91,9 @@ export function EventsAssign() {
       <PageHeader className="col-span-full">
         <Title>{`Assign${!isMobile ? ` to Events ${year.formatted}` : ""}`}</Title>
         <div className="flex items-center gap-6">
-          <Button size="lg" variant="outline" onClick={handleDiscard} asChild>
+          <Button size="lg" variant="outline" asChild>
             <Link to="/events">
-              {isDirty
+              {changed
                 ? "Discard"
                 : (
                   <>
@@ -95,7 +103,7 @@ export function EventsAssign() {
                 )}
             </Link>
           </Button>
-          <Button disabled={!isDirty || isSaving} onClick={handleSave} className="w-16">
+          <Button disabled={!changed || isSaving} onClick={handleSave} className="w-16">
             {isSaving ? <LoaderCircle className="animate-spin" /> : "Save"}
           </Button>
         </div>
