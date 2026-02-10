@@ -13,10 +13,12 @@ import { ArrowLeft, LoaderCircle } from "lucide-react";
 import { Fragment, useState } from "react";
 import { toast } from "sonner";
 
+import { DividerText } from "@/components/atoms/DividerText";
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { useBreadcrumb } from "@/lib/hooks/useBreadcrumb";
 import { useYear, useYearLock } from "@/lib/hooks/useYear";
 import { weightSubcategory } from "@/lib/types/general";
+import { isAfter, isBefore } from "date-fns";
 
 export function EventsAssign() {
   const { year } = useYear()
@@ -34,10 +36,16 @@ export function EventsAssign() {
   useYearLock()
   const isMobile = useIsMobile();
 
+  const now = Date.now()
+
+  const futureEvents = updatedEvents?.filter(event => isAfter(event.endTime ?? event.startTime, now)) ?? []
+  const pastEvents = updatedEvents?.filter(event => isBefore(event.endTime ?? event.startTime, now)) ?? []
+
   const organizersEventCount = organizers?.map(organizer => ({
     ...organizer,
-    events: updatedEvents.filter(event => event.organizers.some(({ id }) => id === organizer.id)).length,
-  })).sort((a, b) => b.events - a.events || a.name.localeCompare(b.name)) ?? [];
+    futureEvents: updatedEvents.filter(event => isAfter(event.endTime ?? event.startTime, now) && event.organizers.some(({ id }) => id === organizer.id)).length,
+    oldEvents: updatedEvents.filter(event => isBefore(event.endTime ?? event.startTime, now) && event.organizers.some(({ id }) => id === organizer.id)).length,
+  })).sort((a, b) => b.futureEvents - a.futureEvents || a.name.localeCompare(b.name)) ?? []
 
   const handleDiscard = () => {
     setIsDirty(false);
@@ -94,24 +102,42 @@ export function EventsAssign() {
       </PageHeader>
       <div className="sticky top-6">
         <Card className={`w-full xl:max-w-80 sticky top-6 ${isMobile ? "max-h-48 overflow-y-scroll" : ""}`}>
-          <CardContent className="flex flex-col gap-1">
-            {organizersEventCount.map((organizer, index) => (
-              <motion.div key={organizer.id} layout className="flex justify-between items-center w-full">
-                <span className={index % 2 === 1 ? "text-muted-foreground" : ""}>{organizer.name}</span>
-                <span className={index % 2 === 1 ? "text-muted-foreground" : ""}>{organizer.events}</span>
+          <CardContent className="flex flex-col gap-1 divide-y">
+            {organizersEventCount.map(organizer => (
+              <motion.div key={organizer.id} layout className="flex justify-between items-center w-full py-2">
+                <span>{organizer.name}</span>
+                <div>
+                  <span>{organizer.futureEvents}</span>
+                  <span className="text-muted-foreground ml-1">{`(${organizer.futureEvents + organizer.oldEvents})`}</span>
+                </div>
               </motion.div>
             ))}
           </CardContent>
         </Card>
       </div>
       <div className="xl:col-span-3 flex flex-col gap-5">
-        {updatedEvents.map((event, i) => (
+        {futureEvents.map((event, i) => (
           <Fragment key={event.id}>
             <EventAssignCard event={event} organizers={organizers ?? []} onAssign={handleAssign} />
             {i !== (events?.length ?? 0) - 1 && <Separator />}
           </Fragment>
         ))}
       </div>
+      {pastEvents.length > 0 && (
+        <>
+          <DividerText className="xl:col-span-3 xl:col-start-2">
+            Past Events
+          </DividerText>
+          <div className="xl:col-span-3 xl:col-start-2 flex flex-col gap-5">
+            {pastEvents.map((event, i) => (
+              <Fragment key={event.id}>
+                <EventAssignCard event={event} organizers={organizers ?? []} onAssign={handleAssign} />
+                {i !== (events?.length ?? 0) - 1 && <Separator />}
+              </Fragment>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
