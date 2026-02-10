@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useSidebar } from "../ui/sidebar";
 import { ComponentProps } from "react";
 import { cn } from "@/lib/utils/utils";
+import { LucideLockKeyhole } from "lucide-react";
 
 export function YearSelector() {
   const { state } = useSidebar()
@@ -27,15 +28,20 @@ export function YearSelector() {
       return
     }
 
+    if (locked) return
+
     setYear(years[0]!)
   }
 
   return (
     <div className="flex flex-col gap-2">
-      {isOpen && locked && <InfoMessage className="border-muted-foreground">Year locked on this page</InfoMessage>}
+      {locked && (isOpen
+        ? <InfoMessage className="border-muted-foreground">Year locked on this page</InfoMessage>
+        : <InfoMessage className="border-muted-foreground"><LucideLockKeyhole className="size-5" /></InfoMessage>
+      )}
       {!isCurrentYear && (isOpen
-        ? <InfoMessage onClick={handleReset} className="border-red-500 text-red-500 cursor-pointer">Old academic year</InfoMessage>
-        : <InfoMessage onClick={handleReset} className="border-red-500 text-red-500 cursor-pointer">!</InfoMessage>
+        ? <InfoMessage onClick={handleReset} className={`border-red-500 text-red-500 ${!locked ? "cursor-pointer" : ""}`}>Old academic year</InfoMessage>
+        : <InfoMessage onClick={handleReset} className={`border-red-500 text-red-500 ${!locked ? "cursor-pointer" : ""}`}>!</InfoMessage>
       )}
       <Select onValueChange={handleSelectChange} value={year?.id.toString()} disabled={locked}>
         <SelectTrigger className="w-full">
@@ -54,5 +60,5 @@ export function YearSelector() {
 }
 
 function InfoMessage({ onClick, className, ...props }: ComponentProps<'p'>) {
-  return <p onClick={onClick} className={cn("border rounded-md p-1 text-sm text-center", className)} {...props} />
+  return <p onClick={onClick} className={cn("border rounded-md p-1 text-sm flex justify-center", className)} {...props} />
 }
