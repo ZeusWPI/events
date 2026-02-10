@@ -209,7 +209,7 @@ export function MarkdownCombo({ value = "", onChange, ...props }: Props) {
     container.addEventListener("paste", handlePaste)
 
     return () => container.removeEventListener("paste", handlePaste)
-  }, [value, onChange, imageCreate])
+  }, [value, onChange, imageCreate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const emojiTheme = useMemo(() => (theme === "dark" ? Theme.DARK : Theme.LIGHT), [theme])
 
