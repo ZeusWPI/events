@@ -5,6 +5,8 @@ on:
     branches:
       - main
   pull_request:
+    paths:
+      - "internal/server/api/v1/**"
 
 permissions:
   contents: read

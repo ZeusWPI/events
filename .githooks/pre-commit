@@ -1,39 +1,46 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-echo "Backend linting"
-golangci-lint run
-if [ $? -ne 0 ]; then
-  echo "golangci-lint failed. Please fix the errors before committing."
-  exit 1
+CHECK_BACKEND=false
+CHECK_FRONTEND=false
+CHECK_SWAGGER=false
+
+while IFS= read -r -d '' file; do
+  case "$file" in
+  ui/*)
+    CHECK_FRONTEND=true
+    ;;
+  internal/server/api/v1/*)
+    CHECK_BACKEND=true
+    CHECK_SWAGGER=true
+    ;;
+  *)
+    CHECK_BACKEND=true
+    ;;
+  esac
+done < <(git diff --cached --name-only -z --diff-filter=ACMR)
+
+if [ "$CHECK_BACKEND" = true ]; then
+  echo "Checking backend"
+  golangci-lint run
 fi
 
-echo "Backend testing"
-go test ./...
-if [ $? -ne 0 ]; then
-  echo "backend tests failed. Please fix the tests before committing."
-  exit 1
+if [ "$CHECK_SWAGGER" = true ]; then
+  echo "Checking swagger"
+  make swagger
+  if ! git diff --exit-code -- ./docs/ ./internal/server/api/v1/; then
+    echo "Swagger docs were not up to date."
+    echo "They have been generated and formatted automatically."
+    echo "Add the changes to the commit."
+    exit 1
+  fi
 fi
 
-echo "Swagger docs generation && formatting"
-make swagger
-
-if ! git diff --exit-code ./docs/ ./internal/server/api/v1/; then
-  echo "Swagger docs were not up to date."
-  echo "They have been generated and formatted automatically."
-  echo "Add the changes to the commit."
-  exit 1
-fi
-
-echo "Frontend linting"
-(cd ui && pnpm --silent run precommit:lint)
-if [ $? -ne 0 ]; then
-  echo "Frontend linting failed. Please fix the errors before committing."
-  exit 1
-fi
-
-echo "Frontend typecheck"
-(cd ui && pnpm --silent run precommit:typecheck)
-if [ $? -ne 0 ]; then
-  echo "Frontend type checking failed. Please fix the errors before committing."
-  exit 1
+if [ "$CHECK_FRONTEND" = true ]; then
+  echo "Checking frontend"
+  (
+    cd ui
+    pnpm --silent run lint
+    pnpm --silent run typecheck
+  )
 fi

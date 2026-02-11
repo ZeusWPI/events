@@ -1,87 +1,83 @@
-name: Check Migration Order
+name: Migration order
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
-    types: [opened, synchronize]
+    paths:
+      - "db/migrations/**"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   check-migration-timestamp:
-    name: Verify Migration Timestamp
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Verify that new migrations are the most recent
+        shell: bash
         run: |
-          set -e
+          set -euo pipefail
 
           MIGRATION_DIR="db/migrations/"
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             BASE_REF="origin/${{ github.base_ref }}"
             HEAD_REF="${{ github.sha }}"
-
-            echo "Running on PR. Comparing HEAD with base (${{ github.base_ref }})."
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "PR: comparing HEAD with base (${BASE_REF})."
+          else
             BASE_REF="${{ github.before }}"
             HEAD_REF="${{ github.sha }}"
-
             if [[ "$BASE_REF" == "0000000000000000000000000000000000000000" ]]; then
-              echo "This is the first push. No base to compare against. Skipping check."
+              echo "First push detected. Skipping migration order check."
               exit 0
             fi
-
-            echo "Running on push. Comparing current commit with previous ($BASE_REF)."
+            echo "Push: comparing ${HEAD_REF} with previous (${BASE_REF})."
           fi
 
-          LATEST_BASE_TIMESTAMP=$(git ls-tree --name-only $BASE_REF $MIGRATION_DIR 2>/dev/null | xargs -n 1 basename | cut -d '_' -f1 | sort -nr | head -n 1 || echo "0")
+          LATEST_BASE_TIMESTAMP="$(git ls-tree --name-only "$BASE_REF" "$MIGRATION_DIR" 2>/dev/null \
+            | xargs -n 1 basename \
+            | cut -d '_' -f1 \
+            | sort -nr \
+            | head -n 1 || true)"
 
-          if [ -z "$LATEST_BASE_TIMESTAMP" ]; then
-            LATEST_BASE_TIMESTAMP=0
-          fi
+          LATEST_BASE_TIMESTAMP="${LATEST_BASE_TIMESTAMP:-0}"
+          echo "Latest base migration timestamp: $LATEST_BASE_TIMESTAMP"
 
-          echo "Latest migration timestamp on base branch is: $LATEST_BASE_TIMESTAMP"
-
-          ADDED_FILES=$(git diff --name-only --diff-filter=A $BASE_REF $HEAD_REF -- $MIGRATION_DIR)
-          if [ -z "$ADDED_FILES" ]; then
-            echo "No new migration files found. Check passed."
+          ADDED_FILES="$(git diff --name-only --diff-filter=A "$BASE_REF" "$HEAD_REF" -- "$MIGRATION_DIR" || true)"
+          if [[ -z "$ADDED_FILES" ]]; then
+            echo "No new migration files added. OK."
             exit 0
           fi
 
-          echo "Found new migration files to check:"
+          echo "New migration files:"
           echo "$ADDED_FILES"
 
           HAS_ERROR=false
 
           while IFS= read -r file; do
-            filename=$(basename "$file")
-            timestamp=$(echo "$filename" | cut -d'_' -f1)
-            echo "-> Checking '$filename' with timestamp '$timestamp'"
+            [[ -z "$file" ]] && continue
+            filename="$(basename "$file")"
+            timestamp="$(echo "$filename" | cut -d'_' -f1)"
 
-            # 1. Check if the timestamp is a valid number
+            echo "Checking $filename (timestamp $timestamp)"
+
             if ! [[ "$timestamp" =~ ^[0-9]+$ ]]; then
-              echo "::error file=$file::Invalid timestamp in filename. Prefix must be numeric."
+              echo "::error file=$file::Invalid timestamp prefix; must be numeric."
               HAS_ERROR=true
               continue
             fi
 
-            # 2. Check if the new timestamp is greater than the latest on the base branch
-            if [ "$timestamp" -le "$LATEST_BASE_TIMESTAMP" ]; then
-              echo "::error file=$file::Timestamp '$timestamp' is not greater than the latest on the base branch ('$LATEST_BASE_TIMESTAMP')."
+            if [[ "$timestamp" -le "$LATEST_BASE_TIMESTAMP" ]]; then
+              echo "::error file=$file::Timestamp '$timestamp' must be greater than base '$LATEST_BASE_TIMESTAMP'."
               HAS_ERROR=true
             fi
           done <<< "$ADDED_FILES"
 
-          if [ "$HAS_ERROR" = true ]; then
-            exit 1
-          fi
+          $HAS_ERROR && exit 1
 
-          echo "All new migration files have valid timestamps."
+          echo "Migration order OK."
