@@ -103,7 +103,12 @@ func SliceRepeat[T any](value T, count int) []T {
 
 // SliceFlatten flattens 2D slices to 1D
 func SliceFlatten[T any](slice [][]T) []T {
-	var result []T
+	total := 0
+	for _, s := range slice {
+		total += len(s)
+	}
+
+	result := make([]T, 0, total)
 	for _, s := range slice {
 		result = append(result, s...)
 	}
@@ -113,9 +118,14 @@ func SliceFlatten[T any](slice [][]T) []T {
 
 // SliceMerge merges multiple slices together
 func SliceMerge[T any](slices ...[]T) []T {
-	var result []T
-	for _, slice := range slices {
-		result = append(result, slice...)
+	total := 0
+	for _, s := range slices {
+		total += len(s)
+	}
+
+	result := make([]T, 0, total)
+	for _, s := range slices {
+		result = append(result, s...)
 	}
 
 	return result

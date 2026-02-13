@@ -1,5 +1,5 @@
 # Stage 1: Build backend
-FROM golang:1.25.0-alpine3.22 AS backend-builder
+FROM golang:1.26.0-alpine3.22 AS backend-builder
 WORKDIR /app
 
 RUN apk add --no-cache gcc musl-dev libwebp-dev
