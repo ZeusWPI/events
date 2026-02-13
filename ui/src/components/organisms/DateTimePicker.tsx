@@ -79,7 +79,7 @@ export function DateTimePicker({ value, setValue, id, referenceDate }: Props) {
   const handleSetTime = (e: ChangeEvent<HTMLInputElement>) => {
     let time
 
-    if (e.target.value === "") {
+    if (!e.target.value) {
       time = new Date()
 
       time.setHours(0)
