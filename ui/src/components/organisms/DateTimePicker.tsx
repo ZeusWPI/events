@@ -86,7 +86,12 @@ export function DateTimePicker({ value, setValue, id, referenceDate }: Props) {
       time.setMinutes(0)
       time.setSeconds(0)
     } else {
-      time = parse(e.target.value, "HH:mm:ss", new Date())
+      let targetValue = e.target.value
+      if (e.target.value.split(":").length == 2) {
+        targetValue += ":00"
+      }
+
+      time = parse(targetValue, "HH:mm:ss", new Date())
     }
 
     const newDate = new Date(value?.getTime())
