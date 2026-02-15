@@ -37,6 +37,7 @@ export namespace API {
     author_id: number;
     content: string;
     send_time: string;
+    draft: boolean;
     send: boolean;
     error?: string;
   }
@@ -64,6 +65,7 @@ export namespace API {
     title: string;
     content: string;
     send_time: string;
+    draft: boolean;
     send: boolean;
     error?: string;
   }

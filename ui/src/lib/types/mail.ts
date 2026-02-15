@@ -10,6 +10,7 @@ export interface Mail extends Base {
   title: string;
   content: string;
   sendTime: Date;
+  draft: boolean;
   send: boolean;
   error?: string;
 }
@@ -23,6 +24,7 @@ export function convertMailToModel(mail: API.Mail): Mail {
     title: mail.title,
     content: mail.content,
     sendTime: new Date(mail.send_time),
+    draft: mail.draft,
     send: mail.send,
     error: mail.error,
   }
@@ -38,6 +40,7 @@ export const mailSchema = z.object({
   eventIds: z.array(z.number().positive()),
   title: z.string().nonempty(),
   content: z.string().nonempty(),
-  sendTime: z.date().min(new Date()),
+  sendTime: z.date().min(new Date()).optional(),
+  draft: z.boolean(),
 })
 export type MailSchema = z.infer<typeof mailSchema> & JSONBody;

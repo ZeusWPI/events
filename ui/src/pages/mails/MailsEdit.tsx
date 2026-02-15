@@ -14,6 +14,8 @@ export function MailsEdit() {
   const { data: mails, isLoading: isLoadingMails } = useMailByYear(year)
   const mail = mails?.find(a => a.id === Number(mailId))
 
+  if (mail?.draft) mail.sendTime = new Date()
+
   useYearLock()
   const navigate = useNavigate()
   const update = useMailUpdate()

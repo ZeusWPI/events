@@ -60,6 +60,10 @@ func (c *Client) startup(ctx context.Context) error {
 	}
 
 	for _, mail := range mails {
+		if mail.Draft {
+			continue
+		}
+
 		if err := c.ScheduleMailAll(ctx, *mail); err != nil {
 			return err
 		}
@@ -71,6 +75,10 @@ func (c *Client) startup(ctx context.Context) error {
 // Create handles a new mail being created
 // It will change the check status and schedule the mail
 func (c *Client) Create(ctx context.Context, mail model.Mail) error {
+	if mail.Draft {
+		return nil
+	}
+
 	// Schedule mail
 	if err := c.ScheduleMailAll(ctx, mail); err != nil {
 		return fmt.Errorf("schedule mail %+v | %w", mail, err)
@@ -87,32 +95,44 @@ func (c *Client) Create(ctx context.Context, mail model.Mail) error {
 // Update handles a mail being updated
 // It will change the check status and reschedule the mail
 func (c *Client) Update(ctx context.Context, oldMail, newMail model.Mail) error {
-	// Remove old scheduled mail
-	if err := task.Manager.RemoveByUID(getTaskUID(oldMail)); err != nil {
-		return fmt.Errorf("remove updated mail task %+v | %w", newMail, err)
+	// Mail schedules
+	if !oldMail.Draft {
+		if err := task.Manager.RemoveByUID(getTaskUID(oldMail)); err != nil {
+			return fmt.Errorf("remove updated mail task %+v | %w", newMail, err)
+		}
 	}
 
-	// Schedule new mail
-	if err := c.ScheduleMailAll(ctx, newMail); err != nil {
-		return fmt.Errorf("schedule mail task %+v | %w", newMail, err)
+	if !newMail.Draft {
+		if err := c.ScheduleMailAll(ctx, newMail); err != nil {
+			return fmt.Errorf("schedule mail task %+v | %w", newMail, err)
+		}
 	}
 
-	// Update checks
+	// Check updates
 	var newEvents []int
 	var oldEvents []int
 
-	for _, id := range newMail.EventIDs {
-		if idx := slices.Index(oldMail.EventIDs, id); idx == -1 {
-			// Event id is not present in the old mail
-			newEvents = append(newEvents, id)
+	switch {
+	case !newMail.Draft && !oldMail.Draft:
+		for _, id := range newMail.EventIDs {
+			if idx := slices.Index(oldMail.EventIDs, id); idx == -1 {
+				// Event id is not present in the old mail
+				newEvents = append(newEvents, id)
+			}
 		}
-	}
 
-	for _, id := range oldMail.EventIDs {
-		if idx := slices.Index(newMail.EventIDs, id); idx == -1 {
-			// Event id is removed in the new mail
-			oldEvents = append(oldEvents, id)
+		for _, id := range oldMail.EventIDs {
+			if idx := slices.Index(newMail.EventIDs, id); idx == -1 {
+				// Event id is removed in the new mail
+				oldEvents = append(oldEvents, id)
+			}
 		}
+
+	case !newMail.Draft && oldMail.Draft:
+		newEvents = newMail.EventIDs
+
+	case newMail.Draft && !oldMail.Draft:
+		oldEvents = oldMail.EventIDs
 	}
 
 	if err := c.handleEvent(ctx, newEvents, true); err != nil {
@@ -129,6 +149,10 @@ func (c *Client) Update(ctx context.Context, oldMail, newMail model.Mail) error 
 // Delete handles a mail being deleted
 // It will change the check status and cancel the mail task
 func (c *Client) Delete(ctx context.Context, mail model.Mail) error {
+	if mail.Draft {
+		return nil
+	}
+
 	// Remove scheduled task
 	if err := task.Manager.RemoveByUID(getTaskUID(mail)); err != nil {
 		return fmt.Errorf("remove deleted mail task %+v | %w", mail, err)

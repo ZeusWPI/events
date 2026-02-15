@@ -86,7 +86,10 @@ export function MailCard({ mail }: Props) {
             <CardTitle className="flex items-center space-x-2">
               {organizer && <OrganizerIcon user={organizer} tooltip />}
               <span>{mail.title}</span>
-              <span className="font-normal text-muted-foreground text-sm">{` | ${formatDate(mail.sendTime)}`}</span>
+              {mail.draft
+                ? <Badge>Draft</Badge>
+                : <span className="font-normal text-muted-foreground text-sm">{` | ${formatDate(mail.sendTime)}`}</span>
+              }
               <MailBadge mail={mail} />
             </CardTitle>
             <ActionBar mail={mail} onResend={handleResend} onDelete={handleDelete} />

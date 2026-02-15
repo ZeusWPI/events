@@ -12,7 +12,8 @@ type Announcement struct {
 	EventIDs []int     `json:"event_ids"`
 	AuthorID int       `json:"author_id"`
 	Content  string    `json:"content" validate:"required"`
-	SendTime time.Time `json:"send_time" validate:"required"`
+	SendTime time.Time `json:"send_time"`
+	Draft    bool      `json:"draft"`
 	Send     bool      `json:"send"`
 	Error    string    `json:"error,omitzero"`
 }

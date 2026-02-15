@@ -30,14 +30,14 @@ LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 WHERE NOT send AND error IS NULL;
 
 -- name: MailCreate :one
-INSERT INTO mail (year_id, author_id, title, content, send_time, send, error)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO mail (year_id, author_id, title, content, send_time, draft, send, error)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING id;
 
 -- name: MailUpdate :exec
 UPDATE mail
-SET title = $1, content = $2, send_time = $3, error = $4
-WHERE id = $5 AND NOT send;
+SET title = $2, content = $3, send_time = $4, draft = $5, error = $6
+WHERE id = $1 AND NOT send;
 
 -- name: MailSend :exec
 UPDATE mail

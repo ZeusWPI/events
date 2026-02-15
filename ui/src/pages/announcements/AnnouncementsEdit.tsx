@@ -14,6 +14,8 @@ export function AnnouncementsEdit() {
   const { data: announcements, isLoading: isLoadingAnnouncements } = useAnnouncementByYear(year)
   const announcement = announcements?.find(a => a.id === Number(announcementId))
 
+  if (announcement?.draft) announcement.sendTime = new Date()
+
   useYearLock()
   const navigate = useNavigate()
   const update = useAnnouncementUpdate()

@@ -22,8 +22,9 @@ export function MailsOverview() {
   }
 
   const now = Date.now()
-  const upcomingMails = mails?.filter(a => a.sendTime.getTime() > now).sort((a, b) => a.sendTime.getTime() - b.sendTime.getTime()) ?? []
-  const passedMails = mails?.filter(a => a.sendTime.getTime() <= now).sort((a, b) => b.sendTime.getTime() - a.sendTime.getTime()) ?? []
+  const draftMails = mails?.filter(m => m.draft) ?? []
+  const upcomingMails = mails?.filter(m => m.sendTime.getTime() > now && !m.draft).sort((a, b) => a.sendTime.getTime() - b.sendTime.getTime()) ?? []
+  const passedMails = mails?.filter(m => m.sendTime.getTime() <= now && !m.draft).sort((a, b) => b.sendTime.getTime() - a.sendTime.getTime()) ?? []
 
   return (
     <div className="flex flex-col gap-8">
@@ -35,6 +36,7 @@ export function MailsOverview() {
           </Link>
         </Button>
       </PageHeader>
+      <MailList mails={draftMails} />
       <MailList mails={upcomingMails} />
       {passedMails.length > 0 && (
         <>

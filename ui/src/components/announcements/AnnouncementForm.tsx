@@ -3,7 +3,7 @@ import { useOrganizerByYear } from "@/lib/api/organizer";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useYear } from "@/lib/hooks/useYear";
 import { announcementSchema, AnnouncementSchema } from "@/lib/types/announcement";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -16,6 +16,8 @@ import { DateTimePicker } from "../organisms/DateTimePicker";
 import { MarkdownCombo } from "../organisms/markdown/MarkdownCombo";
 import { Button } from "../ui/button";
 import { Confirm } from "../molecules/Confirm";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
 
 interface Props {
   announcement?: AnnouncementSchema;
@@ -37,11 +39,15 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
   }
 
   const handleSubmit = (ignoreAtChannel: boolean) => {
-    const selected = events?.filter(e => form.state.values.eventIds.includes(e.id)) ?? []
+    if (form.state.values.draft) {
+      form.setFieldValue("sendTime", undefined)
+    } else {
+      const selected = events?.filter(e => form.state.values.eventIds.includes(e.id)) ?? []
 
-    if (selected.some(e => e.startTime.getTime() < form.state.values.sendTime.getTime())) {
-      toast.error("Invalid send time", { description: "Announcement send time needs to be before every selected event" })
-      return
+      if (selected.some(e => e.startTime.getTime() < (form.state.values.sendTime?.getTime() ?? 0))) {
+        toast.error("Invalid send time", { description: "Announcement send time needs to be before every selected event" })
+        return
+      }
     }
 
     const organizer = organizers?.find(o => o.id === user?.id)
@@ -67,12 +73,15 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
       eventIds: defaultEvents ?? [],
       content: "",
       sendTime: new Date(),
+      draft: false,
     },
     validators: {
       onSubmit: announcementSchema,
     },
     onSubmit: () => handleSubmit(false),
   })
+
+  const isDraft = useStore(form.store, (s) => s.values.draft)
 
   const updateReferenceDate = (eventIds: number[]) => {
     const selected = events?.filter(e => eventIds.includes(e.id)) ?? []
@@ -115,14 +124,24 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
           e.stopPropagation();
           form.handleSubmit();
         }}>
-          <form.Field name="sendTime">
-            {(field) => (
-              <FormField field={field} className="flex items-center gap-4">
-                <label htmlFor={field.name}>Send time</label>
-                <DateTimePicker id={field.name} value={field.state.value as Date} setValue={field.handleChange} referenceDate={referenceDate} />
-              </FormField>
-            )}
-          </form.Field>
+          <div className="grid grid-cols-[auto_1fr] items-center gap-2 space-x-4">
+            <Label htmlFor="announcement-form-draft">Draft</Label>
+            <form.Field name="draft">
+              {(field) => (
+                <FormField field={field}>
+                  <Checkbox id="announcement-form-draft" checked={field.state.value as boolean} onCheckedChange={field.handleChange} />
+                </FormField>
+              )}
+            </form.Field>
+            <Label htmlFor="announcement-form-send-time">Send time</Label>
+            <form.Field name="sendTime">
+              {(field) => (
+                <FormField field={field} className="flex items-center gap-4">
+                  <DateTimePicker id="announcement-form-send-time" value={field.state.value as Date} setValue={field.handleChange} referenceDate={referenceDate} inputProps={{ disabled: isDraft }} />
+                </FormField>
+              )}
+            </form.Field>
+          </div>
           <form.Field name="content">
             {(field) => (
               <FormField field={field}>

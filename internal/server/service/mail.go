@@ -42,22 +42,32 @@ func (m *Mail) GetByYear(ctx context.Context, yearID int) ([]dto.Mail, error) {
 func (m *Mail) Save(ctx context.Context, mailSave dto.Mail, memberID int) (dto.Mail, error) {
 	mail := mailSave.ToModel()
 
-	if mail.SendTime.Before(time.Now()) {
-		return dto.Mail{}, fiber.ErrBadRequest
-	}
-
-	events, err := m.events.GetByIDs(ctx, mail.EventIDs)
-	if err != nil {
-		zap.S().Error(err)
-		return dto.Mail{}, fiber.ErrInternalServerError
-	}
-	if len(events) != len(mail.EventIDs) {
-		return dto.Mail{}, fiber.ErrBadRequest
-	}
-
-	for _, event := range events {
-		if mail.SendTime.After(event.StartTime) {
+	if mail.Draft {
+		if !mail.SendTime.IsZero() {
 			return dto.Mail{}, fiber.ErrBadRequest
+		}
+	} else {
+		if mail.SendTime.IsZero() {
+			return dto.Mail{}, fiber.ErrBadRequest
+		}
+
+		if mail.SendTime.Before(time.Now()) {
+			return dto.Mail{}, fiber.ErrBadRequest
+		}
+
+		events, err := m.events.GetByIDs(ctx, mail.EventIDs)
+		if err != nil {
+			zap.S().Error(err)
+			return dto.Mail{}, fiber.ErrInternalServerError
+		}
+		if len(events) != len(mail.EventIDs) {
+			return dto.Mail{}, fiber.ErrBadRequest
+		}
+
+		for _, event := range events {
+			if mail.SendTime.After(event.StartTime) {
+				return dto.Mail{}, fiber.ErrBadRequest
+			}
 		}
 	}
 
@@ -126,7 +136,7 @@ func (m *Mail) Delete(ctx context.Context, mailID int) error {
 		return fiber.ErrBadRequest
 	}
 
-	if mail.SendTime.Before(time.Now()) || mail.Send || mail.Error != "" {
+	if mail.Send || mail.Error != "" {
 		return fiber.ErrBadRequest
 	}
 

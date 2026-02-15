@@ -12,8 +12,8 @@ import (
 )
 
 const mailCreate = `-- name: MailCreate :one
-INSERT INTO mail (year_id, author_id, title, content, send_time, send, error)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO mail (year_id, author_id, title, content, send_time, draft, send, error)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING id
 `
 
@@ -23,6 +23,7 @@ type MailCreateParams struct {
 	Title    string
 	Content  string
 	SendTime pgtype.Timestamptz
+	Draft    bool
 	Send     bool
 	Error    pgtype.Text
 }
@@ -34,6 +35,7 @@ func (q *Queries) MailCreate(ctx context.Context, arg MailCreateParams) (int32, 
 		arg.Title,
 		arg.Content,
 		arg.SendTime,
+		arg.Draft,
 		arg.Send,
 		arg.Error,
 	)
@@ -54,7 +56,7 @@ func (q *Queries) MailDelete(ctx context.Context, id int32) error {
 }
 
 const mailGetAll = `-- name: MailGetAll :many
-SELECT m.id, content, send_time, send, error, title, year_id, author_id, m_e.id, mail_id, event_id
+SELECT m.id, content, send_time, send, error, title, year_id, author_id, draft, m_e.id, mail_id, event_id
 FROM mail m
 LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 `
@@ -68,6 +70,7 @@ type MailGetAllRow struct {
 	Title    string
 	YearID   int32
 	AuthorID int32
+	Draft    bool
 	ID_2     pgtype.Int4
 	MailID   pgtype.Int4
 	EventID  pgtype.Int4
@@ -91,6 +94,7 @@ func (q *Queries) MailGetAll(ctx context.Context) ([]MailGetAllRow, error) {
 			&i.Title,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.MailID,
 			&i.EventID,
@@ -106,7 +110,7 @@ func (q *Queries) MailGetAll(ctx context.Context) ([]MailGetAllRow, error) {
 }
 
 const mailGetByEvents = `-- name: MailGetByEvents :many
-SELECT m.id, content, send_time, send, error, title, year_id, author_id, m_e.id, mail_id, event_id
+SELECT m.id, content, send_time, send, error, title, year_id, author_id, draft, m_e.id, mail_id, event_id
 FROM mail m
 LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 WHERE m_e.event_id = ANY($1::int[])
@@ -122,6 +126,7 @@ type MailGetByEventsRow struct {
 	Title    string
 	YearID   int32
 	AuthorID int32
+	Draft    bool
 	ID_2     pgtype.Int4
 	MailID   pgtype.Int4
 	EventID  pgtype.Int4
@@ -145,6 +150,7 @@ func (q *Queries) MailGetByEvents(ctx context.Context, dollar_1 []int32) ([]Mail
 			&i.Title,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.MailID,
 			&i.EventID,
@@ -160,7 +166,7 @@ func (q *Queries) MailGetByEvents(ctx context.Context, dollar_1 []int32) ([]Mail
 }
 
 const mailGetByID = `-- name: MailGetByID :many
-SELECT m.id, content, send_time, send, error, title, year_id, author_id, m_e.id, mail_id, event_id
+SELECT m.id, content, send_time, send, error, title, year_id, author_id, draft, m_e.id, mail_id, event_id
 FROM mail m
 LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 WHERE m.id = $1
@@ -175,6 +181,7 @@ type MailGetByIDRow struct {
 	Title    string
 	YearID   int32
 	AuthorID int32
+	Draft    bool
 	ID_2     pgtype.Int4
 	MailID   pgtype.Int4
 	EventID  pgtype.Int4
@@ -198,6 +205,7 @@ func (q *Queries) MailGetByID(ctx context.Context, id int32) ([]MailGetByIDRow, 
 			&i.Title,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.MailID,
 			&i.EventID,
@@ -213,7 +221,7 @@ func (q *Queries) MailGetByID(ctx context.Context, id int32) ([]MailGetByIDRow, 
 }
 
 const mailGetByYear = `-- name: MailGetByYear :many
-SELECT m.id, content, send_time, send, error, title, year_id, author_id, m_e.id, mail_id, event_id
+SELECT m.id, content, send_time, send, error, title, year_id, author_id, draft, m_e.id, mail_id, event_id
 FROM mail m
 LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 WHERE m.year_id = $1
@@ -229,6 +237,7 @@ type MailGetByYearRow struct {
 	Title    string
 	YearID   int32
 	AuthorID int32
+	Draft    bool
 	ID_2     pgtype.Int4
 	MailID   pgtype.Int4
 	EventID  pgtype.Int4
@@ -252,6 +261,7 @@ func (q *Queries) MailGetByYear(ctx context.Context, yearID int32) ([]MailGetByY
 			&i.Title,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.MailID,
 			&i.EventID,
@@ -267,7 +277,7 @@ func (q *Queries) MailGetByYear(ctx context.Context, yearID int32) ([]MailGetByY
 }
 
 const mailGetUnsend = `-- name: MailGetUnsend :many
-SELECT m.id, content, send_time, send, error, title, year_id, author_id, m_e.id, mail_id, event_id
+SELECT m.id, content, send_time, send, error, title, year_id, author_id, draft, m_e.id, mail_id, event_id
 FROM mail m
 LEFT JOIN mail_event m_e ON m_e.mail_id = m.id
 WHERE NOT send AND error IS NULL
@@ -282,6 +292,7 @@ type MailGetUnsendRow struct {
 	Title    string
 	YearID   int32
 	AuthorID int32
+	Draft    bool
 	ID_2     pgtype.Int4
 	MailID   pgtype.Int4
 	EventID  pgtype.Int4
@@ -305,6 +316,7 @@ func (q *Queries) MailGetUnsend(ctx context.Context) ([]MailGetUnsendRow, error)
 			&i.Title,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.MailID,
 			&i.EventID,
@@ -332,25 +344,27 @@ func (q *Queries) MailSend(ctx context.Context, id int32) error {
 
 const mailUpdate = `-- name: MailUpdate :exec
 UPDATE mail
-SET title = $1, content = $2, send_time = $3, error = $4
-WHERE id = $5 AND NOT send
+SET title = $2, content = $3, send_time = $4, draft = $5, error = $6
+WHERE id = $1 AND NOT send
 `
 
 type MailUpdateParams struct {
+	ID       int32
 	Title    string
 	Content  string
 	SendTime pgtype.Timestamptz
+	Draft    bool
 	Error    pgtype.Text
-	ID       int32
 }
 
 func (q *Queries) MailUpdate(ctx context.Context, arg MailUpdateParams) error {
 	_, err := q.db.Exec(ctx, mailUpdate,
+		arg.ID,
 		arg.Title,
 		arg.Content,
 		arg.SendTime,
+		arg.Draft,
 		arg.Error,
-		arg.ID,
 	)
 	return err
 }

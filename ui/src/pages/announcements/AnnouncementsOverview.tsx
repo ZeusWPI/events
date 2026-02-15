@@ -22,8 +22,9 @@ export function AnnouncementsOverview() {
   }
 
   const now = Date.now()
-  const upcomingAnnouncements = announcements?.filter(a => a.sendTime.getTime() > now).sort((a, b) => a.sendTime.getTime() - b.sendTime.getTime()) ?? []
-  const passedAnnouncements = announcements?.filter(a => a.sendTime.getTime() <= now).sort((a, b) => b.sendTime.getTime() - a.sendTime.getTime()) ?? []
+  const draftAnnouncements = announcements?.filter(a => a.draft) ?? []
+  const upcomingAnnouncements = announcements?.filter(a => a.sendTime.getTime() > now && !a.draft).sort((a, b) => a.sendTime.getTime() - b.sendTime.getTime()) ?? []
+  const passedAnnouncements = announcements?.filter(a => a.sendTime.getTime() <= now && !a.draft).sort((a, b) => b.sendTime.getTime() - a.sendTime.getTime()) ?? []
 
   return (
     <div className="flex flex-col gap-8">
@@ -35,6 +36,7 @@ export function AnnouncementsOverview() {
           </Link>
         </Button>
       </PageHeader>
+      <AnnouncementList announcements={draftAnnouncements} />
       <AnnouncementList announcements={upcomingAnnouncements} />
       {passedAnnouncements.length > 0 && (
         <>

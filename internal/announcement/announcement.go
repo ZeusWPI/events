@@ -68,6 +68,10 @@ func (c *Client) startup(ctx context.Context) error {
 	}
 
 	for _, announcement := range announcements {
+		if announcement.Draft {
+			continue
+		}
+
 		if err := c.ScheduleAnnouncement(ctx, *announcement); err != nil {
 			return err
 		}
@@ -79,6 +83,10 @@ func (c *Client) startup(ctx context.Context) error {
 // Create handles a new announcement
 // It changes check statusses and schedules the announcement
 func (c *Client) Create(ctx context.Context, announcement model.Announcement) error {
+	if announcement.Draft {
+		return nil
+	}
+
 	// Schedule announcement
 	if err := c.ScheduleAnnouncement(ctx, announcement); err != nil {
 		return fmt.Errorf("schedule announcement %+v | %w", announcement, err)
@@ -95,32 +103,44 @@ func (c *Client) Create(ctx context.Context, announcement model.Announcement) er
 // Update handles an update to an announcement
 // It will change the check statusses and reschedule the announcement
 func (c *Client) Update(ctx context.Context, oldAnnouncement, newAnnouncement model.Announcement) error {
-	// Remove old scheduled announcement
-	if err := task.Manager.RemoveByUID(getTaskUID(oldAnnouncement)); err != nil {
-		return fmt.Errorf("remove old announcement task %+v | %w", oldAnnouncement, err)
+	// Announcement schedule
+	if !oldAnnouncement.Draft {
+		if err := task.Manager.RemoveByUID(getTaskUID(oldAnnouncement)); err != nil {
+			return fmt.Errorf("remove old announcement task %+v | %w", oldAnnouncement, err)
+		}
 	}
 
-	// Schedule new announcement
-	if err := c.ScheduleAnnouncement(ctx, newAnnouncement); err != nil {
-		return fmt.Errorf("schedule announcement %+v | %w", newAnnouncement, err)
+	if !newAnnouncement.Draft {
+		if err := c.ScheduleAnnouncement(ctx, newAnnouncement); err != nil {
+			return fmt.Errorf("schedule announcement %+v | %w", newAnnouncement, err)
+		}
 	}
 
-	// Update checks
+	// Check updates
 	var newEvents []int
 	var oldEvents []int
 
-	for _, id := range newAnnouncement.EventIDs {
-		if idx := slices.Index(oldAnnouncement.EventIDs, id); idx == -1 {
-			// Event id is not present in the old announcement
-			newEvents = append(newEvents, id)
+	switch {
+	case !newAnnouncement.Draft && !oldAnnouncement.Draft:
+		for _, id := range newAnnouncement.EventIDs {
+			if idx := slices.Index(oldAnnouncement.EventIDs, id); idx == -1 {
+				// Event id is not present in the old announcement
+				newEvents = append(newEvents, id)
+			}
 		}
-	}
 
-	for _, id := range oldAnnouncement.EventIDs {
-		if idx := slices.Index(newAnnouncement.EventIDs, id); idx == -1 {
-			// Event id is removed in the new announcement
-			oldEvents = append(oldEvents, id)
+		for _, id := range oldAnnouncement.EventIDs {
+			if idx := slices.Index(newAnnouncement.EventIDs, id); idx == -1 {
+				// Event id is removed in the new announcement
+				oldEvents = append(oldEvents, id)
+			}
 		}
+
+	case !newAnnouncement.Draft && oldAnnouncement.Draft:
+		newEvents = newAnnouncement.EventIDs
+
+	case newAnnouncement.Draft && !oldAnnouncement.Draft:
+		oldEvents = oldAnnouncement.EventIDs
 	}
 
 	if err := c.handleEvent(ctx, newEvents, true); err != nil {
@@ -137,6 +157,10 @@ func (c *Client) Update(ctx context.Context, oldAnnouncement, newAnnouncement mo
 // Delete handles an announcement delete
 // It will change the check statusses and cancel the announcement task
 func (c *Client) Delete(ctx context.Context, announcement model.Announcement) error {
+	if announcement.Draft {
+		return nil
+	}
+
 	// Remove scheduled task
 	if err := task.Manager.RemoveByUID(getTaskUID(announcement)); err != nil {
 		return fmt.Errorf("remove deleted announcement task %+v | %w", announcement, err)

@@ -9,6 +9,7 @@ export interface Announcement extends Base {
   content: string;
   sendTime: Date;
   send: boolean;
+  draft: boolean;
   error?: string;
 }
 
@@ -20,6 +21,7 @@ export function convertAnnouncementToModel(announcement: API.Announcement): Anno
     author_id: announcement.author_id,
     content: announcement.content,
     sendTime: new Date(announcement.send_time),
+    draft: announcement.draft,
     send: announcement.send,
     error: announcement.error
   }
@@ -34,6 +36,7 @@ export const announcementSchema = z.object({
   yearId: z.number().positive(),
   eventIds: z.array(z.number().positive()),
   content: z.string().nonempty(),
-  sendTime: z.date().min(new Date()),
+  sendTime: z.date().min(new Date()).optional(),
+  draft: z.boolean(),
 })
 export type AnnouncementSchema = z.infer<typeof announcementSchema> & JSONBody

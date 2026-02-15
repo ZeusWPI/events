@@ -85,7 +85,12 @@ export function AnnouncementCard({ announcement }: Props) {
           <div className="flex justify-between">
             <div className="flex items-center space-x-2">
               {organizer && <OrganizerIcon user={organizer} tooltip />}
-              <CardTitle>{formatDate(announcement.sendTime)}</CardTitle>
+              <CardTitle>
+                {announcement.draft
+                  ? <Badge>Draft</Badge>
+                  : formatDate(announcement.sendTime)
+                }
+              </CardTitle>
               <AnnouncementBadge announcement={announcement} />
             </div>
             <ActionBar announcement={announcement} onResend={handleResend} onDelete={handleDelete} />

@@ -15,6 +15,7 @@ type Mail struct {
 	Title    string
 	Content  string
 	SendTime time.Time
+	Draft    bool
 	Send     bool
 	Error    string
 }
@@ -33,6 +34,7 @@ func MailModel(mail sqlc.Mail) *Mail {
 		Title:    mail.Title,
 		Content:  mail.Content,
 		SendTime: mail.SendTime.Time,
+		Draft:    mail.Draft,
 		Send:     mail.Send,
 		Error:    err,
 	}
@@ -55,6 +57,7 @@ func MailEventsModel(mails []sqlc.MailGetByIDRow) []*Mail {
 				Title:    m.Title,
 				Content:  m.Content,
 				SendTime: m.SendTime.Time,
+				Draft:    m.Draft,
 				Send:     m.Send,
 				Error:    err,
 			}

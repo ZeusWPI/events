@@ -42,22 +42,32 @@ func (a *Announcement) GetByYear(ctx context.Context, yearID int) ([]dto.Announc
 func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announcement, memberID int) (dto.Announcement, error) {
 	announcement := announcementSave.ToModel()
 
-	if announcement.SendTime.Before(time.Now()) {
-		return dto.Announcement{}, fiber.ErrBadRequest
-	}
-
-	events, err := a.event.GetByIDs(ctx, announcement.EventIDs)
-	if err != nil {
-		zap.S().Error(err)
-		return dto.Announcement{}, fiber.ErrInternalServerError
-	}
-	if len(events) != len(announcement.EventIDs) {
-		return dto.Announcement{}, fiber.ErrBadRequest
-	}
-
-	for _, event := range events {
-		if announcement.SendTime.After(event.StartTime) {
+	if announcement.Draft {
+		if !announcement.SendTime.IsZero() {
 			return dto.Announcement{}, fiber.ErrBadRequest
+		}
+	} else {
+		if announcement.SendTime.IsZero() {
+			return dto.Announcement{}, fiber.ErrBadRequest
+		}
+
+		if announcement.SendTime.Before(time.Now()) {
+			return dto.Announcement{}, fiber.ErrBadRequest
+		}
+
+		events, err := a.event.GetByIDs(ctx, announcement.EventIDs)
+		if err != nil {
+			zap.S().Error(err)
+			return dto.Announcement{}, fiber.ErrInternalServerError
+		}
+		if len(events) != len(announcement.EventIDs) {
+			return dto.Announcement{}, fiber.ErrBadRequest
+		}
+
+		for _, event := range events {
+			if announcement.SendTime.After(event.StartTime) {
+				return dto.Announcement{}, fiber.ErrBadRequest
+			}
 		}
 	}
 

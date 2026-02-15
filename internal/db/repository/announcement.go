@@ -97,6 +97,7 @@ func (a *Announcement) Create(ctx context.Context, announcement *model.Announcem
 			AuthorID: int32(announcement.AuthorID),
 			Content:  announcement.Content,
 			SendTime: pgtype.Timestamptz{Valid: true, Time: announcement.SendTime},
+			Draft:    announcement.Draft,
 			Send:     announcement.Send,
 			Error:    pgtype.Text{Valid: announcement.Error != "", String: announcement.Error},
 		})
@@ -125,6 +126,7 @@ func (a *Announcement) Update(ctx context.Context, announcement model.Announceme
 			ID:       int32(announcement.ID),
 			Content:  announcement.Content,
 			SendTime: pgtype.Timestamptz{Time: announcement.SendTime, Valid: true},
+			Draft:    announcement.Draft,
 			Error:    pgtype.Text{String: announcement.Error, Valid: announcement.Error != ""},
 		}); err != nil {
 			return fmt.Errorf("update announcement %+v | %w", announcement, err)

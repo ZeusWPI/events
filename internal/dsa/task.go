@@ -64,7 +64,7 @@ func (c *Client) Sync(ctx context.Context) error {
 		}
 	}
 
-	// Let's now go over category and fix the issue
+	// Let's now go over each category and fix the issue
 
 	for _, e := range uncreated {
 		if err := c.Create(ctx, e); err != nil {

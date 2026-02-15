@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { useYear } from "@/lib/hooks/useYear";
 import { Event } from "@/lib/types/event";
 import { mailSchema, MailSchema } from "@/lib/types/mail";
-import { useForm } from "@tanstack/react-form";
+import { useForm, useStore } from "@tanstack/react-form";
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -24,6 +24,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { nlBE } from "date-fns/locale";
 import { capitalize } from "@/lib/utils/utils";
+import { Checkbox } from "../ui/checkbox";
 
 interface Props {
   mail?: MailSchema;
@@ -39,13 +40,16 @@ export function MailForm({ mail, defaultEvents, onSubmit }: Props) {
 
   const [referenceDate, setReferenceDate] = useState<Date | undefined>(undefined)
 
-
   const handleSubmit = () => {
-    const selected = events?.filter(e => form.state.values.eventIds.includes(e.id)) ?? []
+    if (form.state.values.draft) {
+      form.setFieldValue("sendTime", undefined)
+    } else {
+      const selected = events?.filter(e => form.state.values.eventIds.includes(e.id)) ?? []
 
-    if (selected.some(e => e.startTime.getTime() < form.state.values.sendTime.getTime())) {
-      toast.error("Invalid send time", { description: "Mail send time needs to be before every selected event" })
-      return
+      if (selected.some(e => e.startTime.getTime() < (form.state.values.sendTime?.getTime() ?? 0))) {
+        toast.error("Invalid send time", { description: "Mail send time needs to be before every selected event" })
+        return
+      }
     }
 
     const organizer = organizers?.find(o => o.id === user?.id)
@@ -65,12 +69,15 @@ export function MailForm({ mail, defaultEvents, onSubmit }: Props) {
       title: "",
       content: "",
       sendTime: new Date(),
+      draft: false,
     },
     validators: {
       onSubmit: mailSchema,
     },
     onSubmit: handleSubmit,
   })
+
+  const isDraft = useStore(form.store, (s) => s.values.draft)
 
   const updateReferenceDate = (eventIds: number[]) => {
     const selected = events?.filter(e => eventIds.includes(e.id)) ?? []
@@ -118,11 +125,19 @@ export function MailForm({ mail, defaultEvents, onSubmit }: Props) {
         form.handleSubmit();
       }}>
         <div className="grid grid-cols-[auto_1fr] items-center gap-2 space-x-4">
+          <Label htmlFor="mail-form-draft">Draft</Label>
+          <form.Field name="draft">
+            {(field) => (
+              <FormField field={field}>
+                <Checkbox id="mail-form-draft" checked={field.state.value as boolean} onCheckedChange={field.handleChange} />
+              </FormField>
+            )}
+          </form.Field>
           <Label htmlFor="mail-form-send-time">Send time</Label>
           <form.Field name="sendTime">
             {(field) => (
               <FormField field={field} className="flex items-center gap-4">
-                <DateTimePicker id="mail-form-send-time" value={field.state.value as Date} setValue={field.handleChange} referenceDate={referenceDate} />
+                <DateTimePicker id="mail-form-send-time" value={field.state.value as Date} setValue={field.handleChange} referenceDate={referenceDate} inputProps={{ disabled: isDraft }} />
               </FormField>
             )}
           </form.Field>

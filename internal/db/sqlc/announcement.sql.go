@@ -12,8 +12,8 @@ import (
 )
 
 const announcementCreate = `-- name: AnnouncementCreate :one
-INSERT INTO announcement (year_id, author_id, content, send_time, send, error)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO announcement (year_id, author_id, content, send_time, draft, send, error)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id
 `
 
@@ -22,6 +22,7 @@ type AnnouncementCreateParams struct {
 	AuthorID int32
 	Content  string
 	SendTime pgtype.Timestamptz
+	Draft    bool
 	Send     bool
 	Error    pgtype.Text
 }
@@ -32,6 +33,7 @@ func (q *Queries) AnnouncementCreate(ctx context.Context, arg AnnouncementCreate
 		arg.AuthorID,
 		arg.Content,
 		arg.SendTime,
+		arg.Draft,
 		arg.Send,
 		arg.Error,
 	)
@@ -52,7 +54,7 @@ func (q *Queries) AnnouncementDelete(ctx context.Context, id int32) error {
 }
 
 const announcementGetAll = `-- name: AnnouncementGetAll :many
-SELECT a.id, content, send_time, send, error, year_id, author_id, a_e.id, event_id, announcement_id
+SELECT a.id, content, send_time, send, error, year_id, author_id, draft, a_e.id, event_id, announcement_id
 FROM announcement a
 LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 `
@@ -65,6 +67,7 @@ type AnnouncementGetAllRow struct {
 	Error          pgtype.Text
 	YearID         int32
 	AuthorID       int32
+	Draft          bool
 	ID_2           pgtype.Int4
 	EventID        pgtype.Int4
 	AnnouncementID pgtype.Int4
@@ -87,6 +90,7 @@ func (q *Queries) AnnouncementGetAll(ctx context.Context) ([]AnnouncementGetAllR
 			&i.Error,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.EventID,
 			&i.AnnouncementID,
@@ -102,7 +106,7 @@ func (q *Queries) AnnouncementGetAll(ctx context.Context) ([]AnnouncementGetAllR
 }
 
 const announcementGetByEvents = `-- name: AnnouncementGetByEvents :many
-SELECT a.id, content, send_time, send, error, year_id, author_id, a_e.id, event_id, announcement_id 
+SELECT a.id, content, send_time, send, error, year_id, author_id, draft, a_e.id, event_id, announcement_id 
 FROM announcement a
 LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 WHERE a_e.event_id = ANY($1::int[])
@@ -117,6 +121,7 @@ type AnnouncementGetByEventsRow struct {
 	Error          pgtype.Text
 	YearID         int32
 	AuthorID       int32
+	Draft          bool
 	ID_2           pgtype.Int4
 	EventID        pgtype.Int4
 	AnnouncementID pgtype.Int4
@@ -139,6 +144,7 @@ func (q *Queries) AnnouncementGetByEvents(ctx context.Context, dollar_1 []int32)
 			&i.Error,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.EventID,
 			&i.AnnouncementID,
@@ -154,7 +160,7 @@ func (q *Queries) AnnouncementGetByEvents(ctx context.Context, dollar_1 []int32)
 }
 
 const announcementGetByID = `-- name: AnnouncementGetByID :many
-SELECT a.id, content, send_time, send, error, year_id, author_id, a_e.id, event_id, announcement_id
+SELECT a.id, content, send_time, send, error, year_id, author_id, draft, a_e.id, event_id, announcement_id
 FROM announcement a
 LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 WHERE a.id = $1
@@ -168,6 +174,7 @@ type AnnouncementGetByIDRow struct {
 	Error          pgtype.Text
 	YearID         int32
 	AuthorID       int32
+	Draft          bool
 	ID_2           pgtype.Int4
 	EventID        pgtype.Int4
 	AnnouncementID pgtype.Int4
@@ -190,6 +197,7 @@ func (q *Queries) AnnouncementGetByID(ctx context.Context, id int32) ([]Announce
 			&i.Error,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.EventID,
 			&i.AnnouncementID,
@@ -205,7 +213,7 @@ func (q *Queries) AnnouncementGetByID(ctx context.Context, id int32) ([]Announce
 }
 
 const announcementGetUnsend = `-- name: AnnouncementGetUnsend :many
-SELECT a.id, content, send_time, send, error, year_id, author_id, a_e.id, event_id, announcement_id
+SELECT a.id, content, send_time, send, error, year_id, author_id, draft, a_e.id, event_id, announcement_id
 FROM announcement a
 LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 WHERE NOT send AND error IS NULL
@@ -219,6 +227,7 @@ type AnnouncementGetUnsendRow struct {
 	Error          pgtype.Text
 	YearID         int32
 	AuthorID       int32
+	Draft          bool
 	ID_2           pgtype.Int4
 	EventID        pgtype.Int4
 	AnnouncementID pgtype.Int4
@@ -241,6 +250,7 @@ func (q *Queries) AnnouncementGetUnsend(ctx context.Context) ([]AnnouncementGetU
 			&i.Error,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.EventID,
 			&i.AnnouncementID,
@@ -268,29 +278,31 @@ func (q *Queries) AnnouncementSend(ctx context.Context, id int32) error {
 
 const announcementUpdate = `-- name: AnnouncementUpdate :exec
 UPDATE announcement
-SET content = $1, send_time = $2, error = $3
-WHERE id = $4 AND NOT send
+SET content = $2, send_time = $3, draft = $4, error = $5
+WHERE id = $1 AND NOT send
 `
 
 type AnnouncementUpdateParams struct {
+	ID       int32
 	Content  string
 	SendTime pgtype.Timestamptz
+	Draft    bool
 	Error    pgtype.Text
-	ID       int32
 }
 
 func (q *Queries) AnnouncementUpdate(ctx context.Context, arg AnnouncementUpdateParams) error {
 	_, err := q.db.Exec(ctx, announcementUpdate,
+		arg.ID,
 		arg.Content,
 		arg.SendTime,
+		arg.Draft,
 		arg.Error,
-		arg.ID,
 	)
 	return err
 }
 
 const announcmentGetByYear = `-- name: AnnouncmentGetByYear :many
-SELECT a.id, content, send_time, send, error, year_id, author_id, a_e.id, event_id, announcement_id
+SELECT a.id, content, send_time, send, error, year_id, author_id, draft, a_e.id, event_id, announcement_id
 FROM announcement a
 LEFT JOIN announcement_event a_e ON a_e.announcement_id = a.id
 WHERE a.year_id = $1
@@ -305,6 +317,7 @@ type AnnouncmentGetByYearRow struct {
 	Error          pgtype.Text
 	YearID         int32
 	AuthorID       int32
+	Draft          bool
 	ID_2           pgtype.Int4
 	EventID        pgtype.Int4
 	AnnouncementID pgtype.Int4
@@ -327,6 +340,7 @@ func (q *Queries) AnnouncmentGetByYear(ctx context.Context, yearID int32) ([]Ann
 			&i.Error,
 			&i.YearID,
 			&i.AuthorID,
+			&i.Draft,
 			&i.ID_2,
 			&i.EventID,
 			&i.AnnouncementID,

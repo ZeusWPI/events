@@ -90,6 +90,7 @@ func (m *Mail) Create(ctx context.Context, mail *model.Mail) error {
 			Title:    mail.Title,
 			Content:  mail.Content,
 			SendTime: pgtype.Timestamptz{Valid: true, Time: mail.SendTime},
+			Draft:    mail.Draft,
 			Send:     mail.Send,
 			Error:    pgtype.Text{Valid: mail.Error != "", String: mail.Error},
 		})
@@ -119,6 +120,7 @@ func (m *Mail) Update(ctx context.Context, mail model.Mail) error {
 			Title:    mail.Title,
 			Content:  mail.Content,
 			SendTime: pgtype.Timestamptz{Time: mail.SendTime, Valid: true},
+			Draft:    mail.Draft,
 			Error:    pgtype.Text{String: mail.Error, Valid: mail.Error != ""},
 		}); err != nil {
 			return fmt.Errorf("update mail %+v | %w", mail, err)
