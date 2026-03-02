@@ -15,7 +15,7 @@ export function Confirm({ title, description, confirmText, onConfirm, open, onOp
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription className="whitespace-pre">{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>

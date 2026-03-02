@@ -11,11 +11,11 @@ import { FormField } from "../atoms/FormField";
 import { Indeterminate } from "../atoms/Indeterminate";
 import { Title } from "../atoms/Title";
 import { EventSelector } from "../events/EventSelector";
+import { Confirm } from "../molecules/Confirm";
 import { PageHeader } from "../molecules/PageHeader";
 import { DateTimePicker } from "../organisms/DateTimePicker";
 import { MarkdownCombo } from "../organisms/markdown/MarkdownCombo";
 import { Button } from "../ui/button";
-import { Confirm } from "../molecules/Confirm";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 
@@ -42,12 +42,13 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
 
   const [referenceDate, setReferenceDate] = useState<Date | undefined>(undefined)
 
-  const [openAtChannel, setOpenAtChannel] = useState(false)
+  const [openWarning, setOpenWarning] = useState(false)
+  const [warningText, setWarningText] = useState("")
   const handleAtChannel = () => {
-    handleSubmit(true)
+    handleSubmit(false)
   }
 
-  const handleSubmit = (ignoreAtChannel: boolean) => {
+  const handleSubmit = (optionalChecks: boolean) => {
     if (form.state.values.draft) {
       form.setFieldValue("sendTime", undefined)
     } else {
@@ -65,20 +66,28 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
       return
     }
 
-    if (!ignoreAtChannel) {
+    if (optionalChecks) {
+      let warningText = ""
+
       // Check mattermost mention
       let mentions = ["@channel"]
       if (!includesMention(form.state.values.content, mentions)) {
-        setOpenAtChannel(true)
-        return
+        warningText += "No mattermost mention.\n"
       }
       // Check discord mentions
       mentions = ["@here", "@everyone"]
       if (!includesMention(form.state.values.content, mentions)) {
-        setOpenAtChannel(true)
+        warningText += "No discord mention.\n"
+      }
+
+      if (warningText.length > 0) {
+        warningText += "\nDo you still want to send it?"
+        setWarningText(warningText)
+        setOpenWarning(true)
         return
       }
     }
+
 
     onSubmit(form.state.values)
   }
@@ -94,7 +103,7 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
     validators: {
       onSubmit: announcementSchema,
     },
-    onSubmit: () => handleSubmit(false),
+    onSubmit: () => handleSubmit(true),
   })
 
   const isDraft = useStore(form.store, (s) => s.values.draft)
@@ -174,11 +183,11 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
       </div>
       <Confirm
         title="Send confirmation"
-        description="The announcement has no mattermost or discord mentions. Do you still want to send it?"
+        description={warningText}
         confirmText="Send"
         onConfirm={handleAtChannel}
-        open={openAtChannel}
-        onOpenChange={setOpenAtChannel}
+        open={openWarning}
+        onOpenChange={setOpenWarning}
       />
     </>
   )
