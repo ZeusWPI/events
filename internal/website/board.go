@@ -47,6 +47,13 @@ func (c *Client) SyncBoard(ctx context.Context) error {
 			//   - The website entry changed (e.g. a new role or a new mattermost name)
 			//   - The user logged in before the board sync happened
 			//   - The user has multiple role assignments (happened in the beginning of Zeus WPI)
+			//   - The user was multiple year in the board but not every year entry has a mattermost name
+
+			// To prevent the last situation just do an additional check
+			if oldBoard.Member.Mattermost != "" && board.Member.Mattermost == "" {
+				continue
+			}
+
 			board.ID = oldBoard.ID
 			board.MemberID = oldBoard.MemberID
 			board.YearID = oldBoard.YearID
@@ -73,7 +80,7 @@ func (c *Client) SyncBoard(ctx context.Context) error {
 		// Let's create it
 
 		// Get or create the member
-		if member, ok := utils.SliceFind(dbMembers, func(m *model.Member) bool { return m.Equal(board.Member) }); ok {
+		if member, ok := utils.SliceFind(dbMembers, func(m *model.Member) bool { return m.EqualEntry(board.Member) }); ok {
 			board.MemberID = member.ID
 		} else {
 			if err := c.memberRepo.Create(ctx, &board.Member); err != nil {
