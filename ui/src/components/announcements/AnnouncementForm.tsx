@@ -25,6 +25,15 @@ interface Props {
   onSubmit: (announcement: AnnouncementSchema) => void;
 }
 
+// Returns true if the text contains any of the mentions
+const includesMention = (text: string, mentions: string[]): boolean => {
+  for (const m of mentions) {
+    if (text.includes(m)) return true
+  }
+
+  return false
+}
+
 export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Props) {
   const { user } = useAuth()
   const { year } = useYear()
@@ -57,8 +66,15 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
     }
 
     if (!ignoreAtChannel) {
-      const mentions = ["@channel", "@here"]
-      if (mentions.some(m => !form.state.values.content.includes(m))) {
+      // Check mattermost mention
+      let mentions = ["@channel"]
+      if (!includesMention(form.state.values.content, mentions)) {
+        setOpenAtChannel(true)
+        return
+      }
+      // Check discord mentions
+      mentions = ["@here", "@everyone"]
+      if (!includesMention(form.state.values.content, mentions)) {
         setOpenAtChannel(true)
         return
       }
@@ -158,7 +174,7 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
       </div>
       <Confirm
         title="Send confirmation"
-        description="The announcement has no @channel or @here mention. Do you still want to send it?"
+        description="The announcement has no mattermost or discord mentions. Do you still want to send it?"
         confirmText="Send"
         onConfirm={handleAtChannel}
         open={openAtChannel}
