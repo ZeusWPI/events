@@ -1,4 +1,4 @@
-// Package announcement sends announcements to mattermost
+// Package announcement handles announcements
 package announcement
 
 import (

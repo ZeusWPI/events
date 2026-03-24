@@ -109,6 +109,11 @@ func (c *Client) Create(ctx context.Context, poster model.Poster) error {
 	return nil
 }
 
+func (c *Client) Update(_ context.Context, _, _ model.Poster) error {
+	// Nothing to do for now
+	return nil
+}
+
 // Delete handles a poster being deleted
 func (c *Client) Delete(ctx context.Context, poster model.Poster) error {
 	event, err := c.event.GetByID(ctx, poster.EventID)

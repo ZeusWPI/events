@@ -69,12 +69,13 @@ func (p *Poster) GetFile(ctx context.Context, posterID int, original bool) ([]by
 }
 
 func (p *Poster) Save(ctx context.Context, posterSave dto.PosterSave) (dto.Poster, error) {
-	poster := model.Poster{
+	poster := &model.Poster{
 		ID:      posterSave.ID,
 		EventID: posterSave.EventID,
 		SCC:     posterSave.SCC,
 	}
 
+	// Data validation
 	a4, err := isA4(posterSave.File)
 	if err != nil {
 		zap.S().Error(err)
@@ -94,22 +95,7 @@ func (p *Poster) Save(ctx context.Context, posterSave dto.PosterSave) (dto.Poste
 		return dto.Poster{}, fiber.ErrBadRequest
 	}
 
-	if poster.ID != 0 {
-		// Update, delete old poster
-		oldPoster, err := p.poster.Get(ctx, poster.ID)
-		if err != nil {
-			zap.S().Error(err)
-			return dto.Poster{}, fiber.ErrInternalServerError
-		}
-		if oldPoster == nil {
-			return dto.Poster{}, fiber.ErrBadRequest
-		}
-
-		if err = storage.S.Delete(oldPoster.FileID); err != nil {
-			zap.S().Error(err) // Only log error, it's fine
-		}
-	}
-
+	// Save the actual poster file
 	webp, err := image.ToWebp(posterSave.File)
 	if err != nil {
 		zap.S().Error(err)
@@ -128,30 +114,80 @@ func (p *Poster) Save(ctx context.Context, posterSave dto.PosterSave) (dto.Poste
 		return dto.Poster{}, fiber.ErrInternalServerError
 	}
 
-	if err := p.service.withRollback(ctx, func(ctx context.Context) error {
-		if posterSave.ID == 0 {
-			err = p.poster.Create(ctx, &poster)
-		} else {
-			err = p.poster.Update(ctx, poster)
-		}
+	// Save in db
+	// Use a switch so we have the break statement
+	switch posterSave.ID {
+	case 0:
+		// Create
+		err = p.create(ctx, poster)
+	default:
+		// Update
+		var oldPoster *model.Poster
+		oldPoster, err = p.poster.Get(ctx, poster.ID)
 		if err != nil {
 			zap.S().Error(err)
-			return fiber.ErrInternalServerError
+			err = fiber.ErrInternalServerError
+			break
+		}
+		if oldPoster == nil {
+			err = fiber.ErrBadRequest
+			break
 		}
 
-		if posterSave.ID == 0 {
-			if err := p.service.poster.Create(ctx, poster); err != nil {
-				zap.S().Error(err)
-				return fiber.ErrInternalServerError
-			}
+		// Delete old poster
+		storage.DeleteLog(oldPoster.FileID)
+		storage.DeleteLog(oldPoster.WebpID)
+
+		err = p.update(ctx, *oldPoster, *poster)
+	}
+	if err != nil {
+		// Delete newly saved files
+		// Do a best effort
+		storage.DeleteLog(poster.FileID)
+		storage.DeleteLog(poster.WebpID)
+
+		return dto.Poster{}, err
+	}
+
+	return dto.PosterDTO(poster), nil
+}
+
+func (p *Poster) create(ctx context.Context, poster *model.Poster) error {
+	if err := p.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := p.poster.Create(ctx, poster); err != nil {
+			return err
+		}
+
+		if err := p.service.poster.Create(ctx, *poster); err != nil {
+			return err
 		}
 
 		return nil
 	}); err != nil {
-		return dto.Poster{}, err
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
 	}
 
-	return dto.PosterDTO(&poster), nil
+	return nil
+}
+
+func (p *Poster) update(ctx context.Context, oldPoster, newPoster model.Poster) error {
+	if err := p.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := p.poster.Update(ctx, newPoster); err != nil {
+			return err
+		}
+
+		if err := p.service.poster.Update(ctx, oldPoster, newPoster); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
 }
 
 func (p *Poster) Delete(ctx context.Context, posterID int) error {
@@ -175,9 +211,8 @@ func (p *Poster) Delete(ctx context.Context, posterID int) error {
 			return fiber.ErrInternalServerError
 		}
 
-		if err := storage.S.Delete(poster.FileID); err != nil {
-			zap.S().Error(err) // Only log error, it's fine
-		}
+		storage.DeleteLog(poster.FileID)
+		storage.DeleteLog(poster.WebpID)
 
 		return nil
 	})

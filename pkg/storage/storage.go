@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/storage/minio"
 	"github.com/gofiber/storage/postgres/v3"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"go.uber.org/zap"
 )
 
 var S fiber.Storage
@@ -42,4 +43,12 @@ func Init(pool *pgxpool.Pool) error {
 	}
 
 	return nil
+}
+
+// DeleteLog tries to delete an item and logs it if it fails
+// Should be used when it isn't a big deal if it fails
+func DeleteLog(key string) {
+	if err := S.Delete(key); err != nil {
+		zap.S().Error(err)
+	}
 }

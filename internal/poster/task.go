@@ -119,7 +119,8 @@ func (c *Client) checkContent(ctx context.Context, poster model.Poster) error {
 
 	// Different posters, gitmate is the source of thruth
 	// Delete the database poster
-	_ = storage.S.Delete(poster.FileID) // Not a big deal if it fails
+	storage.DeleteLog(poster.FileID)
+	storage.DeleteLog(poster.WebpID)
 	if err := c.poster.Delete(ctx, poster.ID); err != nil {
 		return err
 	}
@@ -213,7 +214,9 @@ func (c *Client) toDB(ctx context.Context, poster model.Poster, event model.Even
 	}
 
 	if err := c.poster.Create(ctx, &poster); err != nil {
-		_ = storage.S.Delete(poster.FileID) // Not a big deal if this fails
+		storage.DeleteLog(poster.FileID)
+		storage.DeleteLog(poster.WebpID)
+
 		return err
 	}
 

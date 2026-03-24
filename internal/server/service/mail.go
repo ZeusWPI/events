@@ -42,6 +42,7 @@ func (m *Mail) GetByYear(ctx context.Context, yearID int) ([]dto.Mail, error) {
 func (m *Mail) Save(ctx context.Context, mailSave dto.Mail, memberID int) (dto.Mail, error) {
 	mail := mailSave.ToModel()
 
+	// Data validation
 	if mail.Draft {
 		if !mail.SendTime.IsZero() {
 			return dto.Mail{}, fiber.ErrBadRequest
@@ -71,6 +72,7 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail, memberID int) (dto.M
 		}
 	}
 
+	// Attach board member
 	board, err := m.board.GetByMemberYear(ctx, memberID, mail.YearID)
 	if err != nil {
 		zap.S().Error(err)
@@ -82,8 +84,14 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail, memberID int) (dto.M
 
 	mail.AuthorID = board.ID
 
-	var oldMail *model.Mail
-	if mailSave.ID != 0 {
+	// Save
+	if mailSave.ID == 0 {
+		// Create
+		err = m.create(ctx, mail)
+	} else {
+		// Update
+		// Get old mail
+		var oldMail *model.Mail
 		oldMail, err = m.mail.GetByID(ctx, mail.ID)
 		if err != nil {
 			zap.S().Error(err)
@@ -96,34 +104,52 @@ func (m *Mail) Save(ctx context.Context, mailSave dto.Mail, memberID int) (dto.M
 		if oldMail.Send || oldMail.Error != "" {
 			return dto.Mail{}, fiber.ErrBadRequest
 		}
+
+		err = m.update(ctx, *oldMail, *mail)
+	}
+	if err != nil {
+		return dto.Mail{}, fiber.ErrInternalServerError
 	}
 
-	if err = m.service.withRollback(ctx, func(ctx context.Context) error {
-		if mailSave.ID == 0 {
-			err = m.mail.Create(ctx, mail)
-		} else {
-			err = m.mail.Update(ctx, *mail)
-		}
-		if err != nil {
+	return dto.MailDTO(mail), nil
+}
+
+func (m *Mail) create(ctx context.Context, mail *model.Mail) error {
+	if err := m.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := m.mail.Create(ctx, mail); err != nil {
 			return err
 		}
 
-		if mailSave.ID == 0 {
-			err = m.service.mail.Create(ctx, *mail)
-		} else {
-			err = m.service.mail.Update(ctx, *oldMail, *mail)
-		}
-		if err != nil {
+		if err := m.service.mail.Create(ctx, *mail); err != nil {
 			return err
 		}
 
 		return nil
 	}); err != nil {
 		zap.S().Error(err)
-		return dto.Mail{}, fiber.ErrInternalServerError
+		return fiber.ErrInternalServerError
 	}
 
-	return dto.MailDTO(mail), nil
+	return nil
+}
+
+func (m *Mail) update(ctx context.Context, oldMail, newMail model.Mail) error {
+	if err := m.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := m.mail.Update(ctx, newMail); err != nil {
+			return err
+		}
+
+		if err := m.service.mail.Update(ctx, oldMail, newMail); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
 }
 
 func (m *Mail) Delete(ctx context.Context, mailID int) error {

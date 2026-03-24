@@ -42,6 +42,7 @@ func (a *Announcement) GetByYear(ctx context.Context, yearID int) ([]dto.Announc
 func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announcement, memberID int) (dto.Announcement, error) {
 	announcement := announcementSave.ToModel()
 
+	// Data validation
 	if announcement.Draft {
 		if !announcement.SendTime.IsZero() {
 			return dto.Announcement{}, fiber.ErrBadRequest
@@ -71,6 +72,7 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 		}
 	}
 
+	// Attach a board member
 	board, err := a.board.GetByMemberYear(ctx, memberID, announcement.YearID)
 	if err != nil {
 		zap.S().Error(err)
@@ -82,8 +84,14 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 
 	announcement.AuthorID = board.ID
 
-	var oldAnnouncement *model.Announcement
-	if announcementSave.ID != 0 {
+	// Save
+	if announcementSave.ID == 0 {
+		// Create
+		err = a.create(ctx, announcement)
+	} else {
+		// Update
+		// Get old announcment
+		var oldAnnouncement *model.Announcement
 		oldAnnouncement, err = a.announcement.GetByID(ctx, announcement.ID)
 		if err != nil {
 			zap.S().Error(err)
@@ -96,34 +104,52 @@ func (a *Announcement) Save(ctx context.Context, announcementSave dto.Announceme
 		if oldAnnouncement.Send || oldAnnouncement.Error != "" {
 			return dto.Announcement{}, fiber.ErrBadRequest
 		}
+
+		err = a.update(ctx, *oldAnnouncement, *announcement)
+	}
+	if err != nil {
+		return dto.Announcement{}, err
 	}
 
-	if err = a.service.withRollback(ctx, func(ctx context.Context) error {
-		if announcementSave.ID == 0 {
-			err = a.announcement.Create(ctx, announcement)
-		} else {
-			err = a.announcement.Update(ctx, *announcement)
-		}
-		if err != nil {
+	return dto.AnnouncementDTO(announcement), nil
+}
+
+func (a *Announcement) create(ctx context.Context, announcement *model.Announcement) error {
+	if err := a.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := a.announcement.Create(ctx, announcement); err != nil {
 			return err
 		}
 
-		if announcementSave.ID == 0 {
-			err = a.service.announcements.Create(ctx, *announcement)
-		} else {
-			err = a.service.announcements.Update(ctx, *oldAnnouncement, *announcement)
-		}
-		if err != nil {
+		if err := a.service.announcements.Create(ctx, *announcement); err != nil {
 			return err
 		}
 
 		return nil
 	}); err != nil {
 		zap.S().Error(err)
-		return dto.Announcement{}, fiber.ErrInternalServerError
+		return fiber.ErrInternalServerError
 	}
 
-	return dto.AnnouncementDTO(announcement), nil
+	return nil
+}
+
+func (a *Announcement) update(ctx context.Context, oldAnnouncement, newAnnouncement model.Announcement) error {
+	if err := a.service.withRollback(ctx, func(ctx context.Context) error {
+		if err := a.announcement.Update(ctx, newAnnouncement); err != nil {
+			return err
+		}
+
+		if err := a.service.announcements.Update(ctx, oldAnnouncement, newAnnouncement); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		zap.S().Error(err)
+		return fiber.ErrInternalServerError
+	}
+
+	return nil
 }
 
 func (a *Announcement) Delete(ctx context.Context, announcementID int) error {
