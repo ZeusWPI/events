@@ -58,6 +58,20 @@ func (c *Client) Files(ctx context.Context, path string) ([]File, error) {
 // File will fetch a file with it's contents
 // It's up to the user to only use this function if a single file return is expected
 func (c *Client) File(ctx context.Context, path string) ([]byte, error) {
+	var lastErr error
+
+	for range 3 {
+		b, err := c.fileOnce(ctx, path)
+		if err == nil {
+			return b, nil
+		}
+		lastErr = err
+	}
+
+	return nil, lastErr
+}
+
+func (c *Client) fileOnce(ctx context.Context, path string) ([]byte, error) {
 	req, err := c.newJSONRequest(ctx, "GET", "/media/"+path, nil)
 	if err != nil {
 		return nil, err
