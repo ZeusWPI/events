@@ -31,7 +31,7 @@ type Client struct {
 
 func New(repo repository.Repository) (*Client, error) {
 	announcementChannel := config.GetDefaultString("announcement.channel", "")
-	if announcementChannel == "" {
+	if announcementChannel == "" && !config.IsDev() {
 		return nil, errors.New("no mattermost announcement channel id set")
 	}
 

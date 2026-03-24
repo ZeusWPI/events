@@ -37,7 +37,7 @@ dsa:
   syncronize_s: 86400 # 1 day
 
 announcement:
-  channel: c48qqzyfp7dhjciniwbk7k8fgy # Test kanaal
+  channel: # Not used in development
   deadline_s: 172800 # 2 days
 
 check:

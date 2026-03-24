@@ -97,22 +97,22 @@ export function TasksDetail() {
             )}
           </div>
         </div>
-        <Button onClick={handleRun} disabled={task.status === TaskStatus.Running || updating} size="icon" className="rounded-full">
+        <Button onClick={handleRun} disabled={task.status === TaskStatus.Running || updating} size="iconSmall" className="rounded-full">
           {task.status === TaskStatus.Running ? <LoaderCircle className="animate-spin" /> : <Play />}
         </Button>
       </PageHeader>
       <div className="flex justify-between align-center p-6 w-full border rounded-md gap-4">
-        <div className="flex flex-col align-start grow-1">
+        <div className="flex flex-col align-start grow">
           <span className="text-muted-foreground">Day</span>
           <span className="text-3xl text-center">{interval.day}</span>
         </div>
         <Separator orientation="vertical" className="h-15" />
-        <div className="flex flex-col align-start grow-1">
+        <div className="flex flex-col align-start grow">
           <span className="text-muted-foreground">Hour</span>
           <span className="text-3xl text-center">{interval.hour}</span>
         </div>
         <Separator orientation="vertical" className="h-15" />
-        <div className="flex flex-col align-start grow-1">
+        <div className="flex flex-col align-start grow">
           <span className="text-muted-foreground">Minute</span>
           <span className="text-3xl text-center">{interval.minute}</span>
         </div>

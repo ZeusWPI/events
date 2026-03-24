@@ -126,6 +126,52 @@ func (c *Check) Update(ctx context.Context, checkSave dto.CheckUpdate) (dto.Chec
 	return dto.CheckDTO(check), nil
 }
 
+func (c *Check) MarkDone(ctx context.Context, checkID int) (dto.Check, error) {
+	check, err := c.check.GetByID(ctx, checkID)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Check{}, fiber.ErrInternalServerError
+	}
+	if check == nil {
+		return dto.Check{}, fiber.ErrBadRequest
+	}
+	if check.Type != model.CheckAutomatic {
+		return dto.Check{}, fiber.ErrBadRequest
+	}
+	if check.Status != model.CheckTODO && check.Status != model.CheckTODOLate {
+		return dto.Check{}, fiber.ErrBadRequest
+	}
+
+	event, err := c.event.GetByID(ctx, check.EventID)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Check{}, fiber.ErrInternalServerError
+	}
+
+	year, err := c.year.GetLast(ctx)
+	if err != nil {
+		zap.S().Error(err)
+		return dto.Check{}, fiber.ErrInternalServerError
+	}
+
+	if event.YearID != year.ID {
+		return dto.Check{}, fiber.NewError(fiber.StatusBadRequest, "event is from a previous year")
+	}
+
+	if check.Status == model.CheckTODO {
+		check.Status = model.CheckDone
+	} else {
+		check.Status = model.CheckDoneLate
+	}
+
+	if err := c.check.UpdateEvent(ctx, *check); err != nil {
+		zap.S().Error(err)
+		return dto.Check{}, fiber.ErrInternalServerError
+	}
+
+	return dto.CheckDTO(check), nil
+}
+
 func (c *Check) Delete(ctx context.Context, checkID int) error {
 	check, err := c.check.GetByID(ctx, checkID)
 	if err != nil {

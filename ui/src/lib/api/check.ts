@@ -34,6 +34,15 @@ export function useCheckUpdate() {
   })
 }
 
+export function useCheckDone() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (check: Pick<Check, "id">) => (await apiPost(`${ENDPOINT}/done/${check.id}`, check)).data,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["event"] })
+  })
+}
+
 export function useCheckDelete() {
   const queryClient = useQueryClient()
 

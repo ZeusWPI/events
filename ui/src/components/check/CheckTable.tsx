@@ -1,16 +1,17 @@
-import { useCheckCreate, useCheckDelete, useCheckUpdate } from "@/lib/api/check";
+import { useCheckCreate, useCheckDelete, useCheckDone, useCheckUpdate } from "@/lib/api/check";
 import { Check, CheckStatus, CheckType, checkStatusToIcon, checkStatusToText } from "@/lib/types/check";
-import { ColumnDef, Row } from "@tanstack/react-table";
+import { Event } from "@/lib/types/event";
+import { ColumnDef } from "@tanstack/react-table";
 import { ClipboardCheckIcon, ClipboardXIcon, MessageCircleMoreIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { IconButton } from "../atoms/IconButton";
 import { TooltipText } from "../atoms/TooltipText";
+import { Countdown } from "../molecules/Countdown";
 import { Table } from "../organisms/Table";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Event } from "@/lib/types/event";
-import { Countdown } from "../molecules/Countdown";
+import { Confirm } from "../molecules/Confirm";
 
 interface Props {
   checks: Check[];
@@ -46,38 +47,6 @@ export function CheckTable({ checks, event }: Props) {
     })
   }
 
-  const [toggleStatus, setToggleStatus] = useState(false)
-  const CheckUpdate = useCheckUpdate()
-
-  const toggleDone = (check: Check) => {
-    setToggleStatus(true)
-
-    if (check.status === CheckStatus.Todo) {
-      check.status = CheckStatus.Done
-    } else {
-      check.status = CheckStatus.Todo
-    }
-
-    CheckUpdate.mutate(check, {
-      onSuccess: () => toast.success("Success"),
-      onError: error => toast.error("Failed", { description: error.message }),
-      onSettled: () => setToggleStatus(false)
-    })
-  }
-
-  const [deleteStatus, setDeleteStatus] = useState(false)
-  const checkDelete = useCheckDelete()
-
-  const deleteCheck = (check: Check) => {
-    setDeleteStatus(true)
-
-    checkDelete.mutate(check, {
-      onSuccess: () => toast.success("Success"),
-      onError: error => toast.error("Failed", { description: error.message }),
-      onSettled: () => setDeleteStatus(false),
-    })
-  }
-
   const columns: ColumnDef<Check>[] = useMemo(() => [
     {
       accessorKey: "status",
@@ -98,25 +67,28 @@ export function CheckTable({ checks, event }: Props) {
       cell: ({ cell }) => <span>{cell.getValue<string>()}</span>
     },
     {
-      id: "actions",
-      header: () => {
-        if (addCheck) return null
-
-        return (
-          <div className="flex justify-end">
-            <IconButton onClick={() => setAddCheck(true)}>
-              <PlusIcon className="text-primary" />
-            </IconButton>
-          </div>
-        )
-      },
+      id: "deadline",
+      header: () => null,
       cell: ({ row }) => row.original.type === CheckType.Automatic
-        ? <Deadline check={row.original} event={event} />
-        : <CheckActions row={row} onToggle={toggleDone} toggleStatus={toggleStatus} onDelete={deleteCheck} deleteStatus={deleteStatus} />
+        ? <AutomaticDeadline check={row.original} event={event} />
+        : <ManualDeadline />
+    },
+    {
+      id: "actions",
+      header: () => (
+        <div className={`flex justify-end ${addCheck ? "invisible" : "flex"}`}>
+          <IconButton onClick={() => setAddCheck(true)}>
+            <PlusIcon className="text-primary" />
+          </IconButton>
+        </div>
+      ),
+      cell: ({ row }) => row.original.type === CheckType.Automatic
+        ? <AutomaticActions check={row.original} />
+        : <ManualActions check={row.original} />
       ,
       meta: { small: true, horizontalAlign: "justify-end" },
     }
-  ], [checks, toggleStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+  ], [checks, addCheck]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-4">
@@ -139,43 +111,61 @@ export function CheckTable({ checks, event }: Props) {
   );
 }
 
-interface ActionProps {
-  row: Row<Check>;
-  onToggle: (check: Check) => void;
-  toggleStatus: boolean;
-  onDelete: (check: Check) => void;
-  deleteStatus: boolean;
+interface ManualActionsProps {
+  check: Check;
 }
 
-function CheckActions({ row, onToggle, toggleStatus, onDelete, deleteStatus }: ActionProps) {
-  const check: Check = row.original
+function ManualActions({ check }: ManualActionsProps) {
+  const [toggleStatus, setToggleStatus] = useState(false)
+  const CheckUpdate = useCheckUpdate()
 
-  if (check.type === CheckType.Automatic) {
-    return null
+  const toggleDone = () => {
+    setToggleStatus(true)
+
+    const newCheck = { ...check, status: check.status === CheckStatus.Todo ? CheckStatus.Done : CheckStatus.Todo }
+
+    CheckUpdate.mutate(newCheck, {
+      onSuccess: () => toast.success("Success"),
+      onError: error => toast.error("Failed", { description: error.message }),
+      onSettled: () => setToggleStatus(false)
+    })
+  }
+
+  const [deleteStatus, setDeleteStatus] = useState(false)
+  const checkDelete = useCheckDelete()
+
+  const deleteCheck = () => {
+    setDeleteStatus(true)
+
+    checkDelete.mutate(check, {
+      onSuccess: () => toast.success("Success"),
+      onError: error => toast.error("Failed", { description: error.message }),
+      onSettled: () => setDeleteStatus(false),
+    })
   }
 
   return (
     <div className="flex">
-      <Button onClick={() => onToggle(check)} size="icon" variant="ghost" disabled={toggleStatus}>
+      <Button onClick={toggleDone} size="iconSmall" variant="ghost" disabled={toggleStatus}>
         {check.status === CheckStatus.Done ? <ClipboardXIcon /> : <ClipboardCheckIcon />}
       </Button>
-      <Button onClick={() => onDelete(check)} size="icon" variant="ghost" disabled={deleteStatus}>
+      <Button onClick={deleteCheck} size="iconSmall" variant="ghost" disabled={deleteStatus}>
         <Trash2Icon className="text-red-500" />
       </Button>
     </div>
   )
 }
 
-interface DeadlineProps {
+function ManualDeadline() {
+  return null
+}
+
+interface AutomaticDeadlineProps {
   event: Event;
   check: Check;
 }
 
-function Deadline({ event, check }: DeadlineProps) {
-  if (check.type !== CheckType.Automatic) {
-    return
-  }
-
+function AutomaticDeadline({ event, check }: AutomaticDeadlineProps) {
   if (!check.deadline) {
     // Some automatic tasks have no deadline
     return
@@ -194,4 +184,47 @@ function Deadline({ event, check }: DeadlineProps) {
   }
 
   return <Countdown goalDate={deadline} />
+}
+
+interface AutomaticActionsProps {
+  check: Check;
+}
+
+function AutomaticActions({ check }: AutomaticActionsProps) {
+  const checkDone = useCheckDone()
+
+  const [open, setOpen] = useState(false)
+
+  if (![CheckStatus.Todo, CheckStatus.TodoLate].includes(check.status)) return
+
+  const handleDone = () => {
+    setOpen(true)
+  }
+
+  const handleDoneConfirm = () => {
+    checkDone.mutate(check, {
+      onSuccess: () => {
+        toast.success("Success")
+      },
+      onError: error => toast.error("Failed", { description: error.message }),
+    })
+  }
+
+  return (
+    <>
+      <TooltipText text="Mark as done">
+        <Button onClick={handleDone} size="iconSmall" variant="ghost">
+          <ClipboardCheckIcon />
+        </Button>
+      </TooltipText>
+      <Confirm
+        title="Mark as done confirmation"
+        description="Are you sure you want to mark this task as done"
+        confirmText="Mark as done"
+        onConfirm={handleDoneConfirm}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
+  )
 }
