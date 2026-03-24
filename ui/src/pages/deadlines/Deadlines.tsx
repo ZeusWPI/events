@@ -55,7 +55,6 @@ export function Deadlines() {
   )
 }
 
-
 function Deadline({ row }: { row: Row<Deadline> }) {
   const event = row.original.event
   const check = row.original.check
@@ -65,15 +64,23 @@ function Deadline({ row }: { row: Row<Deadline> }) {
   const tooLate = deadline < now
 
   if (tooLate) {
-    return
+    return null
   }
 
   return <Countdown goalDate={deadline} />
 }
 
 function sortChecks(allChecks: Check[], events: Event[]): Deadline[] {
+  const now = new Date()
   const eventMap = new Map(events?.map(e => [e.id, e]) ?? {})
-  const checks = allChecks?.filter(c => c.deadline && [CheckStatus.Todo, CheckStatus.Warning].includes(c.status) && eventMap.has(c.eventId)) ?? []
+  const checks = allChecks?.filter(c => {
+    if (c.deadline === undefined) return false
+    if (!eventMap.has(c.eventId)) return false
+    if (![CheckStatus.Todo, CheckStatus.Warning].includes(c.status)) return false
+
+    const deadline = new Date(eventMap.get(c.eventId)!.startTime.getTime() - c.deadline)
+    return deadline > now
+  }) ?? []
 
   return [...checks].sort((a, b) => {
     const aDeadline = eventMap.get(a.eventId)!.startTime.getTime() - a.deadline!
