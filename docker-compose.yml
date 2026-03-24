@@ -21,17 +21,6 @@ services:
     ports:
       - "9000:9000"
 
-  createbuckets:
-    image: minio/mc
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc config host add myminio http://minio:9000 minio miniominio;
-      /usr/bin/mc mb -p myminio/events;
-      exit 0;
-      "
-
   backend:
     build:
       dockerfile: Dockerfile.dev
@@ -47,8 +36,6 @@ services:
         condition: service_started
       minio:
         condition: service_started
-      createbuckets:
-        condition: service_completed_successfully
 
   frontend:
     build:
