@@ -27,11 +27,7 @@ interface Props {
 
 // Returns true if the text contains any of the mentions
 const includesMention = (text: string, mentions: string[]): boolean => {
-  for (const m of mentions) {
-    if (text.includes(m)) return true
-  }
-
-  return false
+  return mentions.some(m => text.includes(m))
 }
 
 export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Props) {
@@ -70,7 +66,7 @@ export function AnnouncementForm({ announcement, defaultEvents, onSubmit }: Prop
       let warningText = ""
 
       // Check mattermost mention
-      let mentions = ["@channel"]
+      let mentions = ["@channel", "@all"]
       if (!includesMention(form.state.values.content, mentions)) {
         warningText += "No mattermost mention.\n"
       }
