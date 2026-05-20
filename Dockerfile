@@ -18,6 +18,7 @@ FROM node:22.16.0-alpine3.22 AS frontend-builder
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
+RUN corepack prepare pnpm@10.14.0 --activate
 
 WORKDIR /frontend/ui
 
